@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MusicIA Studio</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header>
+    <h1>🎵 MusicIA Studio</h1>
+    <p>Créer, publier et télécharger de la musique assistée par IA.</p>
+  </header>
+
+  <main>
+    <section class="card">
+      <h2>1) Génération IA</h2>
+      <form id="generate-form">
+        <label>Style musical</label>
+        <select id="style" required>
+          <option value="Lo-fi">Lo-fi</option>
+          <option value="Trap">Trap</option>
+          <option value="Électro">Électro</option>
+          <option value="Piano">Piano</option>
+          <option value="Cinematic">Cinematic</option>
+        </select>
+
+        <label>Ambiance</label>
+        <input id="mood" type="text" placeholder="Relax, épique, sombre..." required />
+
+        <label>Durée (secondes)</label>
+        <input id="duration" type="number" min="5" max="120" value="20" required />
+
+        <button type="submit">Générer une démo audio</button>
+      </form>
+      <audio id="generated-player" controls></audio>
+      <p id="generation-meta"></p>
+    </section>
+
+    <section class="card">
+      <h2>2) Mise en ligne</h2>
+      <form id="upload-form">
+        <label>Titre du morceau</label>
+        <input id="track-title" type="text" required />
+
+        <label>Artiste</label>
+        <input id="track-artist" type="text" required />
+
+        <label>Fichier audio (mp3/wav)</label>
+        <input id="track-file" type="file" accept="audio/*" required />
+
+        <button type="submit">Publier</button>
+      </form>
+    </section>
+
+    <section class="card">
+      <h2>3) Bibliothèque & Téléchargement</h2>
+      <ul id="track-list"></ul>
+    </section>
+  </main>
+
+  <template id="track-template">
+    <li class="track-item">
+      <div>
+        <strong class="title"></strong>
+        <p class="meta"></p>
+      </div>
+      <div class="track-actions">
+        <audio class="player" controls></audio>
+        <a class="download" download>Télécharger</a>
+      </div>
+    </li>
+  </template>
+
+  <script src="script.js"></script>
+</body>
+</html>
