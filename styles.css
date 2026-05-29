@@ -1,0 +1,81 @@
+:root {
+  font-family: Inter, system-ui, sans-serif;
+  color-scheme: dark;
+}
+
+body {
+  margin: 0;
+  background: linear-gradient(180deg, #070711, #121233);
+  color: #f1f5ff;
+}
+
+header {
+  text-align: center;
+  padding: 2rem 1rem;
+}
+
+main {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 1rem;
+  display: grid;
+  gap: 1rem;
+}
+
+.card {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 14px;
+  padding: 1rem;
+}
+
+form {
+  display: grid;
+  gap: .6rem;
+}
+
+input, select, button {
+  border-radius: 8px;
+  border: 1px solid #455;
+  padding: .6rem;
+  font-size: 1rem;
+}
+
+button {
+  background: #5f6fff;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+#track-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: .75rem;
+}
+
+.track-item {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: .4rem;
+  background: rgba(0,0,0,.2);
+  border-radius: 10px;
+  padding: .8rem;
+}
+
+.track-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem;
+  align-items: center;
+}
+
+.download {
+  color: #fff;
+  text-decoration: none;
+  background: #2f965d;
+  padding: .45rem .8rem;
+  border-radius: 8px;
+}
