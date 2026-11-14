@@ -1,6 +1,11 @@
 -- Migration communautaire Aytan. À exécuter dans Supabase SQL Editor après schema.sql.
--- L'âge n'est pas nécessaire au profil public et doit rester hors de cette table exposée aux membres.
-alter table public.profiles drop column if exists age;
+-- L'âge reste dans la base historique mais n'est jamais lisible/modifiable par les membres.
+revoke select on public.profiles from anon, authenticated;
+grant select (id, display_name, username, avatar_url, bio, is_private, created_at) on public.profiles to authenticated;
+revoke insert on public.profiles from anon, authenticated;
+grant insert (id, display_name, username, avatar_url, bio, is_private) on public.profiles to authenticated;
+revoke update on public.profiles from anon, authenticated;
+grant update (display_name, username, avatar_url, bio, is_private) on public.profiles to authenticated;
 alter table public.profiles add column if not exists username text;
 alter table public.profiles add column if not exists avatar_url text;
 alter table public.profiles add column if not exists bio text;
