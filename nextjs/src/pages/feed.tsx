@@ -1,0 +1,81 @@
+import { useEffect, useState } from 'react'
+import Link from 'next/link'
+import SiteLayout from '../components/SiteLayout'
+import { supabase } from '../lib/supabaseClient'
+
+type Comment = { id:string; post_id:string; author_id:string; body:string; created_at:string; author?:{display_name:string|null;username:string|null} }
+type Post = { id:string; author_id:string; body:string; image_url:string|null; created_at:string; author?:{display_name:string|null;username:string|null;avatar_url:string|null}; likes:number; liked:boolean; comments:Comment[] }
+export default function FeedPage() {
+  const [posts,setPosts] = useState<Post[]>([])
+  const [body,setBody] = useState('')
+  const [imageUrl,setImageUrl] = useState('')
+  const [userId,setUserId] = useState('')
+  const [commentDrafts,setCommentDrafts] = useState<Record<string,string>>({})
+  const [status,setStatus] = useState('')
+  const [busy,setBusy] = useState(false)
+  async function load() {
+    const [{data:auth},{data,error}]=await Promise.all([supabase.auth.getUser(),supabase.from('posts').select('id,author_id,body,image_url,created_at').order('created_at',{ascending:false}).limit(40)])
+    const uid=auth.user?.id||'';setUserId(uid)
+    if(error){setStatus('Le fil n’est pas encore configuré dans Supabase.');return}
+    const rows=(data||[]) as Omit<Post,'likes'|'liked'|'comments'|'author'>[]
+    const postIds=rows.map(p=>p.id)
+    const [{data:likes},{data:comments}]=await Promise.all([
+      postIds.length?supabase.from('post_likes').select('post_id,user_id').in('post_id',postIds):Promise.resolve({data:[] as any[]}),
+      postIds.length?supabase.from('post_comments').select('id,post_id,author_id,body,created_at').in('post_id',postIds).order('created_at',{ascending:true}):Promise.resolve({data:[] as any[]})
+    ])
+    const commentRows=(comments||[]) as Comment[]
+    const authorIds=Array.from(new Set([...rows.map(p=>p.author_id),...commentRows.map(c=>c.author_id)]))
+    const {data:profiles}=authorIds.length?await supabase.from('profiles').select('id,display_name,username,avatar_url').in('id',authorIds):{data:[] as any[]}
+    const byId=new Map((profiles||[]).map((p:any)=>[p.id,p]))
+    setPosts(rows.map(p=>({...p,author:byId.get(p.author_id),likes:(likes||[]).filter((l:any)=>l.post_id===p.id).length,liked:(likes||[]).some((l:any)=>l.post_id===p.id&&l.user_id===uid),comments:commentRows.filter(c=>c.post_id===p.id).map(c=>({...c,author:byId.get(c.author_id)}))})))
+  }
+  useEffect(()=>{load()},[])
+  async function publish(e:React.FormEvent) {
+    e.preventDefault(); if(!body.trim()) return
+    if(!userId){setStatus('Connecte-toi pour publier.');return}
+    setBusy(true);setStatus('')
+    const {error}=await supabase.from('posts').insert({author_id:userId,body:body.trim(),image_url:imageUrl.trim()||null})
+    setBusy(false)
+    if(error)setStatus(error.message)
+    else {setBody('');setImageUrl('');setStatus('Publication ajoutée.');load()}
+  }
+  async function toggleLike(post:Post) {
+    if(!userId){setStatus('Connecte-toi pour réagir.');return}
+    if(post.liked){const {error}=await supabase.from('post_likes').delete().eq('post_id',post.id).eq('user_id',userId);if(error)setStatus(error.message)}
+    else {const {error}=await supabase.from('post_likes').insert({post_id:post.id,user_id:userId});if(error)setStatus(error.message)}
+    load()
+  }
+  async function addComment(postId:string) {
+    const text=(commentDrafts[postId]||'').trim();if(!text)return
+    if(!userId){setStatus('Connecte-toi pour commenter.');return}
+    const {error}=await supabase.from('post_comments').insert({post_id:postId,author_id:userId,body:text})
+    if(error)setStatus(error.message);else{setCommentDrafts(old=>({...old,[postId]:''}));load()}
+  }
+  async function report(postId:string) {
+    if(!userId){setStatus('Connecte-toi pour signaler.');return}
+    const reason=window.prompt('Pourquoi souhaites-tu signaler cette publication ?')
+    if(!reason?.trim())return
+    const {error}=await supabase.from('reports').insert({reporter_id:userId,content_type:'post',content_id:postId,reason:reason.trim()})
+    setStatus(error?'Impossible d’envoyer le signalement.':'Signalement transmis à la modération.')
+  }
+  return <SiteLayout title="Le fil de la communauté">
+    <div className="community-grid"><section className="feed-column">
+      <form className="composer card-surface" onSubmit={publish}>
+        <div className="composer-title"><span className="avatar">✦</span><div><strong>Quoi de neuf ?</strong><small>Partage quelque chose avec la communauté.</small></div></div>
+        <textarea value={body} onChange={e=>setBody(e.target.value)} maxLength={1200} placeholder="Écris ton message…" rows={4}/>
+        <input value={imageUrl} onChange={e=>setImageUrl(e.target.value)} placeholder="Lien d’une image (facultatif)"/>
+        <div className="composer-bottom"><small>{body.length}/1200 · Pas d’informations personnelles sensibles.</small><button className="btn btn-primary" disabled={busy||!body.trim()}>{busy?'Publication…':'Publier'}</button></div>
+        {status&&<p className="form-status">{status}</p>}
+      </form>
+      {posts.length===0&&<div className="empty-state card-surface"><div className="empty-icon">✦</div><h2>Le fil commence ici</h2><p>Il n’y a pas encore de publication visible. Sois le premier à partager un message positif.</p></div>}
+      {posts.map(post=><article className="post-card card-surface" key={post.id}>
+        <div className="post-author"><div className="avatar">{(post.author?.display_name||post.author?.username||'A').slice(0,1).toUpperCase()}</div><div><strong>{post.author?.display_name||post.author?.username||'Membre Aytan'}</strong><small>@{post.author?.username||'membre'} · {new Date(post.created_at).toLocaleString('fr-FR')}</small></div><button className="text-button report-button" onClick={()=>report(post.id)}>Signaler</button></div>
+        <p className="post-body">{post.body}</p>
+        {post.image_url&&<img className="post-image-real" src={post.image_url} alt="Image publiée par un membre" loading="lazy"/>}
+        <div className="post-actions"><button className={post.liked?'liked':''} onClick={()=>toggleLike(post)}>{post.liked?'♥':'♡'} {post.likes} J’aime</button><span>💬 {post.comments.length} commentaire(s)</span></div>
+        <div className="comments-list">{post.comments.map(c=><p key={c.id}><strong>{c.author?.display_name||c.author?.username||'Membre'}</strong> {c.body}</p>)}</div>
+        <form className="comment-form" onSubmit={e=>{e.preventDefault();addComment(post.id)}}><input value={commentDrafts[post.id]||''} onChange={e=>setCommentDrafts(old=>({...old,[post.id]:e.target.value}))} maxLength={500} placeholder="Écrire un commentaire…"/><button disabled={!(commentDrafts[post.id]||'').trim()}>Envoyer</button></form>
+      </article>)}
+    </section><aside className="side-column"><div className="card-surface side-card"><span className="side-icon">🛡️</span><h3>On veille les uns sur les autres</h3><p>Ne partage jamais ton adresse, ton numéro, tes mots de passe ou ta localisation précise.</p><Link href="/safety">Voir les conseils de sécurité →</Link></div><div className="card-surface side-card"><h3>Envie de faire connaissance ?</h3><p>Découvre les membres et leurs centres d’intérêt.</p><Link href="/members" className="btn btn-plain">Découvrir les membres</Link></div></aside></div>
+  </SiteLayout>
+}

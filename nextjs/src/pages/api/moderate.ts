@@ -1,27 +1,34 @@
-// API route to forward moderation requests to Supabase Edge Function using SERVICE_ROLE_KEY
-export default async function handler(req: any, res: any) {
-  if (req.method !== 'POST') return res.status(405).end()
-  const { message_id } = req.body
-  if (!message_id) return res.status(400).json({ error: 'missing message_id' })
+import { createClient } from '@supabase/supabase-js'
 
-  const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL
-  const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY
-  if (!SUPABASE_URL || !SERVICE_KEY) return res.status(500).json({ error: 'server not configured' })
+export default async function handler(req: any, res: any) {
+  if (req.method !== 'POST') return res.status(405).json({ error: 'method not allowed' })
+  const { message_id } = req.body || {}
+  const authHeader = req.headers.authorization || ''
+  const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : ''
+  const url = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL
+  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+  if (!message_id || !token) return res.status(401).json({ error: 'authentication required' })
+  if (!url || !anonKey || !serviceKey) return res.status(503).json({ error: 'moderation service not configured' })
+
+  const userClient = createClient(url, anonKey, { global: { headers: { Authorization: `Bearer ${token}` } } })
+  const { data: userData, error: authError } = await userClient.auth.getUser(token)
+  if (authError || !userData.user) return res.status(401).json({ error: 'invalid session' })
+
+  const { data: ownedMessage, error: lookupError } = await userClient
+    .from('messages').select('id').eq('id', message_id).eq('sender', userData.user.id).maybeSingle()
+  if (lookupError || !ownedMessage) return res.status(404).json({ error: 'message not found' })
 
   try {
-    const fnUrl = `${SUPABASE_URL.replace(/\/+$/,'')}/functions/v1/moderate`
-    const r = await fetch(fnUrl, {
+    const fnUrl = `${url.replace(/\/+$/, '')}/functions/v1/moderate`
+    const result = await fetch(fnUrl, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${SERVICE_KEY}`
-      },
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${serviceKey}` },
       body: JSON.stringify({ message_id })
     })
-
-    const json = await r.text()
-    return res.status(r.status).send(json)
-  } catch (err) {
-    return res.status(500).json({ error: String(err) })
+    const body = await result.text()
+    return res.status(result.status).send(body)
+  } catch {
+    return res.status(502).json({ error: 'moderation service unavailable' })
   }
 }
