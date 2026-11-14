@@ -19,7 +19,7 @@ export default function FeedPage() {
     if(error){setStatus('Le fil n’est pas encore configuré dans Supabase.');return}
     const rows=(data||[]) as Omit<Post,'likes'|'liked'|'comments'|'author'>[]
     const postIds=rows.map(p=>p.id)
-    const [{data:profiles},{data:likes},{data:comments}]=await Promise.all([
+    const [{data:likes},{data:comments}]=await Promise.all([
       postIds.length?supabase.from('post_likes').select('post_id,user_id').in('post_id',postIds):Promise.resolve({data:[] as any[]}),
       postIds.length?supabase.from('post_comments').select('id,post_id,author_id,body,created_at').in('post_id',postIds).order('created_at',{ascending:true}):Promise.resolve({data:[] as any[]})
     ])
