@@ -3,24 +3,32 @@ import Link from 'next/link'
 import SiteLayout from '../components/SiteLayout'
 import { supabase } from '../lib/supabaseClient'
 
-type Post = { id:string; author_id:string; body:string; image_url:string|null; created_at:string; author?:{display_name:string|null;username:string|null;avatar_url:string|null} }
+type Comment = { id:string; post_id:string; author_id:string; body:string; created_at:string }
+type Post = { id:string; author_id:string; body:string; image_url:string|null; created_at:string; author?:{display_name:string|null;username:string|null;avatar_url:string|null}; likes:number; liked:boolean; comments:Comment[] }
 export default function FeedPage() {
   const [posts,setPosts] = useState<Post[]>([])
   const [body,setBody] = useState('')
   const [imageUrl,setImageUrl] = useState('')
   const [userId,setUserId] = useState('')
+  const [commentDrafts,setCommentDrafts] = useState<Record<string,string>>({})
   const [status,setStatus] = useState('')
   const [busy,setBusy] = useState(false)
   async function load() {
-    const {data,error}=await supabase.from('posts').select('id,author_id,body,image_url,created_at').order('created_at',{ascending:false}).limit(40)
+    const [{data:auth},{data,error}]=await Promise.all([supabase.auth.getUser(),supabase.from('posts').select('id,author_id,body,image_url,created_at').order('created_at',{ascending:false}).limit(40)])
+    const uid=auth.user?.id||'';setUserId(uid)
     if(error){setStatus('Le fil n’est pas encore configuré dans Supabase.');return}
-    const rows=(data||[]) as Post[]
+    const rows=(data||[]) as Omit<Post,'likes'|'liked'|'comments'|'author'>[]
     const ids=Array.from(new Set(rows.map(p=>p.author_id)))
-    const {data:profiles}=ids.length?await supabase.from('profiles').select('id,display_name,username,avatar_url').in('id',ids):{data:[]}
+    const postIds=rows.map(p=>p.id)
+    const [{data:profiles},{data:likes},{data:comments}]=await Promise.all([
+      ids.length?supabase.from('profiles').select('id,display_name,username,avatar_url').in('id',ids):Promise.resolve({data:[] as any[]}),
+      postIds.length?supabase.from('post_likes').select('post_id,user_id').in('post_id',postIds):Promise.resolve({data:[] as any[]}),
+      postIds.length?supabase.from('post_comments').select('id,post_id,author_id,body,created_at').in('post_id',postIds).order('created_at',{ascending:true}):Promise.resolve({data:[] as any[]})
+    ])
     const byId=new Map((profiles||[]).map((p:any)=>[p.id,p]))
-    setPosts(rows.map(p=>({...p,author:byId.get(p.author_id)})))
+    setPosts(rows.map(p=>({...p,author:byId.get(p.author_id),likes:(likes||[]).filter((l:any)=>l.post_id===p.id).length,liked:(likes||[]).some((l:any)=>l.post_id===p.id&&l.user_id===uid),comments:(comments||[]).filter((c:any)=>c.post_id===p.id) as Comment[]})))
   }
-  useEffect(()=>{supabase.auth.getUser().then(({data})=>setUserId(data.user?.id||'')); load()},[])
+  useEffect(()=>{load()},[])
   async function publish(e:React.FormEvent) {
     e.preventDefault(); if(!body.trim()) return
     if(!userId){setStatus('Connecte-toi pour publier.');return}
@@ -29,6 +37,18 @@ export default function FeedPage() {
     setBusy(false)
     if(error)setStatus(error.message)
     else {setBody('');setImageUrl('');setStatus('Publication ajoutée.');load()}
+  }
+  async function toggleLike(post:Post) {
+    if(!userId){setStatus('Connecte-toi pour réagir.');return}
+    if(post.liked){const {error}=await supabase.from('post_likes').delete().eq('post_id',post.id).eq('user_id',userId);if(error)setStatus(error.message)}
+    else {const {error}=await supabase.from('post_likes').insert({post_id:post.id,user_id:userId});if(error)setStatus(error.message)}
+    load()
+  }
+  async function addComment(postId:string) {
+    const text=(commentDrafts[postId]||'').trim();if(!text)return
+    if(!userId){setStatus('Connecte-toi pour commenter.');return}
+    const {error}=await supabase.from('post_comments').insert({post_id:postId,author_id:userId,body:text})
+    if(error)setStatus(error.message);else{setCommentDrafts(old=>({...old,[postId]:''}));load()}
   }
   async function report(postId:string) {
     if(!userId){setStatus('Connecte-toi pour signaler.');return}
@@ -51,6 +71,9 @@ export default function FeedPage() {
         <div className="post-author"><div className="avatar">{(post.author?.display_name||post.author?.username||'A').slice(0,1).toUpperCase()}</div><div><strong>{post.author?.display_name||post.author?.username||'Membre Aytan'}</strong><small>@{post.author?.username||'membre'} · {new Date(post.created_at).toLocaleString('fr-FR')}</small></div><button className="text-button report-button" onClick={()=>report(post.id)}>Signaler</button></div>
         <p className="post-body">{post.body}</p>
         {post.image_url&&<img className="post-image-real" src={post.image_url} alt="Image publiée par un membre" loading="lazy"/>}
+        <div className="post-actions"><button className={post.liked?'liked':''} onClick={()=>toggleLike(post)}>{post.liked?'♥':'♡'} {post.likes} J’aime</button><span>💬 {post.comments.length} commentaire(s)</span></div>
+        <div className="comments-list">{post.comments.map(c=><p key={c.id}><strong>Membre</strong> {c.body}</p>)}</div>
+        <form className="comment-form" onSubmit={e=>{e.preventDefault();addComment(post.id)}}><input value={commentDrafts[post.id]||''} onChange={e=>setCommentDrafts(old=>({...old,[post.id]:e.target.value}))} maxLength={500} placeholder="Écrire un commentaire…"/><button disabled={!(commentDrafts[post.id]||'').trim()}>Envoyer</button></form>
       </article>)}
     </section><aside className="side-column"><div className="card-surface side-card"><span className="side-icon">🛡️</span><h3>On veille les uns sur les autres</h3><p>Ne partage jamais ton adresse, ton numéro, tes mots de passe ou ta localisation précise.</p><Link href="/safety">Voir les conseils de sécurité →</Link></div><div className="card-surface side-card"><h3>Envie de faire connaissance ?</h3><p>Découvre les membres et leurs centres d’intérêt.</p><Link href="/members" className="btn btn-plain">Découvrir les membres</Link></div></aside></div>
   </SiteLayout>
