@@ -3,7 +3,7 @@ import Link from 'next/link'
 import SiteLayout from '../components/SiteLayout'
 import { supabase } from '../lib/supabaseClient'
 
-type Post = { id:string; author_id:string; body:string; image_url:string|null; created_at:string; profiles?:{display_name:string|null;username:string|null;avatar_url:string|null} }
+type Post = { id:string; author_id:string; body:string; image_url:string|null; created_at:string; author?:{display_name:string|null;username:string|null;avatar_url:string|null} }
 export default function FeedPage() {
   const [posts,setPosts] = useState<Post[]>([])
   const [body,setBody] = useState('')
@@ -12,9 +12,13 @@ export default function FeedPage() {
   const [status,setStatus] = useState('')
   const [busy,setBusy] = useState(false)
   async function load() {
-    const {data,error}=await supabase.from('posts').select('id,author_id,body,image_url,created_at,profiles(display_name,username,avatar_url)').order('created_at',{ascending:false}).limit(40)
-    if(error) setStatus('Le fil n’est pas encore configuré dans Supabase.')
-    else setPosts((data||[]) as Post[])
+    const {data,error}=await supabase.from('posts').select('id,author_id,body,image_url,created_at').order('created_at',{ascending:false}).limit(40)
+    if(error){setStatus('Le fil n’est pas encore configuré dans Supabase.');return}
+    const rows=(data||[]) as Post[]
+    const ids=Array.from(new Set(rows.map(p=>p.author_id)))
+    const {data:profiles}=ids.length?await supabase.from('profiles').select('id,display_name,username,avatar_url').in('id',ids):{data:[]}
+    const byId=new Map((profiles||[]).map((p:any)=>[p.id,p]))
+    setPosts(rows.map(p=>({...p,author:byId.get(p.author_id)})))
   }
   useEffect(()=>{supabase.auth.getUser().then(({data})=>setUserId(data.user?.id||'')); load()},[])
   async function publish(e:React.FormEvent) {
@@ -44,7 +48,7 @@ export default function FeedPage() {
       </form>
       {posts.length===0&&<div className="empty-state card-surface"><div className="empty-icon">✦</div><h2>Le fil commence ici</h2><p>Il n’y a pas encore de publication visible. Sois le premier à partager un message positif.</p></div>}
       {posts.map(post=><article className="post-card card-surface" key={post.id}>
-        <div className="post-author"><div className="avatar">{(post.profiles?.display_name||post.profiles?.username||'A').slice(0,1).toUpperCase()}</div><div><strong>{post.profiles?.display_name||post.profiles?.username||'Membre Aytan'}</strong><small>@{post.profiles?.username||'membre'} · {new Date(post.created_at).toLocaleString('fr-FR')}</small></div><button className="text-button report-button" onClick={()=>report(post.id)}>Signaler</button></div>
+        <div className="post-author"><div className="avatar">{(post.author?.display_name||post.author?.username||'A').slice(0,1).toUpperCase()}</div><div><strong>{post.author?.display_name||post.author?.username||'Membre Aytan'}</strong><small>@{post.author?.username||'membre'} · {new Date(post.created_at).toLocaleString('fr-FR')}</small></div><button className="text-button report-button" onClick={()=>report(post.id)}>Signaler</button></div>
         <p className="post-body">{post.body}</p>
         {post.image_url&&<img className="post-image-real" src={post.image_url} alt="Image publiée par un membre" loading="lazy"/>}
       </article>)}
