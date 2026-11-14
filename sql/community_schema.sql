@@ -1,4 +1,9 @@
 -- Migration communautaire Aytan. À exécuter dans Supabase SQL Editor après schema.sql.
+alter table public.profiles add column if not exists username text;
+alter table public.profiles add column if not exists avatar_url text;
+alter table public.profiles add column if not exists bio text;
+alter table public.profiles add column if not exists is_private boolean not null default false;
+
 -- L'âge reste dans la base historique mais n'est jamais lisible/modifiable par les membres.
 revoke select on public.profiles from anon, authenticated;
 grant select (id, display_name, username, avatar_url, bio, is_private, created_at) on public.profiles to authenticated;
@@ -6,10 +11,6 @@ revoke insert on public.profiles from anon, authenticated;
 grant insert (id, display_name, username, avatar_url, bio, is_private) on public.profiles to authenticated;
 revoke update on public.profiles from anon, authenticated;
 grant update (display_name, username, avatar_url, bio, is_private) on public.profiles to authenticated;
-alter table public.profiles add column if not exists username text;
-alter table public.profiles add column if not exists avatar_url text;
-alter table public.profiles add column if not exists bio text;
-alter table public.profiles add column if not exists is_private boolean not null default false;
 create unique index if not exists profiles_username_unique on public.profiles (lower(username)) where username is not null;
 
 create table if not exists public.posts (
@@ -41,6 +42,15 @@ create table if not exists public.blocks (
  check(blocker_id <> blocked_id)
 );
 
+create or replace function public.is_blocked_between(user_a uuid, user_b uuid)
+returns boolean language sql stable security definer set search_path = public as $
+ select exists(select 1 from public.blocks b where
+  (b.blocker_id=user_a and b.blocked_id=user_b) or
+  (b.blocker_id=user_b and b.blocked_id=user_a));
+$;
+revoke all on function public.is_blocked_between(uuid,uuid) from public;
+grant execute on function public.is_blocked_between(uuid,uuid) to authenticated;
+
 alter table public.posts enable row level security;
 alter table public.reports enable row level security;
 alter table public.blocks enable row level security;
@@ -48,11 +58,7 @@ alter table public.blocks enable row level security;
 -- Public-facing profile fields are visible to signed-in members only; private profiles remain owner-only.
 drop policy if exists profiles_members_read on public.profiles;
 create policy profiles_members_read on public.profiles for select to authenticated
- using (id = auth.uid() or (coalesce(is_private,false)=false and not exists (
-   select 1 from public.blocks b where
-   (b.blocker_id = auth.uid() and b.blocked_id = profiles.id) or
-   (b.blocker_id = profiles.id and b.blocked_id = auth.uid())
- )));
+ using (id = auth.uid() or (coalesce(is_private,false)=false and not public.is_blocked_between(auth.uid(), profiles.id)));
 drop policy if exists profiles_owner_insert on public.profiles;
 create policy profiles_owner_insert on public.profiles for insert to authenticated with check (id=auth.uid());
 drop policy if exists profiles_owner_update on public.profiles;
@@ -60,9 +66,7 @@ create policy profiles_owner_update on public.profiles for update to authenticat
 
 drop policy if exists posts_members_read on public.posts;
 create policy posts_members_read on public.posts for select to authenticated using (
- not exists (select 1 from public.blocks b where
-   (b.blocker_id=auth.uid() and b.blocked_id=posts.author_id) or
-   (b.blocker_id=posts.author_id and b.blocked_id=auth.uid()))
+ not public.is_blocked_between(auth.uid(), posts.author_id)
  and exists (select 1 from public.profiles p where p.id=posts.author_id and (p.is_private=false or p.id=auth.uid()))
 );
 drop policy if exists posts_owner_insert on public.posts;
@@ -104,14 +108,14 @@ create index if not exists post_comments_post_created_idx on public.post_comment
 alter table public.post_likes enable row level security;
 alter table public.post_comments enable row level security;
 drop policy if exists post_likes_members_read on public.post_likes;
-create policy post_likes_members_read on public.post_likes for select to authenticated using (true);
+create policy post_likes_members_read on public.post_likes for select to authenticated using (exists(select 1 from public.posts p where p.id=post_likes.post_id));
 drop policy if exists post_likes_owner_insert on public.post_likes;
-create policy post_likes_owner_insert on public.post_likes for insert to authenticated with check(user_id=auth.uid());
+create policy post_likes_owner_insert on public.post_likes for insert to authenticated with check(user_id=auth.uid() and exists(select 1 from public.posts p where p.id=post_likes.post_id));
 drop policy if exists post_likes_owner_delete on public.post_likes;
 create policy post_likes_owner_delete on public.post_likes for delete to authenticated using(user_id=auth.uid());
 drop policy if exists post_comments_members_read on public.post_comments;
-create policy post_comments_members_read on public.post_comments for select to authenticated using (true);
+create policy post_comments_members_read on public.post_comments for select to authenticated using (exists(select 1 from public.posts p where p.id=post_comments.post_id));
 drop policy if exists post_comments_owner_insert on public.post_comments;
-create policy post_comments_owner_insert on public.post_comments for insert to authenticated with check(author_id=auth.uid());
+create policy post_comments_owner_insert on public.post_comments for insert to authenticated with check(author_id=auth.uid() and exists(select 1 from public.posts p where p.id=post_comments.post_id));
 drop policy if exists post_comments_owner_delete on public.post_comments;
 create policy post_comments_owner_delete on public.post_comments for delete to authenticated using(author_id=auth.uid());
