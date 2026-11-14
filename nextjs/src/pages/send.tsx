@@ -1,51 +1,9 @@
 import { useState } from 'react'
+import { useRouter } from 'next/router'
+import SiteLayout from '../components/SiteLayout'
 import { supabase } from '../lib/supabaseClient'
-
-export default function SendPage() {
-  const [recipient, setRecipient] = useState('')
-  const [subject, setSubject] = useState('')
-  const [body, setBody] = useState('')
-  const [status, setStatus] = useState('')
-
-  async function send(e: any) {
-    e.preventDefault()
-    const user = await supabase.auth.getUser()
-    const sender = user.data.user?.id
-    if (!sender) return setStatus('Non authentifié')
-
-    const { data, error } = await supabase
-      .from('messages')
-      .insert([{ sender, recipient, subject, body }])
-      .select()
-      .single()
-
-    if (error) {
-      setStatus(error.message)
-      return
-    }
-
-    // call server-side API to trigger moderation (server must have SERVICE_ROLE_KEY set)
-    await fetch('/api/moderate', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ message_id: data.id })
-    })
-
-    setStatus('Message envoyé')
-    setSubject('')
-    setBody('')
-  }
-
-  return (
-    <div style={{padding:20}}>
-      <h2>Envoyer un message</h2>
-      <form onSubmit={send}>
-        <input value={recipient} onChange={e => setRecipient(e.target.value)} placeholder="recipient user id" />
-        <input value={subject} onChange={e => setSubject(e.target.value)} placeholder="sujet" />
-        <textarea value={body} onChange={e => setBody(e.target.value)} placeholder="message" />
-        <button>Envoyer</button>
-      </form>
-      {status && <p>{status}</p>}
-    </div>
-  )
+export default function SendPage(){
+ const router=useRouter();const [username,setUsername]=useState(typeof router.query.to==='string'?router.query.to:'');const [body,setBody]=useState('');const [status,setStatus]=useState('');const [busy,setBusy]=useState(false)
+ async function send(e:React.FormEvent){e.preventDefault();setBusy(true);setStatus('');const {data:user}=await supabase.auth.getUser();if(!user.user){setBusy(false);setStatus('Connecte-toi pour envoyer un message.');return}const {data:recipient,error:lookupError}=await supabase.from('profiles').select('id').eq('username',username.trim().toLowerCase()).maybeSingle();if(lookupError||!recipient){setBusy(false);setStatus('Pseudo introuvable. Vérifie son orthographe.');return}if(recipient.id===user.user.id){setBusy(false);setStatus('Tu ne peux pas t’envoyer un message.');return}const {error}=await supabase.from('messages').insert({sender:user.user.id,recipient:recipient.id,subject:'Message Aytan',body:body.trim()});setBusy(false);if(error)setStatus(error.message);else{setBody('');setStatus('Message envoyé.');}}
+ return <SiteLayout title="Nouveau message"><section className="card-surface form-card"><p className="muted-small">Envoie un message respectueux à un membre que tu connais sur Aytan.</p><form className="stack-form" onSubmit={send}><label>Pseudo du destinataire</label><input required value={username} onChange={e=>setUsername(e.target.value)} placeholder="son_pseudo"/><label>Ton message</label><textarea required rows={6} maxLength={2000} value={body} onChange={e=>setBody(e.target.value)} placeholder="Écris ton message…"/><small>{body.length}/2000 caractères</small><button className="btn btn-primary" disabled={busy||!body.trim()}>{busy?'Envoi…':'Envoyer le message'}</button></form>{status&&<p className="form-status">{status}</p>}</section></SiteLayout>
 }
