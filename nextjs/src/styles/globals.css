@@ -291,3 +291,7 @@ button, a { -webkit-tap-highlight-color: transparent; }
 }
 
 .nav-count { display:inline-flex; align-items:center; justify-content:center; min-width:17px; height:17px; margin-left:5px; padding:0 5px; border-radius:999px; color:#fff; background:var(--purple); font-size:10px; line-height:1; font-weight:800; }
+
+.privacy-toggle { display:flex; align-items:center; gap:9px; margin:9px 0; color:#5d687d; font-size:12px; font-weight:700; }
+.privacy-toggle input { width:16px; height:16px; margin:0; accent-color:var(--purple); }
+.profile-actions { display:flex; flex-wrap:wrap; align-items:center; gap:10px; margin-top:16px; }
