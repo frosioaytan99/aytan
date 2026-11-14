@@ -119,3 +119,17 @@ drop policy if exists post_comments_owner_insert on public.post_comments;
 create policy post_comments_owner_insert on public.post_comments for insert to authenticated with check(author_id=auth.uid() and exists(select 1 from public.posts p where p.id=post_comments.post_id));
 drop policy if exists post_comments_owner_delete on public.post_comments;
 create policy post_comments_owner_delete on public.post_comments for delete to authenticated using(author_id=auth.uid());
+
+-- Le blocage s'applique aussi aux profils, publications et nouveaux messages privés.
+drop policy if exists messages_participants_select on public.messages;
+create policy messages_participants_select on public.messages for select to authenticated
+ using ((auth.uid()=sender or auth.uid()=recipient)
+   and not public.is_blocked_between(auth.uid(), case when auth.uid()=sender then recipient else sender end));
+drop policy if exists messages_insert on public.messages;
+create policy messages_insert on public.messages for insert to authenticated
+ with check (auth.uid()=sender and recipient is not null and sender <> recipient
+   and not public.is_blocked_between(sender, recipient));
+
+drop policy if exists reports_owner_insert on public.reports;
+create policy reports_owner_insert on public.reports for insert to authenticated
+ with check (reporter_id=auth.uid() and status='pending');
