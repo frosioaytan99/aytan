@@ -108,15 +108,15 @@ create index if not exists post_comments_post_created_idx on public.post_comment
 alter table public.post_likes enable row level security;
 alter table public.post_comments enable row level security;
 drop policy if exists post_likes_members_read on public.post_likes;
-create policy post_likes_members_read on public.post_likes for select to authenticated using (exists(select 1 from public.posts p where p.id=post_likes.post_id));
+create policy post_likes_members_read on public.post_likes for select to authenticated using (exists(select 1 from public.posts p where p.id=post_likes.post_id and not public.is_blocked_between(auth.uid(),p.author_id)));
 drop policy if exists post_likes_owner_insert on public.post_likes;
-create policy post_likes_owner_insert on public.post_likes for insert to authenticated with check(user_id=auth.uid() and exists(select 1 from public.posts p where p.id=post_likes.post_id));
+create policy post_likes_owner_insert on public.post_likes for insert to authenticated with check(user_id=auth.uid() and exists(select 1 from public.posts p where p.id=post_likes.post_id and not public.is_blocked_between(auth.uid(),p.author_id)));
 drop policy if exists post_likes_owner_delete on public.post_likes;
 create policy post_likes_owner_delete on public.post_likes for delete to authenticated using(user_id=auth.uid());
 drop policy if exists post_comments_members_read on public.post_comments;
-create policy post_comments_members_read on public.post_comments for select to authenticated using (exists(select 1 from public.posts p where p.id=post_comments.post_id));
+create policy post_comments_members_read on public.post_comments for select to authenticated using (exists(select 1 from public.posts p where p.id=post_comments.post_id and not public.is_blocked_between(auth.uid(),p.author_id)));
 drop policy if exists post_comments_owner_insert on public.post_comments;
-create policy post_comments_owner_insert on public.post_comments for insert to authenticated with check(author_id=auth.uid() and exists(select 1 from public.posts p where p.id=post_comments.post_id));
+create policy post_comments_owner_insert on public.post_comments for insert to authenticated with check(author_id=auth.uid() and exists(select 1 from public.posts p where p.id=post_comments.post_id and not public.is_blocked_between(auth.uid(),p.author_id)));
 drop policy if exists post_comments_owner_delete on public.post_comments;
 create policy post_comments_owner_delete on public.post_comments for delete to authenticated using(author_id=auth.uid());
 
