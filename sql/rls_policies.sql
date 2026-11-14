@@ -1,30 +1,36 @@
--- Activer RLS sur tables sensibles
-alter table profiles enable row level security;
-alter table messages enable row level security;
-alter table moderation_logs enable row level security;
+-- Politiques RLS initiales corrigées pour Supabase.
+alter table public.profiles enable row level security;
+alter table public.messages enable row level security;
+alter table public.moderation_logs enable row level security;
 
--- Profiles: user peut lire/écrire son propre profil
-create policy "profiles_self_select" on profiles
-  for select using (auth.uid() = id);
+drop policy if exists profiles_self_select on public.profiles;
+create policy profiles_self_select on public.profiles
+ for select to authenticated using (auth.uid() = id);
+drop policy if exists profiles_self_insert on public.profiles;
+create policy profiles_self_insert on public.profiles
+ for insert to authenticated with check (auth.uid() = id);
+drop policy if exists profiles_self_update on public.profiles;
+create policy profiles_self_update on public.profiles
+ for update to authenticated using (auth.uid() = id) with check (auth.uid() = id);
+drop policy if exists profiles_self_delete on public.profiles;
+create policy profiles_self_delete on public.profiles
+ for delete to authenticated using (auth.uid() = id);
 
-create policy "profiles_self_manage" on profiles
-  for insert, update, delete using (auth.uid() = id);
+drop policy if exists messages_participants_select on public.messages;
+create policy messages_participants_select on public.messages
+ for select to authenticated using (auth.uid() = sender or auth.uid() = recipient);
+drop policy if exists messages_insert on public.messages;
+create policy messages_insert on public.messages
+ for insert to authenticated with check (auth.uid() = sender);
+drop policy if exists messages_update on public.messages;
+create policy messages_update on public.messages
+ for update to authenticated using (auth.uid() = sender or auth.uid() = recipient)
+ with check (auth.uid() = sender or auth.uid() = recipient);
+drop policy if exists messages_sender_delete on public.messages;
+create policy messages_sender_delete on public.messages
+ for delete to authenticated using (auth.uid() = sender);
 
--- Messages: sender ou recipient peuvent SELECT the row
-create policy "messages_participants_select" on messages
-  for select using (auth.uid() = sender or auth.uid() = recipient);
-
--- Messages: only authenticated user can insert; ensure sender = auth.uid()
-create policy "messages_insert" on messages
-  for insert with check (auth.uid() = sender);
-
--- Messages: allow sender or recipient to update (e.g., mark read)
-create policy "messages_update" on messages
-  for update using (auth.uid() = sender or auth.uid() = recipient)
-  with check (auth.uid() = sender or auth.uid() = recipient);
-
--- Moderation logs: only service role (edge functions using service key) can insert/query.
-create policy "moderation_service_insert" on moderation_logs
-  for insert using (auth.role() = 'service_role');
-
--- IMPORTANT: Keep service_role secrets out of frontend. Use Edge Functions or server API for privileged ops.
+-- Les journaux de modération ne sont pas accessibles aux utilisateurs ordinaires.
+drop policy if exists moderation_service_insert on public.moderation_logs;
+create policy moderation_service_insert on public.moderation_logs
+ for insert to service_role with check (true);
