@@ -11,7 +11,7 @@ export default async function handler(req: any, res: any) {
   if (!message_id || !token) return res.status(401).json({ error: 'authentication required' })
   if (!url || !anonKey || !serviceKey) return res.status(503).json({ error: 'moderation service not configured' })
 
-  const userClient = createClient(url, anonKey, { global: { headers: { Authorization: `Bearer ${token}` } } })
+  const userClient = createClient(url, anonKey, { global: { headers: { Authorization: \`Bearer \${token}\` } } })
   const { data: userData, error: authError } = await userClient.auth.getUser(token)
   if (authError || !userData.user) return res.status(401).json({ error: 'invalid session' })
 
@@ -20,10 +20,10 @@ export default async function handler(req: any, res: any) {
   if (lookupError || !ownedMessage) return res.status(404).json({ error: 'message not found' })
 
   try {
-    const fnUrl = `${url.replace(/\\/+$/, '')}/functions/v1/moderate`
+    const fnUrl = \`\${url.replace(/\/+$/, '')}/functions/v1/moderate\`
     const result = await fetch(fnUrl, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${serviceKey}` },
+      headers: { 'Content-Type': 'application/json', Authorization: \`Bearer \${serviceKey}\` },
       body: JSON.stringify({ message_id })
     })
     const body = await result.text()
