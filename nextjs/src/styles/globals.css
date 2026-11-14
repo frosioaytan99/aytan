@@ -289,3 +289,5 @@ button, a { -webkit-tap-highlight-color: transparent; }
   .conversation-heading { gap:4px; }
   .message-main p { max-width:100%; }
 }
+
+.nav-count { display:inline-flex; align-items:center; justify-content:center; min-width:17px; height:17px; margin-left:5px; padding:0 5px; border-radius:999px; color:#fff; background:var(--purple); font-size:10px; line-height:1; font-weight:800; }
