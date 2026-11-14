@@ -10,7 +10,7 @@ grant select (id, display_name, username, avatar_url, bio, is_private, created_a
 revoke insert on public.profiles from anon, authenticated;
 grant insert (id, display_name, username, avatar_url, bio, is_private) on public.profiles to authenticated;
 revoke update on public.profiles from anon, authenticated;
-grant update (display_name, username, avatar_url, bio, is_private) on public.profiles to authenticated;
+grant update (id, display_name, username, avatar_url, bio, is_private) on public.profiles to authenticated;
 create unique index if not exists profiles_username_unique on public.profiles (lower(username)) where username is not null;
 
 create table if not exists public.posts (
