@@ -2,23 +2,29 @@
 
 Aytan est une application communautaire construite avec Next.js et Supabase.
 
-## Fonctionnalités présentes dans l’interface
-- Page d’accueil responsive.
+## Fonctionnalités préparées
+- Page d’accueil responsive, identité visuelle Aytan.
 - Connexion par lien magique Supabase Auth.
-- Profil membre (pseudo, nom affiché, bio et lien d’avatar).
-- Fil de publications.
+- Profils avec pseudo, présentation et photo via URL.
 - Découverte et recherche de membres.
-- Messagerie privée simple.
-- Signalement de publications.
+- Fil d’actualité : publications, réactions et commentaires.
+- Messagerie privée et statut de lecture.
+- Signalement de profils et de publications.
+- Blocage de membres.
 - Page de conseils de sécurité.
+- Règles RLS et permissions de colonnes pour limiter l’exposition des données de profil.
 
 ## Installation
 1. Créer un projet Supabase.
-2. Exécuter `sql/schema.sql`, puis `sql/rls_policies.sql`.
-3. Exécuter `sql/community_schema.sql`.
-4. Configurer `NEXT_PUBLIC_SUPABASE_URL` et `NEXT_PUBLIC_SUPABASE_ANON_KEY` dans l’environnement Next.js.
-5. Dans Supabase Auth, configurer l’URL du site et les URL de redirection autorisées (dont `/feed`).
+2. Copier `nextjs/.env.example` vers `.env.local` dans le dossier `nextjs`, puis renseigner les clés.
+3. Dans Supabase SQL Editor, exécuter dans cet ordre : `sql/schema.sql`, `sql/rls_policies.sql`, puis `sql/community_schema.sql`.
+4. Déployer la fonction Edge `moderate` du dossier `functions` et configurer ses secrets Supabase.
+5. Configurer dans Supabase Auth l’URL du site et les URL de redirection autorisées (dont `/feed`).
 6. Installer et lancer : `cd nextjs && npm install && npm run dev`.
 
-## Important avant toute ouverture publique
-Cette version est un socle fonctionnel, pas une plateforme prête à accueillir des mineurs à grande échelle. Il faut encore mettre en place une vraie modération humaine, un traitement des signalements, des tests de sécurité/RLS, les règles de confidentialité adaptées aux mineurs, les conditions d’utilisation et les procédures de protection des données. Ne jamais placer une clé service role dans une variable `NEXT_PUBLIC_*`.
+## Important
+Le code a été préparé dans une branche de proposition GitHub ; il n'a pas été déployé sur un projet Supabase et je n'ai pas pu lancer le build dans ton environnement. Les tables et variables doivent donc être configurées avant que les fonctionnalités connectées fonctionnent.
+
+Cette version est un socle de développement, pas une plateforme prête à accueillir des mineurs à grande échelle. Avant toute ouverture publique, il faut une vraie modération humaine avec une équipe et un processus de traitement des signalements, des tests de sécurité/RLS, des règles de confidentialité adaptées aux mineurs, des conditions d’utilisation et les procédures de protection des données. La modération automatique actuelle est un exemple minimal, pas une protection suffisante. Les photos sont fournies par URL : n’utilise pas de photos contenant des informations personnelles ou permettant de localiser un jeune.
+
+Ne jamais placer une clé service role dans une variable `NEXT_PUBLIC_*`.
