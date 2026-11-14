@@ -1,0 +1,4 @@
+-- Run after community_schema.sql if you want to review the policies separately.
+-- Reports are intentionally not readable by ordinary users except their own submissions.
+-- Moderator review must use a protected server-side service role or a dedicated moderator role.
+-- Never expose SUPABASE_SERVICE_ROLE_KEY in NEXT_PUBLIC_* environment variables.
