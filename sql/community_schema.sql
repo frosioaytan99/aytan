@@ -1,4 +1,6 @@
--- Migration communautaire Aytan. À exécuter dans Supabase SQL Editor après schema.sql.\n-- L'âge n'est pas nécessaire au profil public et doit rester hors de cette table exposée aux membres.\nalter table public.profiles drop column if exists age;
+-- Migration communautaire Aytan. À exécuter dans Supabase SQL Editor après schema.sql.
+-- L'âge n'est pas nécessaire au profil public et doit rester hors de cette table exposée aux membres.
+alter table public.profiles drop column if exists age;
 alter table public.profiles add column if not exists username text;
 alter table public.profiles add column if not exists avatar_url text;
 alter table public.profiles add column if not exists bio text;
