@@ -49,6 +49,11 @@ export default function InboxPage() {
     }
 
     const rows = (data || []) as Message[]
+    const unreadIds = rows.filter(message => message.recipient === userId && !message.is_read).map(message => message.id)
+    if (unreadIds.length) {
+      const { error: readError } = await supabase.from('messages').update({ is_read: true }).in('id', unreadIds).eq('recipient', userId)
+      if (!readError) rows.forEach(message => { if (unreadIds.includes(message.id)) message.is_read = true })
+    }
     setMessages(rows)
     const contactIds = Array.from(new Set(rows.map(message =>
       message.sender === userId ? message.recipient : message.sender
