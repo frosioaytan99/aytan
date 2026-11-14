@@ -1,9 +1,9 @@
 import Link from 'next/link'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { useRouter } from 'next/router'
 import { supabase } from '../lib/supabaseClient'
 
-export default function SiteLayout({ children, title = 'Aytan' }: { children: React.ReactNode; title?: string }) {
+export default function SiteLayout({ children, title = 'Aytan' }: { children: ReactNode; title?: string }) {
   const [email, setEmail] = useState('')
   const [ready, setReady] = useState(false)
   const router = useRouter()
