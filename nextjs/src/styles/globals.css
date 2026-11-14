@@ -260,3 +260,14 @@ button, a { -webkit-tap-highlight-color: transparent; }
  .composer-bottom small { max-width:58%; }
  .message-tag { display:none; }
 }
+
+
+.post-actions { display:flex; align-items:center; gap:20px; padding:12px 0 8px; border-top:1px solid #f0f1f6; color:#8a93a4; font-size:11px; }
+.post-actions button { border:0; padding:0; color:#788297; background:transparent; font-size:12px; font-weight:800; cursor:pointer; }
+.post-actions button.liked { color:#e16f9b; }
+.comments-list p { margin:6px 0; padding:8px 10px; border-radius:10px; background:#f8f8fc; color:#68738a; font-size:11px; line-height:1.5; }
+.comments-list strong { margin-right:5px; color:#4e5870; }
+.comment-form { display:flex; gap:8px; margin-top:9px; }
+.comment-form input { flex:1; min-width:0; padding:10px 12px; border:1px solid var(--line); border-radius:11px; outline:none; font-size:12px; }
+.comment-form button { border:0; border-radius:11px; padding:0 13px; color:white; background:var(--purple); font-size:11px; font-weight:800; }
+.comment-form button:disabled { opacity:.5; }
