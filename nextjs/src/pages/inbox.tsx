@@ -77,6 +77,19 @@ export default function InboxPage() {
     setLoading(false)
   }
 
+  async function reportMessage(messageId: string) {
+    if (!uid) { setStatus('Connecte-toi pour signaler un message.'); return }
+    const reason = window.prompt('Pourquoi souhaites-tu signaler ce message ?')
+    if (!reason?.trim()) return
+    const { error } = await supabase.from('reports').insert({
+      reporter_id: uid,
+      content_type: 'message',
+      content_id: messageId,
+      reason: reason.trim().slice(0, 1000)
+    })
+    setStatus(error ? 'Impossible d’envoyer le signalement.' : 'Signalement transmis à la modération.')
+  }
+
   useEffect(() => {
     let active = true
     supabase.auth.getUser().then(({ data }) => {
@@ -182,6 +195,7 @@ export default function InboxPage() {
                   <Link className="btn btn-plain" href={'/send?to=' + encodeURIComponent(member.username || '')}>
                     Répondre
                   </Link>
+                  <button className="text-button" onClick={() => reportMessage(last.id)}>Signaler le message</button>
                   {member.username && <Link className="text-button" href={'/profile?id=' + encodeURIComponent(member.id)}>Profil</Link>}
                 </div>
               </article>
