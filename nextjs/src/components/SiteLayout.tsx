@@ -7,24 +7,33 @@ export default function SiteLayout({ children, title = 'Aytan' }: { children: Re
   const [email, setEmail] = useState('')
   const [ready, setReady] = useState(false)
   const [unread, setUnread] = useState(0)
+  const [userId, setUserId] = useState('')
   const router = useRouter()
   useEffect(() => {
     let alive = true
-    const refreshUnread = async (userId: string) => {
-      if (!userId) { setUnread(0); return }
-      const { count, error } = await supabase.from('messages').select('id', { count: 'exact', head: true }).eq('recipient', userId).eq('is_read', false)
-      if (alive && !error) setUnread(count || 0)
-    }
     supabase.auth.getUser().then(({ data }) => {
-      if (alive) { setEmail(data.user?.email || ''); setReady(true); refreshUnread(data.user?.id || '') }
+      if (alive) {
+        setEmail(data.user?.email || '')
+        setUserId(data.user?.id || '')
+        setReady(true)
+      }
     })
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
       setEmail(session?.user?.email || '')
+      setUserId(session?.user?.id || '')
       setReady(true)
-      refreshUnread(session?.user?.id || '')
     })
     return () => { alive = false; listener.subscription.unsubscribe() }
   }, [])
+
+  useEffect(() => {
+    let alive = true
+    if (!userId) { setUnread(0); return () => { alive = false } }
+    supabase.from('messages').select('id', { count: 'exact', head: true })
+      .eq('recipient', userId).eq('is_read', false)
+      .then(({ count, error }) => { if (alive && !error) setUnread(count || 0) })
+    return () => { alive = false }
+  }, [userId])
   async function logout() { await supabase.auth.signOut(); router.push('/') }
   return <div className="app-shell">
     <header className="app-topbar">
