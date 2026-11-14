@@ -3,7 +3,7 @@ import Link from 'next/link'
 import SiteLayout from '../components/SiteLayout'
 import { supabase } from '../lib/supabaseClient'
 
-type Comment = { id:string; post_id:string; author_id:string; body:string; created_at:string }
+type Comment = { id:string; post_id:string; author_id:string; body:string; created_at:string; author?:{display_name:string|null;username:string|null} }
 type Post = { id:string; author_id:string; body:string; image_url:string|null; created_at:string; author?:{display_name:string|null;username:string|null;avatar_url:string|null}; likes:number; liked:boolean; comments:Comment[] }
 export default function FeedPage() {
   const [posts,setPosts] = useState<Post[]>([])
@@ -18,15 +18,16 @@ export default function FeedPage() {
     const uid=auth.user?.id||'';setUserId(uid)
     if(error){setStatus('Le fil n’est pas encore configuré dans Supabase.');return}
     const rows=(data||[]) as Omit<Post,'likes'|'liked'|'comments'|'author'>[]
-    const ids=Array.from(new Set(rows.map(p=>p.author_id)))
     const postIds=rows.map(p=>p.id)
     const [{data:profiles},{data:likes},{data:comments}]=await Promise.all([
-      ids.length?supabase.from('profiles').select('id,display_name,username,avatar_url').in('id',ids):Promise.resolve({data:[] as any[]}),
       postIds.length?supabase.from('post_likes').select('post_id,user_id').in('post_id',postIds):Promise.resolve({data:[] as any[]}),
       postIds.length?supabase.from('post_comments').select('id,post_id,author_id,body,created_at').in('post_id',postIds).order('created_at',{ascending:true}):Promise.resolve({data:[] as any[]})
     ])
+    const commentRows=(comments||[]) as Comment[]
+    const authorIds=Array.from(new Set([...rows.map(p=>p.author_id),...commentRows.map(c=>c.author_id)]))
+    const {data:profiles}=authorIds.length?await supabase.from('profiles').select('id,display_name,username,avatar_url').in('id',authorIds):{data:[] as any[]}
     const byId=new Map((profiles||[]).map((p:any)=>[p.id,p]))
-    setPosts(rows.map(p=>({...p,author:byId.get(p.author_id),likes:(likes||[]).filter((l:any)=>l.post_id===p.id).length,liked:(likes||[]).some((l:any)=>l.post_id===p.id&&l.user_id===uid),comments:(comments||[]).filter((c:any)=>c.post_id===p.id) as Comment[]})))
+    setPosts(rows.map(p=>({...p,author:byId.get(p.author_id),likes:(likes||[]).filter((l:any)=>l.post_id===p.id).length,liked:(likes||[]).some((l:any)=>l.post_id===p.id&&l.user_id===uid),comments:commentRows.filter(c=>c.post_id===p.id).map(c=>({...c,author:byId.get(c.author_id)}))})))
   }
   useEffect(()=>{load()},[])
   async function publish(e:React.FormEvent) {
@@ -72,7 +73,7 @@ export default function FeedPage() {
         <p className="post-body">{post.body}</p>
         {post.image_url&&<img className="post-image-real" src={post.image_url} alt="Image publiée par un membre" loading="lazy"/>}
         <div className="post-actions"><button className={post.liked?'liked':''} onClick={()=>toggleLike(post)}>{post.liked?'♥':'♡'} {post.likes} J’aime</button><span>💬 {post.comments.length} commentaire(s)</span></div>
-        <div className="comments-list">{post.comments.map(c=><p key={c.id}><strong>Membre</strong> {c.body}</p>)}</div>
+        <div className="comments-list">{post.comments.map(c=><p key={c.id}><strong>{c.author?.display_name||c.author?.username||'Membre'}</strong> {c.body}</p>)}</div>
         <form className="comment-form" onSubmit={e=>{e.preventDefault();addComment(post.id)}}><input value={commentDrafts[post.id]||''} onChange={e=>setCommentDrafts(old=>({...old,[post.id]:e.target.value}))} maxLength={500} placeholder="Écrire un commentaire…"/><button disabled={!(commentDrafts[post.id]||'').trim()}>Envoyer</button></form>
       </article>)}
     </section><aside className="side-column"><div className="card-surface side-card"><span className="side-icon">🛡️</span><h3>On veille les uns sur les autres</h3><p>Ne partage jamais ton adresse, ton numéro, tes mots de passe ou ta localisation précise.</p><Link href="/safety">Voir les conseils de sécurité →</Link></div><div className="card-surface side-card"><h3>Envie de faire connaissance ?</h3><p>Découvre les membres et leurs centres d’intérêt.</p><Link href="/members" className="btn btn-plain">Découvrir les membres</Link></div></aside></div>
