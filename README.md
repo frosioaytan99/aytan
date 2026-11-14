@@ -1,19 +1,24 @@
-# Aytan — Messagerie pour ados
+# Aytan — communauté et messagerie
 
-Ce dépôt contient un scaffold minimal pour une application de messagerie destinée aux adolescents, utilisant Supabase (Auth, Postgres, Realtime, Storage, Edge Functions) pour le backend et Next.js + Tailwind pour le frontend.
+Aytan est une application communautaire construite avec Next.js et Supabase.
 
-Contenu ajouté:
-- sql/schema.sql — schéma de base (profiles, messages, moderation_logs)
-- sql/rls_policies.sql — règles RLS et policies
-- functions/moderate.ts — Edge Function d'exemple pour modération automatique
-- nextjs/ — app Next.js minimale (src/, package.json, config Tailwind)
+## Fonctionnalités présentes dans l’interface
+- Page d’accueil responsive.
+- Connexion par lien magique Supabase Auth.
+- Profil membre (pseudo, nom affiché, bio et lien d’avatar).
+- Fil de publications.
+- Découverte et recherche de membres.
+- Messagerie privée simple.
+- Signalement de publications.
+- Page de conseils de sécurité.
 
-Instructions rapides:
-1. Créez un projet Supabase et notez SUPABASE_URL et les keys.
-2. Dans Supabase SQL Editor: collez sql/schema.sql puis sql/rls_policies.sql.
-3. Créez un bucket "attachments" en mode private.
-4. Déployez la fonction Edge `moderate` dans Supabase et définissez la variable SERVICE_ROLE_KEY (secret).
-5. Dans le frontend, définissez NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY et SUPABASE_SERVICE_ROLE_KEY (pour l'API server-side).
-6. npm install && npm run dev
+## Installation
+1. Créer un projet Supabase.
+2. Exécuter `sql/schema.sql`, puis `sql/rls_policies.sql`.
+3. Exécuter `sql/community_schema.sql`.
+4. Configurer `NEXT_PUBLIC_SUPABASE_URL` et `NEXT_PUBLIC_SUPABASE_ANON_KEY` dans l’environnement Next.js.
+5. Dans Supabase Auth, configurer l’URL du site et les URL de redirection autorisées (dont `/feed`).
+6. Installer et lancer : `cd nextjs && npm install && npm run dev`.
 
-Sécurité: ne mettez jamais la SERVICE_ROLE_KEY dans le frontend. Utilisez l'API server ou les Edge Functions pour les opérations privilégiées.
+## Important avant toute ouverture publique
+Cette version est un socle fonctionnel, pas une plateforme prête à accueillir des mineurs à grande échelle. Il faut encore mettre en place une vraie modération humaine, un traitement des signalements, des tests de sécurité/RLS, les règles de confidentialité adaptées aux mineurs, les conditions d’utilisation et les procédures de protection des données. Ne jamais placer une clé service role dans une variable `NEXT_PUBLIC_*`.
