@@ -50,3 +50,64 @@ html,body,#__next{background:var(--paper);color:var(--ink)}
 .profile-form>p{text-align:center;color:var(--muted);font-size:13px}
 .profile-form>a:not(.member-primary){color:var(--purple);font-size:12px;font-weight:700}
 @media(max-width:650px){.landing-cta{align-items:flex-start;flex-direction:column;padding:24px}.landing-cta h2{font-size:19px}.hero h1{font-size:49px;letter-spacing:-2.8px}}
+
+
+/* Notifications, conversation view and community forums */
+.app-toast{position:fixed;z-index:1000;top:18px;right:18px;display:flex;align-items:center;gap:11px;max-width:min(390px,calc(100vw - 32px));padding:14px 18px;background:#28233e;color:#fff;border-radius:14px;box-shadow:0 14px 40px #21183c35;font-size:13px;font-weight:700;animation:toast-in .2s ease-out}
+.toast-icon{display:grid;place-items:center;width:25px;height:25px;border-radius:50%;background:#6bc8a3;color:#173e32;font-weight:900}
+@keyframes toast-in{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+.conversation-row{display:flex;align-items:center;gap:13px;color:inherit;text-decoration:none}
+.conversation-row:hover{background:#faf9fd}
+.conversation-row .member-message-copy{min-width:0;flex:1}
+.conversation-row .member-message-copy p{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.conversation-row .member-message-copy strong small{display:inline-block;color:var(--muted);font-weight:500;margin-left:7px}
+.conversation-meta{display:flex;align-items:center;gap:10px;color:var(--purple);font-size:11px;font-weight:800;white-space:nowrap}
+.unread-count{display:grid;place-items:center;min-width:22px;height:22px;border-radius:50%;background:var(--purple);color:white}
+.conversation-page{max-width:760px;margin:35px auto;padding:0 20px}
+.back-link{display:inline-block;color:var(--purple);font-size:12px;font-weight:800;margin-bottom:18px}
+.conversation-heading{display:flex;align-items:center;gap:14px;padding:18px;background:white;border:1px solid var(--line);border-radius:18px}
+.conversation-heading h1{font:800 20px Manrope;margin:0 0 4px}
+.conversation-heading small{color:var(--muted);font-size:11px}
+.conversation-heading>a{margin-left:auto;color:var(--purple);font-size:12px;font-weight:800}
+.conversation-history{display:flex;flex-direction:column;gap:13px;min-height:260px;max-height:55vh;overflow-y:auto;padding:22px 8px}
+.chat-line{display:flex;flex-direction:column;max-width:78%;gap:4px}
+.chat-line small{font-size:9px;color:var(--muted)}
+.chat-mine{align-self:flex-end;align-items:flex-end}
+.chat-theirs{align-self:flex-start;align-items:flex-start}
+.chat-line-bubble{padding:12px 15px;border-radius:15px;background:#efedf7;font-size:13px;line-height:1.55;white-space:pre-wrap;overflow-wrap:anywhere}
+.chat-mine .chat-line-bubble{background:var(--purple);color:white;border-bottom-right-radius:4px}
+.chat-theirs .chat-line-bubble{border-bottom-left-radius:4px}
+.conversation-compose{display:flex;gap:10px;padding:14px;background:#fff;border:1px solid var(--line);border-radius:16px}
+.conversation-compose textarea{flex:1;min-height:48px;max-height:140px;resize:vertical;border:1px solid var(--line);border-radius:10px;padding:12px}
+.conversation-compose button,.forum-create button,.forum-reply-form button{border:0;background:var(--purple);color:#fff;border-radius:11px;padding:12px 16px;font-weight:800;font-size:12px}
+.forum-page,.forum-detail{max-width:1050px;margin:42px auto;padding:0 22px}
+.forum-layout{display:grid;grid-template-columns:320px minmax(0,1fr);gap:22px;align-items:start;margin-top:25px}
+.forum-create,.forum-reply-form{padding:22px;display:grid;gap:14px}
+.forum-create h2,.forum-reply-form h2{font:800 18px Manrope;margin:0}
+.forum-create label{display:grid;gap:7px;font-size:12px;font-weight:700}
+.forum-create input,.forum-create select,.forum-create textarea,.forum-reply-form textarea{width:100%;padding:12px;border:1px solid var(--line);border-radius:10px;background:#fff;outline:none}
+.forum-create textarea,.forum-reply-form textarea{min-height:125px;resize:vertical}
+.forum-topics{display:grid;gap:12px}
+.forum-section-heading{display:flex;justify-content:space-between;align-items:end;margin-bottom:5px}
+.forum-section-heading small{font-size:10px;letter-spacing:1px;color:var(--purple);font-weight:800}
+.forum-section-heading h2{font:800 21px Manrope;margin:5px 0}
+.forum-section-heading>span{font-size:11px;color:var(--muted)}
+.forum-topic{padding:18px;display:block;transition:transform .15s}
+.forum-topic:hover{transform:translateY(-2px)}
+.forum-category{display:inline-block;background:#f0edff;color:var(--purple);padding:5px 9px;border-radius:20px;font-size:10px;font-weight:800}
+.forum-topic h3{font:800 16px Manrope;margin:10px 0 6px}
+.forum-topic p{font-size:12px;line-height:1.6;color:var(--muted);margin:0 0 13px}
+.forum-topic>div{display:flex;gap:13px;flex-wrap:wrap;color:var(--muted);font-size:10px}
+.forum-topic>div span:nth-child(2){color:var(--purple);font-weight:700}
+.forum-detail{max-width:800px}
+.forum-original{padding:25px;margin:0 0 22px}
+.forum-original h1{font:800 27px Manrope;margin:12px 0}
+.forum-byline{font-size:11px;color:var(--muted)}
+.forum-body{font-size:14px;line-height:1.8;white-space:pre-wrap}
+.forum-replies{display:grid;gap:11px;margin:20px 0}
+.forum-replies h2{font:800 19px Manrope}
+.forum-reply{padding:17px}
+.forum-reply>b{font-size:13px}
+.forum-reply>small{display:block;color:var(--muted);font-size:10px;margin-top:4px}
+.forum-reply>p{font-size:13px;line-height:1.7;white-space:pre-wrap}
+@media(max-width:760px){.forum-layout{grid-template-columns:1fr}.forum-create{order:0}.forum-topics{order:1}.conversation-page{margin:22px auto}.conversation-compose{flex-direction:column}.conversation-compose button{align-self:flex-end}.conversation-heading>a{font-size:10px}.conversation-meta span{display:none}}
