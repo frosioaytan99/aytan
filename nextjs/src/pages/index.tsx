@@ -9,6 +9,7 @@ export default function Home() {
         </Link>
         <nav className="top-nav" aria-label="Navigation principale">
           <Link href="/feed">Fil d’actualité</Link>
+          <Link href="/questions">Questions</Link>
           <Link href="/explore">Découvrir</Link>
           <Link href="/inbox">Messages</Link>
           <Link href="/auth" className="nav-login">Connexion</Link>
