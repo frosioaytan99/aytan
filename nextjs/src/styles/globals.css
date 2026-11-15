@@ -5,3 +5,26 @@
 .comments{border-top:1px solid var(--line);margin-top:14px;padding-top:12px}.comments-list{display:grid;gap:10px}.comment{background:#faf9fd;border-radius:10px;padding:10px 12px}.comment b{font-size:11px}.comment p{font-size:12px;line-height:1.5;margin:4px 0;white-space:pre-wrap}.comment small{font-size:10px;color:var(--muted)}.comment-form{display:flex;gap:8px;margin-top:12px}.comment-form input{flex:1;min-width:0;border:1px solid #e7e3f0;border-radius:10px;padding:11px;font:inherit;font-size:12px}.comment-form button{border:0;border-radius:10px;background:var(--purple);color:#fff;padding:0 14px;font-size:11px;font-weight:800}.comment-form button:disabled{opacity:.5}@media(max-width:480px){.comment-form{align-items:stretch}.comment-form button{padding:0 10px}}
 
 .friend-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.friend-actions p{width:100%;margin:0 0 4px;color:var(--muted);font-size:13px}.friend-actions .friend-secondary{background:#f1eff8;color:#62568f}.friend-hint{font-size:13px;color:var(--muted);margin:10px 0 16px}
+
+
+/* WESHBien2 visual refresh */
+:root{--ink:#242139;--muted:#858397;--purple:#7057d9;--purple-dark:#5841bd;--line:#eeecf4;--paper:#faf9fc;--coral:#f08b78;--mint:#65b99b;--shadow:0 18px 55px rgba(44,35,84,.07)}
+html,body,#__next{background:var(--paper);color:var(--ink)}
+.brand,.footer-brand{letter-spacing:-.9px}
+.brand-mark{width:34px;height:34px;border-radius:12px;box-shadow:0 7px 18px #7057d933}
+.topbar,.app-header{background:#ffffffed;backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+.app-header{box-shadow:0 5px 20px #33265d06}
+.app-header nav a{padding:10px 0}
+.app-header nav a.active,.app-header nav a:hover{color:var(--purple)}
+.card,.right-card,.side-card,.feature-card{box-shadow:0 8px 25px #33265d07}
+.card,.right-card,.side-card,.feature-card{border-radius:19px}
+.primary-link,.member-primary,.composer button,.search-row button,.profile-form>button{box-shadow:0 8px 20px #7057d925;transition:background .18s,transform .18s}
+.primary-link:hover,.composer button:hover,.search-row button:hover,.profile-form>button:hover{background:var(--purple-dark);transform:translateY(-1px)}
+.auth-shell{background:radial-gradient(ellipse at 20% 20%,#f0edff,transparent 40%),var(--paper)}
+.auth-card{border-radius:25px;box-shadow:0 22px 75px #39266e12}
+.auth-card input:focus,.profile-form input:focus,.profile-form textarea:focus,.composer textarea:focus,.search-row input:focus{border-color:#a99be9;box-shadow:0 0 0 3px #7057d918}
+.composer,.post,.member-card,.profile-form{box-shadow:0 8px 25px #33265d07}
+.post-image{width:100%;max-height:500px;object-fit:cover;border-radius:14px}
+.comment{background:#faf9fd}
+.app-layout{gap:22px}
+@media(max-width:650px){.app-header{height:auto;min-height:65px;padding:13px 16px;align-items:flex-start;gap:12px;flex-direction:column}.app-header nav{width:100%;justify-content:space-between;gap:8px;font-size:11px}.comment-form{align-items:stretch}.comment-form button{padding:0 10px}}
