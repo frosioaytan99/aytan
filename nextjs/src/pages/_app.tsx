@@ -33,7 +33,7 @@ export default function App({ Component, pageProps }: AppProps) {
    channel=supabase.channel('app-notifications-'+userId)
     .on('postgres_changes',{event:'INSERT',schema:'public',table:'notifications',filter:'user_id=eq.'+userId},payload=>{
       const row:any=payload.new
-      onNotice(new CustomEvent('weshbien:notify',{detail:row?.title||'Nouvelle notification'}))
+      onNotice(new CustomEvent('weshbien:notify',{detail:[row?.title,row?.message||row?.body].filter(Boolean).join(' — ')||'Nouvelle notification'}))
       setUnread(v=>v+1)
     })
     .on('postgres_changes',{event:'UPDATE',schema:'public',table:'notifications',filter:'user_id=eq.'+userId},()=>supabase.from('notifications').select('id',{count:'exact',head:true}).eq('user_id',userId).eq('is_read',false).then(({count})=>{if(active)setUnread(count||0)}))
@@ -49,5 +49,5 @@ export default function App({ Component, pageProps }: AppProps) {
   document.documentElement.dataset.theme=next
   try{window.localStorage.setItem('weshbien-theme',next)}catch{}
  }
- return <><Component {...pageProps}/><div className="global-tools"><Link href="/notifications" className="global-notifications" aria-label="Notifications">♧ Notifications{unread>0&&<b>{unread>99?'99+':unread}</b>}</Link><button type="button" onClick={toggleTheme} aria-label="Changer le thème">{theme==='dark'?'☀️ Mode clair':'🌙 Mode sombre'}</button></div>{notice&&<div className="app-toast" role="status" aria-live="polite"><span className="toast-icon">✓</span><span>{notice}</span></div>}</>
+ return <><Component {...pageProps}/><div className="global-tools global-tools-top"><Link href="/notifications" className="global-notifications" aria-label="Notifications">♧ Notifications{unread>0&&<b>{unread>99?'99+':unread}</b>}</Link><button type="button" onClick={toggleTheme} aria-label="Changer le thème">{theme==='dark'?'☀️ Mode clair':'🌙 Mode sombre'}</button></div>{notice&&<div className="app-toast" role="status" aria-live="polite"><span className="toast-icon">✓</span><span>{notice}</span></div>}</>
 }
