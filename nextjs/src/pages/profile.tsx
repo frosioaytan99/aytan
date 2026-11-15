@@ -97,7 +97,7 @@ export default function ProfilePage() {
   if(uploadError){setStatus('Envoi impossible : '+uploadError.message);setGalleryBusy(false);return}
   const url=supabase.storage.from('community-photos').getPublicUrl(path).data.publicUrl
   const next=[...galleryUrls,url]
-  const {error}=await supabase.from('profiles').update({gallery_urls:next}).eq('id',uid)
+  const {error}=await supabase.from('profiles').upsert({id:uid,gallery_urls:next},{onConflict:'id'})
   if(error)setStatus('Photo envoyée mais galerie non actualisée : '+error.message)
   else{setGalleryUrls(next);setStatus('Photo ajoutée à ta galerie !')}
   setGalleryBusy(false)
