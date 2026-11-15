@@ -143,6 +143,6 @@ export default function App({ Component, pageProps }: AppProps) {
       </div>}
     </>}
     <Component {...pageProps} />
-    {notice && <div className="app-toast" role="status" aria-live="polite"><span className="toast-icon">✓</span><span>{notice}</span></div>}
+    {notice && <button type="button" className="app-toast" role="status" aria-live="polite" onClick={() => { setNotice(''); router.push('/notifications') }}><span className="toast-icon">✓</span><span>{notice}<small>Appuie pour ouvrir tes notifications</small></span></button>}
   </>
 }
