@@ -28,7 +28,8 @@ export default function AuthPage() {
       if (error) {
         setMessage(error.message)
       } else if (data.session) {
-        await router.push('/inbox')
+        await supabase.from('profiles').upsert({ id: data.user.id }, { onConflict: 'id' })
+        await router.push('/feed')
       } else {
         setMessage("Ton compte a été créé, mais Supabase demande encore une confirmation par e-mail. Désactive « Confirm email » dans Authentication > Providers > Email pour permettre l'accès immédiat.")
       }
@@ -41,7 +42,9 @@ export default function AuthPage() {
       if (error) {
         setMessage(`Connexion impossible : ${error.message}`)
       } else {
-        await router.push('/inbox')
+        const { data: { user } } = await supabase.auth.getUser()
+        if (user) await supabase.from('profiles').upsert({ id: user.id }, { onConflict: 'id' })
+        await router.push('/feed')
       }
     }
 
