@@ -41,7 +41,7 @@ export default function CommunitiesPage(){
   setBusy(true)
   const {data,error}=await supabase.from('communities').insert({name:name.trim(),description:description.trim(),created_by:userId}).select('id').single()
   if(error){setStatus('Création impossible : '+error.message);setBusy(false);return}
-  const join=await supabase.from('community_members').insert({community_id:data.id,user_id:userId,role:'owner'})
+  const join=await supabase.from('community_members').insert({community_id:data.id,user_id:userId,role:'member'})
   setBusy(false)
   if(join.error){setStatus('Groupe créé, mais impossible de le rejoindre : '+join.error.message);return}
   setName('');setDescription('');setStatus('Communauté créée !');await load();setSelected(data.id)
