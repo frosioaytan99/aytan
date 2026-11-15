@@ -156,3 +156,12 @@ html[data-theme="dark"] .hero-art{background:radial-gradient(circle,#302a48 0,#1
 html[data-theme="dark"] .float-card{background:#29253b;color:#f1effa;border-color:var(--line)}
 html[data-theme="dark"] .comment-form input{background:#191727;color:var(--ink);border-color:var(--line)}
 @media(max-width:600px){.global-tools{right:8px;bottom:8px}.global-tools a,.global-tools button{padding:9px 10px;font-size:10px}.notifications-heading{align-items:flex-start;flex-direction:column}.notifications-page{margin:25px auto}}
+
+.admin-account-row{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:14px 0;border-bottom:1px solid var(--line)}
+.admin-account-row>div:first-child{display:grid;gap:4px;min-width:0}
+.admin-account-row small{font-size:11px;color:var(--muted);overflow-wrap:anywhere}
+.admin-account-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.admin-account-actions a{font-size:12px;font-weight:800;color:var(--purple)}
+.admin-account-actions button,.message-report{font-size:11px;padding:9px 11px}
+.message-report{border:0;background:transparent;color:#b4473f;cursor:pointer}
+@media(max-width:600px){.admin-account-row{align-items:flex-start;flex-direction:column}.admin-account-actions{width:100%}}
