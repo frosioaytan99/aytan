@@ -385,3 +385,6 @@ html[data-theme="dark"] .poll-result-track{background:#39334d}
 .conversation-search:focus{outline:3px solid rgba(118,82,232,.16);border-color:var(--purple)}
 html[data-theme="dark"] .profile-last-seen{background:#29243a}
 html[data-theme="dark"] .conversation-search{background:#191725;border-color:#39334d;color:#f1edf9}
+
+.message-read-status{font-weight:800;color:var(--purple);letter-spacing:.01em}
+html[data-theme="dark"] .message-read-status{color:#b9a9ff}
