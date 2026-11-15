@@ -34,6 +34,7 @@ export default function App({ Component, pageProps }: AppProps) {
   useEffect(() => {
     let timer: ReturnType<typeof setTimeout> | undefined
     let presenceTimer: ReturnType<typeof setInterval> | undefined
+    let presenceVisibilityHandler: (() => void) | null = null
     let channel: ReturnType<typeof supabase.channel> | null = null
     let active = true
     try {
@@ -54,6 +55,7 @@ export default function App({ Component, pageProps }: AppProps) {
     const attach = (userId: string | null) => {
       if (channel) { supabase.removeChannel(channel); channel = null }
       if (presenceTimer) { clearInterval(presenceTimer); presenceTimer = undefined }
+      if (presenceVisibilityHandler) { document.removeEventListener('visibilitychange', presenceVisibilityHandler); presenceVisibilityHandler = null }
       if (!userId) { setUnread(0); return }
       const updatePresence = () => {
         if (document.visibilityState === 'visible') {
@@ -62,6 +64,7 @@ export default function App({ Component, pageProps }: AppProps) {
       }
       updatePresence()
       presenceTimer = setInterval(updatePresence, 60000)
+      presenceVisibilityHandler = updatePresence
       document.addEventListener('visibilitychange', updatePresence)
       supabase.from('notifications').select('id', { count: 'exact', head: true }).eq('user_id', userId).eq('is_read', false)
         .then(({ count }) => { if (active) setUnread(count || 0) })
@@ -86,7 +89,7 @@ export default function App({ Component, pageProps }: AppProps) {
     return () => {
       active = false
       window.removeEventListener('weshbien:notify', onNotice)
-      document.removeEventListener('visibilitychange', onPresenceVisibility)
+      if (presenceVisibilityHandler) document.removeEventListener('visibilitychange', presenceVisibilityHandler)
       subscription.unsubscribe()
       if (channel) supabase.removeChannel(channel)
       if (timer) clearTimeout(timer)
