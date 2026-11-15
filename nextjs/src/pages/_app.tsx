@@ -28,6 +28,8 @@ export default function App({ Component, pageProps }: AppProps) {
   const [unread, setUnread] = useState(0)
   const [menuOpen, setMenuOpen] = useState(false)
   const [signedIn, setSignedIn] = useState(false)
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
+  const [accountMenuOpen, setAccountMenuOpen] = useState(false)
   const router = useRouter()
   const memberPage = router.pathname !== '/' && router.pathname !== '/auth' && router.pathname !== '/404'
 
@@ -56,7 +58,8 @@ export default function App({ Component, pageProps }: AppProps) {
       if (channel) { supabase.removeChannel(channel); channel = null }
       if (presenceTimer) { clearInterval(presenceTimer); presenceTimer = undefined }
       if (presenceVisibilityHandler) { document.removeEventListener('visibilitychange', presenceVisibilityHandler); presenceVisibilityHandler = null }
-      if (!userId) { setUnread(0); return }
+      if (!userId) { setUnread(0); setAvatarUrl(null); return }
+      supabase.from('profiles').select('avatar_url').eq('id', userId).maybeSingle().then(({ data }) => { if (active) setAvatarUrl(data?.avatar_url || null) })
       const updatePresence = () => {
         if (document.visibilityState === 'visible') {
           supabase.from('profiles').update({ last_seen_at: new Date().toISOString() }).eq('id', userId).then(() => {})
@@ -111,7 +114,16 @@ export default function App({ Component, pageProps }: AppProps) {
         <button type="button" className="mobile-menu-trigger" onClick={() => setMenuOpen(true)} aria-label="Ouvrir le menu">☰</button>
         <Link href="/feed" className="mobile-brand"><span className="brand-mark">w</span></Link><span className="mobile-header-spacer" />
         <Link href="/notifications" className="mobile-header-icon" aria-label="Notifications">♧{unread > 0 && <i>{unread > 9 ? '9+' : unread}</i>}</Link>
-        <Link href="/inbox" className="mobile-header-icon" aria-label="Messages">♡</Link><Link href="/profile" className="mobile-user-dot">W</Link>
+        <Link href="/inbox" className="mobile-header-icon" aria-label="Messages">♡</Link><div className="account-menu-wrap" style={{position:'relative'}}>
+          <button type="button" className="mobile-user-dot" onClick={() => setAccountMenuOpen(value => !value)} aria-label="Ouvrir le menu du compte" aria-expanded={accountMenuOpen} style={{padding:0,overflow:'hidden',borderRadius:'50%',border:'2px solid var(--accent,#7c3aed)',background:'var(--surface,#fff)',width:38,height:38,display:'grid',placeItems:'center',cursor:'pointer'}}>
+            {avatarUrl ? <img src={avatarUrl} alt="Ma photo de profil" style={{width:'100%',height:'100%',objectFit:'cover'}} /> : <NavIcon name="profile" />}
+          </button>
+          {accountMenuOpen && <div role="menu" style={{position:'absolute',right:0,top:'calc(100% + 10px)',zIndex:1000,minWidth:180,padding:8,borderRadius:14,background:'var(--card,#fff)',border:'1px solid var(--border,#ddd)',boxShadow:'0 12px 32px #0002',display:'grid',gap:4}}>
+            <Link role="menuitem" href="/profile" onClick={() => setAccountMenuOpen(false)} style={{padding:'11px 12px',borderRadius:9,textDecoration:'none',color:'inherit'}}>👤 Profil</Link>
+            <Link role="menuitem" href="/settings" onClick={() => setAccountMenuOpen(false)} style={{padding:'11px 12px',borderRadius:9,textDecoration:'none',color:'inherit'}}>⚙️ Paramètres</Link>
+            <button role="menuitem" type="button" onClick={async () => { setAccountMenuOpen(false); await supabase.auth.signOut(); await router.replace('/auth') }} style={{padding:'11px 12px',border:0,borderRadius:9,textAlign:'left',background:'transparent',color:'inherit',cursor:'pointer'}}>↪ Déconnexion</button>
+          </div>}
+        </div>
       </header>
       <nav className="mobile-bottom-nav" aria-label="Navigation mobile">
         <Link className={router.pathname === '/feed' ? 'selected' : ''} href="/feed"><span><NavIcon name="home"/></span>Accueil</Link>
