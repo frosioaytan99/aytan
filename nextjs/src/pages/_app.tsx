@@ -42,7 +42,7 @@ export default function App({ Component, pageProps }: AppProps) {
       setTheme(initial)
       document.documentElement.dataset.theme = initial
     } catch {}
-    const onNotice = (event: Event) => {
+    const onPresenceVisibility = () => {\n      // La présence est actualisée au retour sur l’application.\n    }\n    document.addEventListener('visibilitychange', onPresenceVisibility)\n    const onNotice = (event: Event) => {
       const message = (event as CustomEvent).detail
       if (typeof message !== 'string' || !message) return
       setNotice(message)
@@ -86,7 +86,7 @@ export default function App({ Component, pageProps }: AppProps) {
     return () => {
       active = false
       window.removeEventListener('weshbien:notify', onNotice)
-      document.removeEventListener('visibilitychange', () => {})
+      document.removeEventListener('visibilitychange', onPresenceVisibility)
       subscription.unsubscribe()
       if (channel) supabase.removeChannel(channel)
       if (timer) clearTimeout(timer)
