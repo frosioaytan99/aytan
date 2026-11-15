@@ -1,51 +1,7 @@
-import { useState } from 'react'
-import { supabase } from '../lib/supabaseClient'
-
-export default function SendPage() {
-  const [recipient, setRecipient] = useState('')
-  const [subject, setSubject] = useState('')
-  const [body, setBody] = useState('')
-  const [status, setStatus] = useState('')
-
-  async function send(e: any) {
-    e.preventDefault()
-    const user = await supabase.auth.getUser()
-    const sender = user.data.user?.id
-    if (!sender) return setStatus('Non authentifié')
-
-    const { data, error } = await supabase
-      .from('messages')
-      .insert([{ sender, recipient, subject, body }])
-      .select()
-      .single()
-
-    if (error) {
-      setStatus(error.message)
-      return
-    }
-
-    // call server-side API to trigger moderation (server must have SERVICE_ROLE_KEY set)
-    await fetch('/api/moderate', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ message_id: data.id })
-    })
-
-    setStatus('Message envoyé')
-    setSubject('')
-    setBody('')
-  }
-
-  return (
-    <div style={{padding:20}}>
-      <h2>Envoyer un message</h2>
-      <form onSubmit={send}>
-        <input value={recipient} onChange={e => setRecipient(e.target.value)} placeholder="recipient user id" />
-        <input value={subject} onChange={e => setSubject(e.target.value)} placeholder="sujet" />
-        <textarea value={body} onChange={e => setBody(e.target.value)} placeholder="message" />
-        <button>Envoyer</button>
-      </form>
-      {status && <p>{status}</p>}
-    </div>
-  )
-}
+import {useState} from 'react'
+import Link from 'next/link'
+import {useRouter} from 'next/router'
+import {supabase} from '../lib/supabaseClient'
+export default function SendPage(){const router=useRouter();const [recipient,setRecipient]=useState(''),[subject,setSubject]=useState(''),[body,setBody]=useState(''),[status,setStatus]=useState(''),[busy,setBusy]=useState(false)
+ async function send(e:any){e.preventDefault();setBusy(true);setStatus('');const {data:{user}}=await supabase.auth.getUser();if(!user){router.push('/auth');return}const {data:profile,error:lookup}=await supabase.from('profiles').select('id,username').eq('username',recipient.trim().replace(/^@/,'').toLowerCase()).maybeSingle();if(lookup||!profile){setStatus('Aucun membre trouvé avec ce pseudo.');setBusy(false);return}const {error}=await supabase.from('messages').insert({sender:user.id,recipient:profile.id,subject:subject.trim()||'Message',body:body.trim()});setBusy(false);if(error){setStatus('Envoi impossible : '+error.message);return}setStatus('Message envoyé !');setRecipient('');setSubject('');setBody('')}
+ return <main className="app-shell"><header className="app-header"><Link className="brand" href="/">weshbien2<span>.</span></Link><nav><Link href="/feed">Fil</Link><Link href="/explore">Découvrir</Link><Link href="/profile">Mon profil</Link><Link href="/inbox">Messages</Link></nav></header><section className="profile-wrap"><small>MESSAGERIE PRIVÉE</small><h1>Écrire un message</h1><form className="card profile-form" onSubmit={send}><label>Pseudo du destinataire<input required value={recipient} onChange={e=>setRecipient(e.target.value)} placeholder="@pseudo"/></label><label>Objet<input maxLength={100} value={subject} onChange={e=>setSubject(e.target.value)} placeholder="Un petit bonjour"/></label><label>Ton message<textarea required maxLength={3000} value={body} onChange={e=>setBody(e.target.value)} placeholder="Écris ton message…"/></label><button disabled={busy}>{busy?'Envoi…':'Envoyer le message →'}</button>{status&&<p className="notice">{status}</p>}</form></section></main>}
