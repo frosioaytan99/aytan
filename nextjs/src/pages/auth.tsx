@@ -39,7 +39,7 @@ export default function AuthPage() {
       })
 
       if (error) {
-        setMessage("Connexion impossible. Vérifie ton adresse e-mail et ton mot de passe.")
+        setMessage(`Connexion impossible : ${error.message}`)
       } else {
         await router.push('/inbox')
       }
