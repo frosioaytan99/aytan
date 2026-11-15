@@ -54,14 +54,14 @@ export default function InboxPage() {
     .on('postgres_changes',{event:'*',schema:'public',table:'messages'},async payload=>{
       const row:any=payload.new||payload.old
       if(row?.sender===user.id||row?.recipient===user.id){
-       if(payload.eventType==='INSERT'&&row.recipient===user.id)notify('Nouveau message reçu')
+       
        if(active)await loadMessages(user.id)
       }
     })
     .on('postgres_changes',{event:'*',schema:'public',table:'friend_requests'},async payload=>{
       const row:any=payload.new||payload.old
       if(row?.recipient_id===user.id){
-       if(payload.eventType==='INSERT')notify('Nouvelle demande d’ami')
+       
        if(active)await loadInvites(user.id)
       }
     }).subscribe()
