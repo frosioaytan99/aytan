@@ -27,6 +27,12 @@ export default function ConversationPage(){
   init()
   return()=>{active=false}
  },[router.isReady,router.query.with])
+ async function reportMessage(messageId:string){
+  const reason=window.prompt('Pourquoi souhaites-tu signaler ce message ?')
+  if(!reason||reason.trim().length<3)return
+  const {error}=await supabase.from('reports').insert({reporter_id:uid,content_type:'message',content_id:messageId,reason:reason.trim().slice(0,1000),status:'pending'})
+  setStatus(error?'Signalement impossible : '+error.message:'Message signalé. Merci.')
+ }
  async function send(e:any){
   e.preventDefault();if(!body.trim()||!uid||!other||busy)return
   setBusy(true);const {error}=await supabase.from('messages').insert({sender:uid,recipient:other,subject:'Message',body:body.trim()})
@@ -34,5 +40,5 @@ export default function ConversationPage(){
   if(error){setStatus(error.code==='42501'?'Vous devez être amis pour envoyer un message.':'Envoi impossible.');return}
   setBody('');setStatus('');await load(uid,other)
  }
- return <main className="app-shell"><header className="app-header"><Link className="brand" href="/">weshbien2.</Link><nav><Link href="/feed">Fil</Link><Link href="/forums">Forums</Link><Link href="/inbox" className="active">Messages</Link></nav></header><section className="conversation-page"><Link href="/inbox" className="back-link">← Retour aux conversations</Link><div className="conversation-heading"><div className="avatar large">{(person?.display_name||person?.username||'W').slice(0,1).toUpperCase()}</div><div><h1>{person?.display_name||person?.username||'Conversation'}</h1><small>@{person?.username||''}</small></div><Link href={'/profile?id='+other}>Voir le profil</Link></div><div className="conversation-history">{messages.length===0?<p className="empty">Démarre la conversation en envoyant un message.</p>:messages.map(m=><div key={m.id} className={'chat-line '+(m.sender===uid?'chat-mine':'chat-theirs')}><div className="chat-line-bubble">{m.body||m.subject}</div><small>{new Date(m.created_at).toLocaleString('fr-FR')}</small></div>)}</div>{status&&<p className="notice">{status}</p>}<form className="conversation-compose" onSubmit={send}><textarea value={body} onChange={e=>setBody(e.target.value)} maxLength={3000} placeholder="Écris ton message…" required/><button disabled={busy||!body.trim()}>{busy?'Envoi…':'Envoyer →'}</button></form></section></main>
+ return <main className="app-shell"><header className="app-header"><Link className="brand" href="/">weshbien2.</Link><nav><Link href="/feed">Fil</Link><Link href="/forums">Forums</Link><Link href="/inbox" className="active">Messages</Link></nav></header><section className="conversation-page"><Link href="/inbox" className="back-link">← Retour aux conversations</Link><div className="conversation-heading"><div className="avatar large">{(person?.display_name||person?.username||'W').slice(0,1).toUpperCase()}</div><div><h1>{person?.display_name||person?.username||'Conversation'}</h1><small>@{person?.username||''}</small></div><Link href={'/profile?id='+other}>Voir le profil</Link></div><div className="conversation-history">{messages.length===0?<p className="empty">Démarre la conversation en envoyant un message.</p>:messages.map(m=><div key={m.id} className={'chat-line '+(m.sender===uid?'chat-mine':'chat-theirs')}><div className="chat-line-bubble">{m.body||m.subject}</div><small>{new Date(m.created_at).toLocaleString('fr-FR')}</small>{m.sender!==uid&&<button type="button" className="message-report" onClick={()=>reportMessage(m.id)}>⚑ Signaler</button>}</div>)}</div>{status&&<p className="notice">{status}</p>}<form className="conversation-compose" onSubmit={send}><textarea value={body} onChange={e=>setBody(e.target.value)} maxLength={3000} placeholder="Écris ton message…" required/><button disabled={busy||!body.trim()}>{busy?'Envoi…':'Envoyer →'}</button></form></section></main>
 }
