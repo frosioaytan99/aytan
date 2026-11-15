@@ -21,9 +21,9 @@ export default function AuthPage() {
   return (
     <main className="auth-shell">
       <section className="auth-card">
-        <Link href="/" className="brand"><span className="brand-mark">a</span><span>aytan<span className="brand-dot">.</span></span></Link>
+        <Link href="/" className="brand"><span className="brand-mark">a</span><span>weshbien2<span className="brand-dot">.</span></span></Link>
         <h1>Content de te revoir !</h1>
-        <p>Entre ton adresse e-mail pour recevoir ton lien de connexion Aytan.</p>
+        <p>Entre ton adresse e-mail pour recevoir ton lien de connexion weshbien2.</p>
         <form onSubmit={sendLink}>
           <input type="email" required value={email} onChange={e => setEmail(e.target.value)} placeholder="Ton adresse e-mail" autoComplete="email" />
           <button type="submit" disabled={loading}>{loading ? 'Envoi en cours…' : 'Recevoir mon lien →'}</button>
