@@ -43,7 +43,7 @@ export default function App({ Component, pageProps }: AppProps) {
       setTheme(initial)
       document.documentElement.dataset.theme = initial
     } catch {}
-    const onPresenceVisibility = () => {\n      // La présence est actualisée au retour sur l’application.\n    }\n    document.addEventListener('visibilitychange', onPresenceVisibility)\n    const onNotice = (event: Event) => {
+    const onNotice = (event: Event) => {
       const message = (event as CustomEvent).detail
       if (typeof message !== 'string' || !message) return
       setNotice(message)
