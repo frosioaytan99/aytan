@@ -8,6 +8,7 @@ export default function Home() {
         <title>Weshbien2 — Réseau social, communauté et discussions</title>
         <meta name="description" content="Rejoins Weshbien2, une communauté pour découvrir des profils, partager des moments, publier des photos et discuter dans un espace convivial." />
         <meta name="robots" content="index,follow,max-image-preview:large" />
+        <meta name="google-site-verification" content="5Bgr1zybvLtaN7wTU4Lkk4RV-wKJMrmya1_f68j9Ejk" />
         <link rel="canonical" href="https://aytan-six.vercel.app/" />
         <meta property="og:type" content="website" />
         <meta property="og:site_name" content="Weshbien2" />
