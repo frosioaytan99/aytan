@@ -1,7 +1,21 @@
 import Link from 'next/link'
+import Head from 'next/head'
 
 export default function Home() {
   return (
+    <>
+      <Head>
+        <title>Weshbien2 — Réseau social, communauté et discussions</title>
+        <meta name="description" content="Rejoins Weshbien2, une communauté pour découvrir des profils, partager des moments, publier des photos et discuter dans un espace convivial." />
+        <meta name="robots" content="index,follow,max-image-preview:large" />
+        <link rel="canonical" href="https://aytan-six.vercel.app/" />
+        <meta property="og:type" content="website" />
+        <meta property="og:site_name" content="Weshbien2" />
+        <meta property="og:title" content="Weshbien2 — Des gens, des histoires, du lien" />
+        <meta property="og:description" content="Découvre une communauté, partage tes moments et échange avec des personnes." />
+        <meta property="og:url" content="https://aytan-six.vercel.app/" />
+        <meta name="twitter:card" content="summary" />
+      </Head>
     <main className="site-shell">
       <header className="topbar">
         <Link href="/" className="brand" aria-label="weshbien2, accueil">
@@ -55,5 +69,6 @@ export default function Home() {
       </section>
       <footer className="site-footer"><Link href="/" className="footer-brand">weshbien2.</Link><span>Un réseau pour discuter, partager et se respecter.</span><Link href="/auth">Nous rejoindre →</Link></footer>
     </main>
+    </>
   )
 }
