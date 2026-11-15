@@ -49,5 +49,5 @@ export default function App({ Component, pageProps }: AppProps) {
   document.documentElement.dataset.theme=next
   try{window.localStorage.setItem('weshbien-theme',next)}catch{}
  }
- return <><Component {...pageProps}/><div className="global-tools global-tools-top"><Link href="/notifications" className="global-notifications" aria-label="Notifications">♧ Notifications{unread>0&&<b>{unread>99?'99+':unread}</b>}</Link><button type="button" onClick={toggleTheme} aria-label="Changer le thème">{theme==='dark'?'☀️ Mode clair':'🌙 Mode sombre'}</button></div>{notice&&<div className="app-toast" role="status" aria-live="polite"><span className="toast-icon">✓</span><span>{notice}</span></div>}</>
+ return <><div className="global-tools global-tools-top"><Link href="/notifications" className="global-notifications" aria-label="Notifications">♧ Notifications{unread>0&&<b>{unread>99?'99+':unread}</b>}</Link><button type="button" onClick={toggleTheme} aria-label="Changer le thème">{theme==='dark'?'☀️ Mode clair':'🌙 Mode sombre'}</button></div><Component {...pageProps}/>{notice&&<div className="app-toast" role="status" aria-live="polite"><span className="toast-icon">✓</span><span>{notice}</span></div>}</>
 }
