@@ -239,3 +239,14 @@ html[data-theme="dark"] .drawer-theme{background:#242033;color:#c5b8ff;border-co
 .profile-form .avatar.large{width:104px;height:104px;border-radius:50%;font-size:34px;margin:0 auto 14px}
 
 .mobile-bottom-nav a>span{display:flex;align-items:center;justify-content:center;position:relative}.mobile-bottom-nav svg{width:23px;height:23px;stroke-width:1.9}.mobile-bottom-nav a.selected svg{stroke-width:2.3}.mobile-bottom-nav a{gap:5px}
+
+
+.profile-gallery-editor,.profile-gallery-view{display:grid;gap:12px;margin:8px 0;padding:16px;border:1px solid var(--line);border-radius:15px;background:var(--surface,#fff)}
+.profile-gallery-editor h3,.profile-gallery-view h3{margin:0;font-size:15px;font-weight:800;color:var(--ink)}
+.profile-gallery-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+.profile-gallery-thumb{min-width:0;display:grid;gap:6px}
+.profile-gallery-grid img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:11px;display:block}
+.profile-gallery-thumb button{border:0;border-radius:8px;padding:7px;background:#fff0ef;color:#b4473f;font-size:11px;font-weight:800}
+.profile-gallery-editor>small{font-size:11px;color:var(--muted)}
+html[data-theme="dark"] .profile-gallery-editor,html[data-theme="dark"] .profile-gallery-view{background:#242136;border-color:var(--line)}
+@media(max-width:480px){.profile-gallery-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
