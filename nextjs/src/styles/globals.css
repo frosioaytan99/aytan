@@ -165,3 +165,13 @@ html[data-theme="dark"] .comment-form input{background:#191727;color:var(--ink);
 .admin-account-actions button,.message-report{font-size:11px;padding:9px 11px}
 .message-report{border:0;background:transparent;color:#b4473f;cursor:pointer}
 @media(max-width:600px){.admin-account-row{align-items:flex-start;flex-direction:column}.admin-account-actions{width:100%}}
+
+
+/* Barre de notifications et thème en haut */
+.global-tools-top{top:12px;bottom:auto;right:18px;z-index:1100}
+.app-toast{top:68px;right:18px;white-space:normal;line-height:1.5}
+@media(max-width:650px){
+ .global-tools-top{top:8px;right:8px;gap:5px}
+ .global-tools-top a,.global-tools-top button{padding:8px 10px;font-size:10px}
+ .app-toast{top:58px;right:8px}
+}
