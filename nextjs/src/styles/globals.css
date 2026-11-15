@@ -111,3 +111,48 @@ html,body,#__next{background:var(--paper);color:var(--ink)}
 .forum-reply>small{display:block;color:var(--muted);font-size:10px;margin-top:4px}
 .forum-reply>p{font-size:13px;line-height:1.7;white-space:pre-wrap}
 @media(max-width:760px){.forum-layout{grid-template-columns:1fr}.forum-create{order:0}.forum-topics{order:1}.conversation-page{margin:22px auto}.conversation-compose{flex-direction:column}.conversation-compose button{align-self:flex-end}.conversation-heading>a{font-size:10px}.conversation-meta span{display:none}}
+
+
+/* Theme switcher and notification centre */
+.global-tools{position:fixed;z-index:900;right:14px;bottom:14px;display:flex;gap:8px;align-items:center}
+.global-tools a,.global-tools button{border:1px solid var(--line);border-radius:999px;padding:10px 13px;background:#fff;color:#443d61;font-size:11px;font-weight:800;box-shadow:0 6px 24px #20183a18}
+.global-tools a{display:flex;gap:7px;align-items:center}
+.global-tools a b{display:grid;place-items:center;min-width:18px;height:18px;padding:0 4px;border-radius:20px;background:#7057d9;color:#fff}
+.notifications-page{max-width:850px;margin:42px auto;padding:0 22px 70px}
+.notifications-heading{display:flex;justify-content:space-between;align-items:center;gap:18px;margin-bottom:22px}
+.notifications-heading h1{font:800 30px Manrope;margin:8px 0}
+.notifications-heading p{font-size:13px;color:var(--muted)}
+.notifications-heading button{border:0;border-radius:11px;padding:12px 15px;background:var(--purple);color:white;font-size:11px;font-weight:800}
+.notifications-heading button:disabled{opacity:.45}
+.notifications-list{display:grid;gap:10px}
+.notification-item{width:100%;display:flex;align-items:center;gap:14px;text-align:left;border:1px solid var(--line);border-radius:15px;padding:16px;background:#fff;color:var(--ink)}
+.notification-item.notification-unread{border-color:#cfc5f4;background:#f8f6ff}
+.notification-symbol{display:grid;place-items:center;width:42px;height:42px;flex:none;border-radius:14px;background:#efebff;color:var(--purple);font-size:19px}
+.notification-copy{display:grid;gap:5px;min-width:0;flex:1}
+.notification-copy strong{font-size:13px}
+.notification-copy>span{font-size:12px;color:var(--muted)}
+.notification-copy small{font-size:10px;color:var(--muted)}
+.notification-item>i{width:9px;height:9px;flex:none;border-radius:50%;background:var(--purple)}
+.danger-action{background:#fff0ef!important;color:#b4473f!important;border:1px solid #f5d2ce!important}
+.friend-secondary{border:1px solid var(--line)!important;background:#f1eff8!important;color:#62568f!important;padding:12px 15px;border-radius:11px;font-weight:800}
+html[data-theme="dark"]{--ink:#f1effa;--muted:#aaa5bf;--line:#39344d;--paper:#171522;--purple:#a695ff;--purple-dark:#8d79ee}
+html[data-theme="dark"],html[data-theme="dark"] body,html[data-theme="dark"] #__next{background:#171522;color:var(--ink)}
+html[data-theme="dark"] .member-shell,html[data-theme="dark"] .app-shell{background:#171522;color:var(--ink)}
+html[data-theme="dark"] .topbar,html[data-theme="dark"] .app-header,html[data-theme="dark"] .member-topbar,html[data-theme="dark"] .member-panel,html[data-theme="dark"] .member-stat,html[data-theme="dark"] .card,html[data-theme="dark"] .feature-card,html[data-theme="dark"] .side-card,html[data-theme="dark"] .right-card,html[data-theme="dark"] .auth-card,html[data-theme="dark"] .phone-card,html[data-theme="dark"] .conversation-heading,html[data-theme="dark"] .conversation-compose,html[data-theme="dark"] .forum-original,html[data-theme="dark"] .forum-reply,html[data-theme="dark"] .forum-create,html[data-theme="dark"] .forum-reply-form{background:#242136;color:var(--ink);border-color:var(--line)}
+html[data-theme="dark"] .app-header nav,html[data-theme="dark"] .member-nav,html[data-theme="dark"] .member-nav button{color:#c0bad4}
+html[data-theme="dark"] input,html[data-theme="dark"] textarea,html[data-theme="dark"] select,html[data-theme="dark"] .conversation-compose textarea,html[data-theme="dark"] .forum-create input,html[data-theme="dark"] .forum-create select,html[data-theme="dark"] .forum-create textarea,html[data-theme="dark"] .forum-reply-form textarea{background:#191727;color:var(--ink);border-color:var(--line)}
+html[data-theme="dark"] .comment,html[data-theme="dark"] .chat-line-bubble,html[data-theme="dark"] .bubble-left,html[data-theme="dark"] .forum-category,html[data-theme="dark"] .notification-symbol{background:#332d49;color:#e9e5fa}
+html[data-theme="dark"] .chat-mine .chat-line-bubble{background:#7057d9;color:#fff}
+html[data-theme="dark"] .conversation-row:hover,html[data-theme="dark"] .notification-item{background:#242136;color:var(--ink)}
+html[data-theme="dark"] .notification-unread{background:#302943!important;border-color:#64559c}
+html[data-theme="dark"] .global-tools a,html[data-theme="dark"] .global-tools button{background:#29253b;color:#f1effa;border-color:#48415e}
+html[data-theme="dark"] .auth-shell{background:#171522}
+html[data-theme="dark"] .auth-tabs{background:#191727}
+html[data-theme="dark"] .auth-tab.active{background:#39334f;color:#fff}
+html[data-theme="dark"] .member-message,html[data-theme="dark"] .member-panel-heading,html[data-theme="dark"] .post-actions,html[data-theme="dark"] .comments{border-color:var(--line)}
+html[data-theme="dark"] .post,html[data-theme="dark"] .composer{background:#242136;color:var(--ink)}
+html[data-theme="dark"] .member-message-avatar,html[data-theme="dark"] .avatar{background:#39334f;color:#c5baff}
+html[data-theme="dark"] .hero-art{background:radial-gradient(circle,#302a48 0,#171522 68%)}
+html[data-theme="dark"] .float-card{background:#29253b;color:#f1effa;border-color:var(--line)}
+html[data-theme="dark"] .comment-form input{background:#191727;color:var(--ink);border-color:var(--line)}
+@media(max-width:600px){.global-tools{right:8px;bottom:8px}.global-tools a,.global-tools button{padding:9px 10px;font-size:10px}.notifications-heading{align-items:flex-start;flex-direction:column}.notifications-page{margin:25px auto}}
