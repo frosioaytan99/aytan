@@ -47,7 +47,7 @@ export default function ProfilePage() {
    else if(data){
     setProfile(data as ProfileData);setName(data.display_name||'');setUsername(data.username||'');setBio(data.bio||'');setInterests(data.interests||'');setPrivateProfile(!!data.is_private)
     if(target!==user.id){await loadFriendState(user.id,target);const likes=await supabase.from('profile_likes').select('id',{count:'exact',head:true}).eq('to_user_id',target);const mine=await supabase.from('profile_likes').select('id').eq('from_user_id',user.id).eq('to_user_id',target).maybeSingle();setLikeCount(likes.count||0);setLiked(!!mine.data)}
-   }else{setProfile(null);setName('');setUsername('');setBio('');setStatus(target===user.id?'Ton profil n’a pas encore été créé. Tu peux le compléter ci-dessous.':'Ce profil est introuvable, privé ou indisponible.')}
+   }else{setProfile(null);setName('');setUsername('');setBio('');setInterests('');setStatus(target===user.id?'Ton profil n’a pas encore été créé. Tu peux le compléter ci-dessous.':'Ce profil est introuvable, privé ou indisponible.')}
    if(!cancelled)setLoading(false)
   }
   loadProfile()
@@ -65,7 +65,7 @@ export default function ProfilePage() {
  async function save(e:any){
   e.preventDefault();if(!uid)return
   setStatus('')
-  const {data,error}=await supabase.from('profiles').upsert({id:uid,display_name:name.trim(),username:username.trim().toLowerCase(),bio:bio.trim(),interests:interests.trim(),is_private:privateProfile},{onConflict:'id'}).select('id,display_name,username,bio,is_private').single()
+  const {data,error}=await supabase.from('profiles').upsert({id:uid,display_name:name.trim(),username:username.trim().toLowerCase(),bio:bio.trim(),interests:interests.trim(),is_private:privateProfile},{onConflict:'id'}).select('id,display_name,username,bio,interests,is_private').single()
   if(error){setStatus('Enregistrement impossible : '+error.message);return}
   setProfile(data as ProfileData);setStatus('Profil enregistré !')
  }
