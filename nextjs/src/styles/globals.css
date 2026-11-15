@@ -28,3 +28,25 @@ html,body,#__next{background:var(--paper);color:var(--ink)}
 .comment{background:#faf9fd}
 .app-layout{gap:22px}
 @media(max-width:650px){.app-header{height:auto;min-height:65px;padding:13px 16px;align-items:flex-start;gap:12px;flex-direction:column}.app-header nav{width:100%;justify-content:space-between;gap:8px;font-size:11px}.comment-form{align-items:stretch}.comment-form button{padding:0 10px}}
+
+
+/* Landing and community components */
+.hero h1{font:800 clamp(46px,5.7vw,70px)/1.06 Manrope;letter-spacing:-3.5px}
+.hero h1 span{color:var(--purple)}
+.hero-art{border-radius:38px;background:radial-gradient(circle,#eeeaff 0,#f8f7fc 68%)}
+.phone-card{box-shadow:0 24px 70px #47328b20}
+.float-card{border:1px solid #f0edf6;box-shadow:var(--shadow)}
+.landing-cta{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:28px 32px;margin:0 0 35px;border-radius:22px;background:linear-gradient(110deg,#6f56d8,#8b78e7);color:#fff}
+.landing-cta>div>span{font-size:10px;letter-spacing:1.5px;font-weight:800;color:#e2dcff}
+.landing-cta h2{font:800 22px Manrope;margin:8px 0 0}
+.landing-cta>a{white-space:nowrap;padding:13px 17px;background:#fff;color:var(--purple);border-radius:11px;font-size:12px;font-weight:800}
+.landing-cta>a b{margin-left:12px}
+.feature-card a{color:var(--purple);font-size:12px;font-weight:800}
+.post-profile-link,.comment-profile-link{display:flex;align-items:center;gap:10px}
+.post-profile-link:hover b,.comment-profile-link:hover b{color:var(--purple)}
+.member-card{transition:transform .18s,box-shadow .18s}
+.member-card:hover{transform:translateY(-3px);box-shadow:var(--shadow)}
+.profile-form>h2{font:800 24px Manrope;text-align:center;margin:2px 0}
+.profile-form>p{text-align:center;color:var(--muted);font-size:13px}
+.profile-form>a:not(.member-primary){color:var(--purple);font-size:12px;font-weight:700}
+@media(max-width:650px){.landing-cta{align-items:flex-start;flex-direction:column;padding:24px}.landing-cta h2{font-size:19px}.hero h1{font-size:49px;letter-spacing:-2.8px}}
