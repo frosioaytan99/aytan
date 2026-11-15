@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { supabase } from '../lib/supabaseClient'
 
-type ProfileData = { id:string; display_name:string|null; username:string|null; bio:string|null; interests:string|null; avatar_url?:string|null; is_private:boolean|null }
+type ProfileData = { id:string; display_name:string|null; username:string|null; bio:string|null; interests:string|null; avatar_url?:string|null; is_private:boolean|null; age?:number|null; city?:string|null; favorite_music?:string|null; hobbies?:string|null; gallery_urls?:string[]|null }
 type FriendRequest = { id:string; sender_id:string; recipient_id:string; status:'pending'|'accepted'|'declined' }
 
 export default function ProfilePage() {
@@ -15,6 +15,12 @@ export default function ProfilePage() {
  const [username,setUsername]=useState('')
  const [bio,setBio]=useState('')
  const [interests,setInterests]=useState('')
+ const [age,setAge]=useState('')
+ const [city,setCity]=useState('')
+ const [favoriteMusic,setFavoriteMusic]=useState('')
+ const [hobbies,setHobbies]=useState('')
+ const [galleryUrls,setGalleryUrls]=useState<string[]>([])
+ const [galleryBusy,setGalleryBusy]=useState(false)
  const [avatarUrl,setAvatarUrl]=useState('')
  const [photoBusy,setPhotoBusy]=useState(false)
  const [liked,setLiked]=useState(false)
@@ -43,13 +49,13 @@ export default function ProfilePage() {
    if(authError||!user){router.replace('/auth');return}
    const target=typeof router.query.id==='string'?router.query.id:user.id
    setUid(target);setCurrentUser(user.id);setMe(target===user.id)
-   const {data,error}=await supabase.from('profiles').select('id,display_name,username,bio,interests,avatar_url,is_private').eq('id',target).maybeSingle()
+   const {data,error}=await supabase.from('profiles').select('id,display_name,username,bio,interests,avatar_url,is_private,age,city,favorite_music,hobbies,gallery_urls').eq('id',target).maybeSingle()
    if(cancelled)return
    if(error){setProfile(null);setStatus('Impossible de charger ce profil : '+error.message)}
    else if(data){
-    setProfile(data as ProfileData);setName(data.display_name||'');setUsername(data.username||'');setBio(data.bio||'');setInterests(data.interests||'');setAvatarUrl(data.avatar_url||'');setPrivateProfile(!!data.is_private)
+    setProfile(data as ProfileData);setName(data.display_name||'');setUsername(data.username||'');setBio(data.bio||'');setInterests(data.interests||'');setAvatarUrl(data.avatar_url||'');setPrivateProfile(!!data.is_private);setAge(data.age?String(data.age):'');setCity(data.city||'');setFavoriteMusic(data.favorite_music||'');setHobbies(data.hobbies||'');setGalleryUrls(data.gallery_urls||[])
     if(target!==user.id){await loadFriendState(user.id,target);const likes=await supabase.from('profile_likes').select('id',{count:'exact',head:true}).eq('to_user_id',target);const mine=await supabase.from('profile_likes').select('id').eq('from_user_id',user.id).eq('to_user_id',target).maybeSingle();setLikeCount(likes.count||0);setLiked(!!mine.data)}
-   }else{setProfile(null);setName('');setUsername('');setBio('');setInterests('');setStatus(target===user.id?'Ton profil n’a pas encore été créé. Tu peux le compléter ci-dessous.':'Ce profil est introuvable, privé ou indisponible.')}
+   }else{setProfile(null);setName('');setUsername('');setBio('');setInterests('');setGalleryUrls([]);setAge('');setCity('');setFavoriteMusic('');setHobbies('');setStatus(target===user.id?'Ton profil n’a pas encore été créé. Tu peux le compléter ci-dessous.':'Ce profil est introuvable, privé ou indisponible.')}
    if(!cancelled)setLoading(false)
   }
   loadProfile()
@@ -79,10 +85,36 @@ export default function ProfilePage() {
   else{setAvatarUrl(url);setStatus('Photo de profil mise à jour !')}
   setPhotoBusy(false)
  }
+ async function uploadGalleryPhoto(file?:File){
+  if(!file||!uid)return
+  if(!file.type.startsWith('image/')){setStatus('Choisis un fichier image.');return}
+  if(file.size>8*1024*1024){setStatus('Photo trop lourde : 8 Mo maximum.');return}
+  if(galleryUrls.length>=6){setStatus('Tu peux ajouter jusqu’à 6 photos dans ta galerie.');return}
+  setGalleryBusy(true);setStatus('')
+  const ext=(file.name.split('.').pop()||'jpg').toLowerCase().replace(/[^a-z0-9]/g,'')
+  const path=uid+'/gallery-'+Date.now()+'.'+ext
+  const {error:uploadError}=await supabase.storage.from('community-photos').upload(path,file,{contentType:file.type})
+  if(uploadError){setStatus('Envoi impossible : '+uploadError.message);setGalleryBusy(false);return}
+  const url=supabase.storage.from('community-photos').getPublicUrl(path).data.publicUrl
+  const next=[...galleryUrls,url]
+  const {error}=await supabase.from('profiles').update({gallery_urls:next}).eq('id',uid)
+  if(error)setStatus('Photo envoyée mais galerie non actualisée : '+error.message)
+  else{setGalleryUrls(next);setStatus('Photo ajoutée à ta galerie !')}
+  setGalleryBusy(false)
+ }
+ async function removeGalleryPhoto(url:string){
+  if(!window.confirm('Retirer cette photo de ta galerie ?'))return
+  const next=galleryUrls.filter(item=>item!==url)
+  const {error}=await supabase.from('profiles').update({gallery_urls:next}).eq('id',uid)
+  if(error)setStatus('Impossible de retirer la photo : '+error.message)
+  else{setGalleryUrls(next);setStatus('Photo retirée de ta galerie.')}
+ }
  async function save(e:any){
   e.preventDefault();if(!uid)return
   setStatus('')
-  const {data,error}=await supabase.from('profiles').upsert({id:uid,display_name:name.trim(),username:username.trim().toLowerCase(),bio:bio.trim(),interests:interests.trim(),avatar_url:avatarUrl||null,is_private:privateProfile},{onConflict:'id'}).select('id,display_name,username,bio,interests,avatar_url,is_private').single()
+  const parsedAge=age.trim()===''?null:Number(age)
+  if(parsedAge!==null&&(!Number.isInteger(parsedAge)||parsedAge<13||parsedAge>26)){setStatus('L’âge doit être compris entre 13 et 26 ans.');return}
+  const {data,error}=await supabase.from('profiles').upsert({id:uid,display_name:name.trim(),username:username.trim().toLowerCase(),bio:bio.trim(),interests:interests.trim(),avatar_url:avatarUrl||null,is_private:privateProfile,age:parsedAge,city:city.trim(),favorite_music:favoriteMusic.trim(),hobbies:hobbies.trim(),gallery_urls:galleryUrls},{onConflict:'id'}).select('id,display_name,username,bio,interests,avatar_url,is_private,age,city,favorite_music,hobbies,gallery_urls').single()
   if(error){setStatus('Enregistrement impossible : '+error.message);return}
   setProfile(data as ProfileData);setStatus('Profil enregistré !')
  }
@@ -152,15 +184,20 @@ export default function ProfilePage() {
      <div className="profile-photo-editor"><div className="avatar profile-avatar-preview">{avatarUrl?<img src={avatarUrl} alt="Ta photo de profil"/>:(name||username||'W').slice(0,1).toUpperCase()}</div><label className="photo-upload-button">📷 {photoBusy?'Envoi…':'Ajouter une photo'}<input type="file" accept="image/jpeg,image/png,image/webp,image/gif" disabled={photoBusy} onChange={e=>uploadAvatar(e.target.files?.[0])}/></label><small>JPG, PNG, WEBP ou GIF · 8 Mo maximum</small></div>
      <label>Nom affiché<input maxLength={50} value={name} onChange={e=>setName(e.target.value)} placeholder="Ton nom affiché"/></label>
      <label>Pseudo<input required pattern="[a-zA-Z0-9_]{3,24}" value={username} onChange={e=>setUsername(e.target.value)} placeholder="pseudo (3 à 24 caractères)"/></label>
+     <label>Âge (facultatif)<input type="number" min="13" max="26" value={age} onChange={e=>setAge(e.target.value)} placeholder="Ton âge"/></label>
+     <label>Ville (facultatif)<input maxLength={80} value={city} onChange={e=>setCity(e.target.value)} placeholder="Ta ville"/></label>
      <label>À propos de toi<textarea maxLength={300} value={bio} onChange={e=>setBio(e.target.value)} placeholder="Présente-toi en quelques mots…"/></label>
      <label>Centres d’intérêt<input maxLength={180} value={interests} onChange={e=>setInterests(e.target.value)} placeholder="Musique, sport, jeux vidéo…"/></label>
+     <label>Loisirs et passions<input maxLength={180} value={hobbies} onChange={e=>setHobbies(e.target.value)} placeholder="Danse, dessin, football…"/></label>
+     <label>Musique préférée<input maxLength={120} value={favoriteMusic} onChange={e=>setFavoriteMusic(e.target.value)} placeholder="Tes artistes ou styles préférés…"/></label>
+     <section className="profile-gallery-editor"><h3>Ma galerie photo ({galleryUrls.length}/6)</h3><label className="photo-upload-button">🖼️ {galleryBusy?'Envoi…':'Ajouter une photo à la galerie'}<input type="file" accept="image/jpeg,image/png,image/webp,image/gif" disabled={galleryBusy||galleryUrls.length>=6} onChange={e=>{uploadGalleryPhoto(e.target.files?.[0]);e.currentTarget.value=''}}/></label><div className="profile-gallery-grid">{galleryUrls.map(url=><div className="profile-gallery-thumb" key={url}><img src={url} alt="Photo de ma galerie"/><button type="button" onClick={()=>removeGalleryPhoto(url)}>Retirer</button></div>)}</div><small>Jusqu’à 6 photos · 8 Mo maximum chacune</small></section>
      <label className="checkline"><input type="checkbox" checked={privateProfile} onChange={e=>setPrivateProfile(e.target.checked)}/>Rendre mon profil privé</label>
      <button type="submit">Enregistrer mon profil</button>{status&&<p className="notice" role="status">{status}</p>}
     </form>
    ):profile?(
     <div className="card profile-form">
      <div className="avatar large profile-avatar-preview">{profile.avatar_url?<img src={profile.avatar_url} alt="Photo de profil"/>:(profile.display_name||profile.username||'W').slice(0,1).toUpperCase()}</div>
-     <h2>{profile.display_name||profile.username||'Membre'}</h2><p>@{profile.username||'membre'}</p><p>{profile.bio||'Ce membre n’a pas encore ajouté de présentation.'}</p>{profile.interests&&<p><strong>Centres d’intérêt :</strong> {profile.interests}</p>}<p className="profile-likes-count">♡ {likeCount} {likeCount===1?'like':'likes'}</p>
+     <h2>{profile.display_name||profile.username||'Membre'}</h2><p>@{profile.username||'membre'}</p><p>{profile.bio||'Ce membre n’a pas encore ajouté de présentation.'}</p>{profile.age&&<p><strong>Âge :</strong> {profile.age} ans</p>}{profile.city&&<p><strong>Ville :</strong> {profile.city}</p>}{profile.interests&&<p><strong>Centres d’intérêt :</strong> {profile.interests}</p>}{profile.hobbies&&<p><strong>Loisirs et passions :</strong> {profile.hobbies}</p>}{profile.favorite_music&&<p><strong>Musique préférée :</strong> {profile.favorite_music}</p>}{profile.gallery_urls&&profile.gallery_urls.length>0&&<section className="profile-gallery-view"><h3>Ses photos</h3><div className="profile-gallery-grid">{profile.gallery_urls.map(url=><a href={url} target="_blank" rel="noreferrer" key={url}><img src={url} alt="Photo de galerie"/></a>)}</div></section>}<p className="profile-likes-count">♡ {likeCount} {likeCount===1?'like':'likes'}</p>
      {!blocked&&<button type="button" className="profile-like-button" disabled={friendBusy} onClick={toggleLike}>{liked?'♥ Tu aimes ce profil':'♡ J’aime ce profil'}</button>}{blocked?<p className="notice">Cette personne est bloquée. Elle ne peut plus t’envoyer de messages.</p>:friendRequest?.status==='accepted'?<><Link className="member-primary" href={'/send?to='+profile.id}>Envoyer un message →</Link><button type="button" className="friend-secondary" disabled={friendBusy} onClick={removeFriend}>Retirer des amis</button></>:friendRequest?.status==='pending'&&friendRequest.sender_id===currentUser?<button type="button" disabled>Demande envoyée ✓</button>:friendRequest?.status==='pending'?<div className="friend-actions"><p>Cette personne souhaite t’ajouter en ami.</p><button type="button" disabled={friendBusy} onClick={()=>answerFriendRequest('accepted')}>Accepter</button><button type="button" className="friend-secondary" disabled={friendBusy} onClick={()=>answerFriendRequest('declined')}>Refuser</button></div>:friendRequest?.status==='declined'?<p className="notice">Demande refusée.</p>:<button type="button" disabled={friendBusy} onClick={sendFriendRequest}>＋ Ajouter en ami</button>}
      <button type="button" className={blocked?'friend-secondary':'danger-action'} disabled={friendBusy} onClick={toggleBlock}>{blocked?'Débloquer cette personne':'Bloquer cette personne'}</button>
      <button type="button" className="friend-secondary" onClick={reportProfile}>⚑ Signaler ce profil</button>{status&&<p className="notice" role="status">{status}</p>}<Link href="/explore">Retour à la communauté</Link>
