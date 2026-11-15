@@ -9,7 +9,6 @@ export default function MemberAvatar({userId,name,avatarUrl,className='avatar',i
  useEffect(()=>{
   if(!userId)return
   let active=true
-  let channel:ReturnType<typeof supabase.channel>|null=null
   const refresh=async()=>{
    const [{data:profile},{data:{user}}]=await Promise.all([
     supabase.from('profiles').select('last_seen_at').eq('id',userId).maybeSingle(),
@@ -25,13 +24,7 @@ export default function MemberAvatar({userId,name,avatarUrl,className='avatar',i
   }
   refresh()
   const timer=setInterval(refresh,30000)
-  channel=supabase.channel('member-avatar-'+userId)
-   .on('postgres_changes',{event:'UPDATE',schema:'public',table:'profiles',filter:'id=eq.'+userId},refresh)
-   .on('postgres_changes',{event:'*',schema:'public',table:'messages'},payload=>{
-    const row:any=payload.new||payload.old
-    if(row?.sender===userId||row?.recipient===userId)refresh()
-   }).subscribe()
-  return()=>{active=false;clearInterval(timer);if(channel)supabase.removeChannel(channel)}
+  return()=>{active=false;clearInterval(timer)}
  },[userId])
  const style=imageSize?{width:imageSize,height:imageSize,objectFit:'cover' as const}:undefined
  return <span className="member-avatar-wrap">
