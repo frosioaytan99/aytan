@@ -237,3 +237,5 @@ html[data-theme="dark"] .drawer-theme{background:#242033;color:#c5b8ff;border-co
 .photo-upload-button input,.post-photo-picker input{display:none}.profile-photo-editor small{color:var(--muted);font-size:11px}
 .post-photo-picker{margin:0 0 12px}.post-photo-preview{position:relative;margin:0 0 12px}.post-photo-preview img{display:block;width:100%;max-height:300px;object-fit:cover;border-radius:14px}.post-photo-preview button{margin-top:7px;background:#f1eff8;color:var(--purple);border:0;border-radius:9px;padding:8px 12px;font-weight:700}
 .profile-form .avatar.large{width:104px;height:104px;border-radius:50%;font-size:34px;margin:0 auto 14px}
+
+.mobile-bottom-nav a>span{display:flex;align-items:center;justify-content:center;position:relative}.mobile-bottom-nav svg{width:23px;height:23px;stroke-width:1.9}.mobile-bottom-nav a.selected svg{stroke-width:2.3}.mobile-bottom-nav a{gap:5px}
