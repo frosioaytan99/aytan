@@ -3,3 +3,5 @@
 
 
 .comments{border-top:1px solid var(--line);margin-top:14px;padding-top:12px}.comments-list{display:grid;gap:10px}.comment{background:#faf9fd;border-radius:10px;padding:10px 12px}.comment b{font-size:11px}.comment p{font-size:12px;line-height:1.5;margin:4px 0;white-space:pre-wrap}.comment small{font-size:10px;color:var(--muted)}.comment-form{display:flex;gap:8px;margin-top:12px}.comment-form input{flex:1;min-width:0;border:1px solid #e7e3f0;border-radius:10px;padding:11px;font:inherit;font-size:12px}.comment-form button{border:0;border-radius:10px;background:var(--purple);color:#fff;padding:0 14px;font-size:11px;font-weight:800}.comment-form button:disabled{opacity:.5}@media(max-width:480px){.comment-form{align-items:stretch}.comment-form button{padding:0 10px}}
+
+.friend-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.friend-actions p{width:100%;margin:0 0 4px;color:var(--muted);font-size:13px}.friend-actions .friend-secondary{background:#f1eff8;color:#62568f}.friend-hint{font-size:13px;color:var(--muted);margin:10px 0 16px}
