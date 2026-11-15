@@ -4,9 +4,9 @@ export default function Home() {
   return (
     <main className="site-shell">
       <header className="topbar">
-        <Link href="/" className="brand" aria-label="Aytan, accueil">
+        <Link href="/" className="brand" aria-label="weshbien2, accueil">
           <span className="brand-mark">a</span>
-          <span>aytan<span className="brand-dot">.</span></span>
+          <span>weshbien2<span className="brand-dot">.</span></span>
         </Link>
         <nav className="top-nav" aria-label="Navigation principale">
           <Link href="/inbox">Messages</Link>
@@ -19,11 +19,11 @@ export default function Home() {
           <span className="eyebrow"><span className="status-dot" /> TON ESPACE, TON MONDE</span>
           <h1>Les rencontres<br />commencent par un <span>bonjour.</span></h1>
           <p className="hero-text">
-            Bienvenue sur Aytan, un espace pour discuter, faire connaissance
+            Bienvenue sur weshbien2, un espace pour discuter, faire connaissance
             et partager de bons moments, à ton rythme.
           </p>
           <div className="hero-actions">
-            <Link href="/auth" className="primary-link">Rejoindre Aytan <span>→</span></Link>
+            <Link href="/auth" className="primary-link">Rejoindre weshbien2 <span>→</span></Link>
             <Link href="/inbox" className="secondary-link">Voir mes messages</Link>
           </div>
           <p className="small-note">Un profil à la fois. Des échanges respectueux avant tout.</p>
@@ -45,7 +45,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="features" aria-label="Découvrir Aytan">
+      <section className="features" aria-label="Découvrir weshbien2">
         <div className="section-heading"><span>BIENVENUE CHEZ TOI</span><h2>Un espace fait pour échanger.</h2></div>
         <div className="feature-grid">
           <article className="feature-card"><div className="feature-icon lilac">☁</div><h3>Fais connaissance</h3><p>Découvre des personnes et commence une conversation naturellement.</p></article>
@@ -54,7 +54,7 @@ export default function Home() {
         </div>
       </section>
 
-      <footer className="site-footer"><Link href="/" className="footer-brand">aytan.</Link><span>Fait pour créer de belles conversations.</span><Link href="/auth">Commencer →</Link></footer>
+      <footer className="site-footer"><Link href="/" className="footer-brand">weshbien2.</Link><span>Fait pour créer de belles conversations.</span><Link href="/auth">Commencer →</Link></footer>
     </main>
   )
 }
