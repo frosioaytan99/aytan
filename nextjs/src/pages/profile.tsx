@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { supabase } from '../lib/supabaseClient'
 
-type ProfileData = { id:string; display_name:string|null; username:string|null; bio:string|null; interests:string|null; is_private:boolean|null }
+type ProfileData = { id:string; display_name:string|null; username:string|null; bio:string|null; interests:string|null; avatar_url?:string|null; is_private:boolean|null }
 type FriendRequest = { id:string; sender_id:string; recipient_id:string; status:'pending'|'accepted'|'declined' }
 
 export default function ProfilePage() {
@@ -15,6 +15,8 @@ export default function ProfilePage() {
  const [username,setUsername]=useState('')
  const [bio,setBio]=useState('')
  const [interests,setInterests]=useState('')
+ const [avatarUrl,setAvatarUrl]=useState('')
+ const [photoBusy,setPhotoBusy]=useState(false)
  const [liked,setLiked]=useState(false)
  const [likeCount,setLikeCount]=useState(0)
  const [privateProfile,setPrivateProfile]=useState(false)
@@ -41,11 +43,11 @@ export default function ProfilePage() {
    if(authError||!user){router.replace('/auth');return}
    const target=typeof router.query.id==='string'?router.query.id:user.id
    setUid(target);setCurrentUser(user.id);setMe(target===user.id)
-   const {data,error}=await supabase.from('profiles').select('id,display_name,username,bio,interests,is_private').eq('id',target).maybeSingle()
+   const {data,error}=await supabase.from('profiles').select('id,display_name,username,bio,interests,avatar_url,is_private').eq('id',target).maybeSingle()
    if(cancelled)return
    if(error){setProfile(null);setStatus('Impossible de charger ce profil : '+error.message)}
    else if(data){
-    setProfile(data as ProfileData);setName(data.display_name||'');setUsername(data.username||'');setBio(data.bio||'');setInterests(data.interests||'');setPrivateProfile(!!data.is_private)
+    setProfile(data as ProfileData);setName(data.display_name||'');setUsername(data.username||'');setBio(data.bio||'');setInterests(data.interests||'');setAvatarUrl(data.avatar_url||'');setPrivateProfile(!!data.is_private)
     if(target!==user.id){await loadFriendState(user.id,target);const likes=await supabase.from('profile_likes').select('id',{count:'exact',head:true}).eq('to_user_id',target);const mine=await supabase.from('profile_likes').select('id').eq('from_user_id',user.id).eq('to_user_id',target).maybeSingle();setLikeCount(likes.count||0);setLiked(!!mine.data)}
    }else{setProfile(null);setName('');setUsername('');setBio('');setInterests('');setStatus(target===user.id?'Ton profil n’a pas encore été créé. Tu peux le compléter ci-dessous.':'Ce profil est introuvable, privé ou indisponible.')}
    if(!cancelled)setLoading(false)
@@ -62,10 +64,25 @@ export default function ProfilePage() {
   const {error}=await supabase.from('reports').insert({reporter_id:user.id,content_type:'profile',content_id:uid,reason:reason.trim().slice(0,1000),status:'pending'})
   setStatus(error?'Signalement impossible : '+error.message:'Profil signalé. Merci de nous aider à protéger la communauté.')
  }
+ async function uploadAvatar(file?:File){
+  if(!file||!uid)return
+  if(!file.type.startsWith('image/')){setStatus('Choisis un fichier image.');return}
+  if(file.size>8*1024*1024){setStatus('Photo trop lourde : 8 Mo maximum.');return}
+  setPhotoBusy(true);setStatus('')
+  const ext=(file.name.split('.').pop()||'jpg').toLowerCase().replace(/[^a-z0-9]/g,'')
+  const path=uid+'/avatar-'+Date.now()+'.'+ext
+  const {error:uploadError}=await supabase.storage.from('community-photos').upload(path,file,{contentType:file.type})
+  if(uploadError){setStatus('Envoi impossible : '+uploadError.message);setPhotoBusy(false);return}
+  const url=supabase.storage.from('community-photos').getPublicUrl(path).data.publicUrl
+  const {error}=await supabase.from('profiles').upsert({id:uid,avatar_url:url},{onConflict:'id'})
+  if(error)setStatus('Photo envoyée mais profil non actualisé : '+error.message)
+  else{setAvatarUrl(url);setStatus('Photo de profil mise à jour !')}
+  setPhotoBusy(false)
+ }
  async function save(e:any){
   e.preventDefault();if(!uid)return
   setStatus('')
-  const {data,error}=await supabase.from('profiles').upsert({id:uid,display_name:name.trim(),username:username.trim().toLowerCase(),bio:bio.trim(),interests:interests.trim(),is_private:privateProfile},{onConflict:'id'}).select('id,display_name,username,bio,interests,is_private').single()
+  const {data,error}=await supabase.from('profiles').upsert({id:uid,display_name:name.trim(),username:username.trim().toLowerCase(),bio:bio.trim(),interests:interests.trim(),avatar_url:avatarUrl||null,is_private:privateProfile},{onConflict:'id'}).select('id,display_name,username,bio,interests,avatar_url,is_private').single()
   if(error){setStatus('Enregistrement impossible : '+error.message);return}
   setProfile(data as ProfileData);setStatus('Profil enregistré !')
  }
@@ -132,6 +149,7 @@ export default function ProfilePage() {
   <section className="profile-wrap"><small>ESPACE PERSONNEL</small><h1>{me?'Mon profil':'Profil membre'}</h1>
    {loading?<div className="card empty" role="status">Chargement du profil…</div>:me?(
     <form className="card profile-form" onSubmit={save}>
+     <div className="profile-photo-editor"><div className="avatar profile-avatar-preview">{avatarUrl?<img src={avatarUrl} alt="Ta photo de profil"/>:(name||username||'W').slice(0,1).toUpperCase()}</div><label className="photo-upload-button">📷 {photoBusy?'Envoi…':'Ajouter une photo'}<input type="file" accept="image/jpeg,image/png,image/webp,image/gif" disabled={photoBusy} onChange={e=>uploadAvatar(e.target.files?.[0])}/></label><small>JPG, PNG, WEBP ou GIF · 8 Mo maximum</small></div>
      <label>Nom affiché<input maxLength={50} value={name} onChange={e=>setName(e.target.value)} placeholder="Ton nom affiché"/></label>
      <label>Pseudo<input required pattern="[a-zA-Z0-9_]{3,24}" value={username} onChange={e=>setUsername(e.target.value)} placeholder="pseudo (3 à 24 caractères)"/></label>
      <label>À propos de toi<textarea maxLength={300} value={bio} onChange={e=>setBio(e.target.value)} placeholder="Présente-toi en quelques mots…"/></label>
@@ -141,7 +159,7 @@ export default function ProfilePage() {
     </form>
    ):profile?(
     <div className="card profile-form">
-     <div className="avatar large">{(profile.display_name||profile.username||'W').slice(0,1).toUpperCase()}</div>
+     <div className="avatar large profile-avatar-preview">{profile.avatar_url?<img src={profile.avatar_url} alt="Photo de profil"/>:(profile.display_name||profile.username||'W').slice(0,1).toUpperCase()}</div>
      <h2>{profile.display_name||profile.username||'Membre'}</h2><p>@{profile.username||'membre'}</p><p>{profile.bio||'Ce membre n’a pas encore ajouté de présentation.'}</p>{profile.interests&&<p><strong>Centres d’intérêt :</strong> {profile.interests}</p>}<p className="profile-likes-count">♡ {likeCount} {likeCount===1?'like':'likes'}</p>
      {!blocked&&<button type="button" className="profile-like-button" disabled={friendBusy} onClick={toggleLike}>{liked?'♥ Tu aimes ce profil':'♡ J’aime ce profil'}</button>}{blocked?<p className="notice">Cette personne est bloquée. Elle ne peut plus t’envoyer de messages.</p>:friendRequest?.status==='accepted'?<><Link className="member-primary" href={'/send?to='+profile.id}>Envoyer un message →</Link><button type="button" className="friend-secondary" disabled={friendBusy} onClick={removeFriend}>Retirer des amis</button></>:friendRequest?.status==='pending'&&friendRequest.sender_id===currentUser?<button type="button" disabled>Demande envoyée ✓</button>:friendRequest?.status==='pending'?<div className="friend-actions"><p>Cette personne souhaite t’ajouter en ami.</p><button type="button" disabled={friendBusy} onClick={()=>answerFriendRequest('accepted')}>Accepter</button><button type="button" className="friend-secondary" disabled={friendBusy} onClick={()=>answerFriendRequest('declined')}>Refuser</button></div>:friendRequest?.status==='declined'?<p className="notice">Demande refusée.</p>:<button type="button" disabled={friendBusy} onClick={sendFriendRequest}>＋ Ajouter en ami</button>}
      <button type="button" className={blocked?'friend-secondary':'danger-action'} disabled={friendBusy} onClick={toggleBlock}>{blocked?'Débloquer cette personne':'Bloquer cette personne'}</button>
