@@ -190,3 +190,42 @@ html[data-theme="dark"] .comment-form input{background:#191727;color:var(--ink);
 
 
 .profile-like-button{width:100%;border:1px solid #eadcf5!important;background:#fff0f8!important;color:#c13d83!important;border-radius:12px;padding:13px 16px;font-weight:800;margin:5px 0}.profile-likes-count{color:#c13d83;font-weight:800}.member-interests{display:block;color:var(--purple);font-size:11px;margin:0 0 12px;line-height:1.5}html[data-theme="dark"] .profile-like-button{background:#39243a!important;color:#ff9bc8!important;border-color:#68415d!important}
+
+
+/* Mobile community shell inspired by the supplied reference screens */
+.mobile-community-header,.mobile-bottom-nav,.mobile-drawer-backdrop{display:none}
+@media(max-width:650px){
+ .global-tools-top{display:none!important}
+ .mobile-community-header{height:66px;position:sticky;top:0;z-index:40;display:flex;align-items:center;gap:17px;padding:0 17px;background:#fff;border-bottom:1px solid #eceaf2;box-shadow:0 3px 15px #211d3508}
+ .mobile-menu-trigger{border:0;background:transparent;color:#465064;font-size:25px;padding:4px 8px 4px 0}
+ .mobile-brand .brand-mark{width:42px;height:42px;border-radius:15px;font-size:21px;margin:0}
+ .mobile-header-spacer{flex:1}
+ .mobile-header-icon{position:relative;font-size:24px;color:#536073;padding:5px}
+ .mobile-header-icon i,.mobile-bottom-nav i{position:absolute;top:0;right:0;width:9px;height:9px;border-radius:50%;background:#d52be5;border:1px solid white}
+ .mobile-header-icon i{width:auto;min-width:16px;height:16px;padding:0 4px;font-size:9px;color:#fff;display:grid;place-items:center}
+ .mobile-user-dot{width:39px;height:39px;border-radius:50%;background:linear-gradient(135deg,#8645e8,#cf29df);color:#fff;display:grid;place-items:center;font-weight:800}
+ .mobile-bottom-nav{position:fixed;z-index:38;left:0;right:0;bottom:0;height:76px;padding:7px 4px max(8px,env(safe-area-inset-bottom));display:flex;justify-content:space-around;align-items:center;background:#fff;border-top:1px solid #e9e7ef;box-shadow:0 -5px 20px #24213908}
+ .mobile-bottom-nav a{position:relative;min-width:0;flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;color:#99a3b2;font-size:11px;font-weight:700}
+ .mobile-bottom-nav a span{font-size:25px;line-height:28px}
+ .mobile-bottom-nav a.selected{color:#7957df}
+ .mobile-bottom-nav a.selected:before{content:'';position:absolute;top:-7px;width:34px;height:3px;border-radius:4px;background:#7957df}
+ .mobile-bottom-nav a span{position:relative}
+ .mobile-drawer-backdrop{display:block;position:fixed;inset:0;z-index:60;background:#11182780}
+ .mobile-drawer{height:100%;width:min(78vw,390px);overflow-y:auto;background:#fff;padding:18px 18px 30px;box-shadow:12px 0 35px #0002;display:flex;flex-direction:column;gap:5px}
+ .mobile-drawer-heading{display:flex;align-items:center;justify-content:space-between;padding:4px 2px 22px;border-bottom:1px solid #eeecf4;margin-bottom:15px}
+ .mobile-drawer-heading button{border:0;background:transparent;font-size:30px;color:#647084}
+ .mobile-drawer>small{font-size:11px;font-weight:800;letter-spacing:1px;color:#9aa4b5;padding:10px 12px}
+ .mobile-drawer>a{display:flex;align-items:center;gap:15px;padding:14px 13px;border-radius:15px;color:#4b5667;font-size:15px;font-weight:700}
+ .mobile-drawer>a span{width:24px;text-align:center;font-size:21px;color:#7855d9}
+ .mobile-drawer>a:active,.mobile-drawer>a:hover{background:#f4f0ff;color:#6f4bd4}
+ .drawer-theme{margin-top:14px;padding:14px;border:1px solid #ece8f5;border-radius:13px;background:#faf9fd;color:#6550b6;font-weight:800;text-align:left}
+ .app-shell,.member-shell{padding-bottom:84px}
+ .app-layout{padding-left:14px;padding-right:14px;margin-top:20px}
+ .directory,.profile-wrap,.questions-page,.forum-page,.notifications-page,.conversation-page{padding-left:15px!important;padding-right:15px!important;margin-top:25px!important}
+ .member-content{padding-bottom:22px}
+ .member-footer{padding-bottom:16px}
+}
+html[data-theme="dark"] .mobile-community-header,html[data-theme="dark"] .mobile-bottom-nav,html[data-theme="dark"] .mobile-drawer{background:#191725;border-color:#302b40}
+html[data-theme="dark"] .mobile-drawer>a{color:#e6e2f0}
+html[data-theme="dark"] .mobile-drawer-heading{border-color:#302b40}
+html[data-theme="dark"] .drawer-theme{background:#242033;color:#c5b8ff;border-color:#38314d}
