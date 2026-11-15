@@ -19,7 +19,7 @@ function NavIcon({name}:{name:string}) {
 }
 const menuItems: [string, string, string][] = [
   ['Accueil', '/feed', '⌂'], ['Explorer', '/explore', '◉'], ['Stories', '/stories', '◌'], ['En ligne', '/online', '●'],
-  ['Amis', '/friends', '♧'], ['MeetMe', '/explore', '♡'], ['Photos', '/feed', '▧'],
+  ['Amis', '/friends', '♧'], ['MeetMe', '/explore', '♡'], ['Communautés', '/communities', '▤'], ['Photos', '/feed', '▧'],
   ['Forum', '/forums', '▤'], ['Blog', '/questions', '▣'], ['Notifications', '/notifications', '♧'],
   ['Messages', '/inbox', '✉'], ['Mon profil', '/profile', '♙'], ['Administration', '/admin', '♢'],
 ]
