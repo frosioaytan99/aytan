@@ -14,5 +14,8 @@
       "service": "aytan"
     }
   ],
+  "vars": {
+    "NEXT_PUBLIC_SUPABASE_URL": "https://gxqmdpzvmopxiemaaoju.supabase.co"
+  },
   "workers_dev": true
 }
