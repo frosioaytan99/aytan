@@ -109,15 +109,13 @@ export default function App({ Component, pageProps }: AppProps) {
   }
   return <>
     <div className="global-tools global-tools-top">
-      <Link href="/notifications" className="global-notifications" aria-label="Notifications">♧ Notifications{unread > 0 && <b>{unread > 99 ? '99+' : unread}</b>}</Link>
       <button type="button" onClick={toggleTheme} aria-label="Changer le thème">{theme === 'dark' ? '☀️ Mode clair' : '🌙 Mode sombre'}</button>
     </div>
     {memberPage && signedIn && <>
       <header className="mobile-community-header">
         <button type="button" className="mobile-menu-trigger" onClick={() => setMenuOpen(true)} aria-label="Ouvrir le menu">☰</button>
         <Link href="/feed" className="mobile-brand"><span className="brand-mark">w</span></Link><span className="mobile-header-spacer" />
-        <Link href="/notifications" className="mobile-header-icon" aria-label="Notifications">♧{unread > 0 && <i>{unread > 9 ? '9+' : unread}</i>}</Link>
-        <Link href="/inbox" className="mobile-header-icon" aria-label="Messages">♡</Link><div className="account-menu-wrap" style={{position:'relative'}}>
+<div className="account-menu-wrap" style={{position:'relative'}}>
           <button type="button" className="mobile-user-dot" onClick={() => setAccountMenuOpen(value => !value)} aria-label="Ouvrir le menu du compte" aria-expanded={accountMenuOpen} style={{padding:0,overflow:'hidden',borderRadius:'50%',border:'2px solid var(--accent,#7c3aed)',background:'var(--surface,#fff)',width:38,height:38,display:'grid',placeItems:'center',cursor:'pointer'}}>
             {currentUserId ? <MemberAvatar userId={currentUserId} name="Mon profil" avatarUrl={avatarUrl} className="account-avatar-image"/> : <NavIcon name="profile" />}
           </button>
