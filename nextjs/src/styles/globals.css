@@ -187,3 +187,6 @@ html[data-theme="dark"] .comment-form input{background:#191727;color:var(--ink);
  .global-tools-top{position:relative!important;top:auto!important;right:auto!important;padding:8px 10px;gap:7px;justify-content:flex-end}
  .app-header{padding-top:0!important}
 }
+
+
+.profile-like-button{width:100%;border:1px solid #eadcf5!important;background:#fff0f8!important;color:#c13d83!important;border-radius:12px;padding:13px 16px;font-weight:800;margin:5px 0}.profile-likes-count{color:#c13d83;font-weight:800}.member-interests{display:block;color:var(--purple);font-size:11px;margin:0 0 12px;line-height:1.5}html[data-theme="dark"] .profile-like-button{background:#39243a!important;color:#ff9bc8!important;border-color:#68415d!important}
