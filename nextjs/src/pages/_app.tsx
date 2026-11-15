@@ -18,7 +18,7 @@ function NavIcon({name}:{name:string}) {
  return <svg {...common}>{paths[name]||paths.explore}</svg>
 }
 const menuItems: [string, string, string][] = [
-  ['Accueil', '/feed', '⌂'], ['Explorer', '/explore', '◉'], ['Stories', '/stories', '◌'], ['En ligne', '/online', '●'],
+  ['Accueil', '/feed', '⌂'], ['Explorer', '/explore', '◉'], ['Recherche', '/search', '⌕'], ['Stories', '/stories', '◌'], ['En ligne', '/online', '●'],
   ['Amis', '/friends', '♧'], ['MeetMe', '/explore', '♡'], ['Communautés', '/communities', '▤'], ['Photos', '/feed', '▧'],
   ['Forum', '/forums', '▤'], ['Blog', '/questions', '▣'], ['Notifications', '/notifications', '♧'],
   ['Messages', '/inbox', '✉'], ['Mon profil', '/profile', '♙'], ['Administration', '/admin', '♢'],
