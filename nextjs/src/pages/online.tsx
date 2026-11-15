@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { supabase } from '../lib/supabaseClient'
+import MemberAvatar from '../components/MemberAvatar'
 
 type Member = { id:string; username:string|null; display_name:string|null; avatar_url:string|null; bio:string|null; last_seen_at:string|null }
 export default function OnlinePage() {
@@ -33,10 +34,7 @@ export default function OnlinePage() {
       {error&&<p className="notice">{error}</p>}
       {loading?<div className="card empty">Chargement des membres…</div>:members.length===0?<div className="card empty">Personne n’est actuellement affiché en ligne. Reviens dans quelques instants !</div>:
       <div className="member-grid">{members.map(member=><article className="card member-card" key={member.id}>
-        <div style={{position:'relative',width:76,height:76,margin:'0 auto 12px'}}>
-          {member.avatar_url?<img src={member.avatar_url} alt="" style={{width:76,height:76,borderRadius:'50%',objectFit:'cover'}}/>:<div className="avatar large">{(member.display_name||member.username||'W').slice(0,1).toUpperCase()}</div>}
-          <span title="En ligne" style={{position:'absolute',right:2,bottom:3,width:15,height:15,borderRadius:'50%',background:'#22c55e',border:'3px solid white'}}/>
-        </div>
+        <div style={{margin:'0 auto 12px'}}><MemberAvatar userId={member.id} name={member.display_name||member.username} avatarUrl={member.avatar_url} className="avatar large"/></div>
         <h3>{member.display_name||member.username||'Membre'}</h3><small>@{member.username||'membre'}</small>
         <p>{member.bio||'Membre de la communauté.'}</p>
         <Link href={'/profile?id='+member.id}>Voir le profil →</Link>
