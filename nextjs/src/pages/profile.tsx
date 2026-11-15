@@ -51,6 +51,14 @@ export default function ProfilePage() {
   return()=>{cancelled=true}
  },[router.isReady,router.query.id])
 
+ async function reportProfile(){
+  const reason=window.prompt('Pourquoi souhaites-tu signaler ce profil ?')
+  if(!reason||reason.trim().length<3)return
+  const {data:{user}}=await supabase.auth.getUser()
+  if(!user)return
+  const {error}=await supabase.from('reports').insert({reporter_id:user.id,content_type:'profile',content_id:uid,reason:reason.trim().slice(0,1000),status:'pending'})
+  setStatus(error?'Signalement impossible : '+error.message:'Profil signalé. Merci de nous aider à protéger la communauté.')
+ }
  async function save(e:any){
   e.preventDefault();if(!uid)return
   setStatus('')
@@ -119,7 +127,7 @@ export default function ProfilePage() {
      <h2>{profile.display_name||profile.username||'Membre'}</h2><p>@{profile.username||'membre'}</p><p>{profile.bio||'Ce membre n’a pas encore ajouté de présentation.'}</p>
      {blocked?<p className="notice">Cette personne est bloquée. Elle ne peut plus t’envoyer de messages.</p>:friendRequest?.status==='accepted'?<><Link className="member-primary" href={'/send?to='+profile.id}>Envoyer un message →</Link><button type="button" className="friend-secondary" disabled={friendBusy} onClick={removeFriend}>Retirer des amis</button></>:friendRequest?.status==='pending'&&friendRequest.sender_id===currentUser?<button type="button" disabled>Demande envoyée ✓</button>:friendRequest?.status==='pending'?<div className="friend-actions"><p>Cette personne souhaite t’ajouter en ami.</p><button type="button" disabled={friendBusy} onClick={()=>answerFriendRequest('accepted')}>Accepter</button><button type="button" className="friend-secondary" disabled={friendBusy} onClick={()=>answerFriendRequest('declined')}>Refuser</button></div>:friendRequest?.status==='declined'?<p className="notice">Demande refusée.</p>:<button type="button" disabled={friendBusy} onClick={sendFriendRequest}>＋ Ajouter en ami</button>}
      <button type="button" className={blocked?'friend-secondary':'danger-action'} disabled={friendBusy} onClick={toggleBlock}>{blocked?'Débloquer cette personne':'Bloquer cette personne'}</button>
-     {status&&<p className="notice" role="status">{status}</p>}<Link href="/explore">Retour à la communauté</Link>
+     <button type="button" className="friend-secondary" onClick={reportProfile}>⚑ Signaler ce profil</button>{status&&<p className="notice" role="status">{status}</p>}<Link href="/explore">Retour à la communauté</Link>
     </div>
    ):<div className="card empty"><p>{status||'Ce profil ne peut pas être affiché.'}</p><Link href="/explore">Retour à la communauté</Link></div>}
   </section>
