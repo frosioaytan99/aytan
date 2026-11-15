@@ -1,101 +1,109 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { supabase } from '../lib/supabaseClient'
 
-type Message = { id: string; sender: string; recipient: string; subject: string | null; body: string | null; created_at: string }
-type FriendInvite = { id: string; sender_id: string; recipient_id: string; status: string; profile?: { display_name: string | null; username: string | null } }
+type Message = { id:string; sender:string; recipient:string; subject:string|null; body:string|null; created_at:string; is_read?:boolean }
+type FriendInvite = { id:string; sender_id:string; recipient_id:string; status:string; profile?:{display_name:string|null;username:string|null;avatar_url?:string|null} }
+type Profile = { id:string; display_name:string|null; username:string|null; avatar_url?:string|null }
+type Conversation = { person:Profile; latest:Message; unread:number; count:number }
+
+function notify(text:string) {
+  if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('weshbien:notify',{detail:text}))
+}
 
 export default function InboxPage() {
-  const router = useRouter()
-  const [messages, setMessages] = useState<Message[]>([])
-  const [invites, setInvites] = useState<FriendInvite[]>([])
-  const [email, setEmail] = useState('')
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
-  const [inviteBusy, setInviteBusy] = useState('')
+ const router=useRouter()
+ const [messages,setMessages]=useState<Message[]>([])
+ const [invites,setInvites]=useState<FriendInvite[]>([])
+ const [profiles,setProfiles]=useState<Profile[]>([])
+ const [email,setEmail]=useState('')
+ const [userId,setUserId]=useState('')
+ const [loading,setLoading]=useState(true)
+ const [error,setError]=useState('')
+ const [inviteBusy,setInviteBusy]=useState('')
 
-  async function loadInvites(userId: string) {
-    const { data } = await supabase.from('friend_requests')
-      .select('id,sender_id,recipient_id,status')
-      .eq('recipient_id', userId).eq('status', 'pending').order('created_at', { ascending: false })
-    const requests = (data || []) as FriendInvite[]
-    const senderIds = requests.map(item => item.sender_id)
-    const { data: profiles } = senderIds.length
-      ? await supabase.from('profiles').select('id,display_name,username').in('id', senderIds)
-      : { data: [] as any[] }
-    setInvites(requests.map(item => ({ ...item, profile: profiles?.find(p => p.id === item.sender_id) })))
+ async function loadInvites(uid:string) {
+  const {data}=await supabase.from('friend_requests').select('id,sender_id,recipient_id,status').eq('recipient_id',uid).eq('status','pending').order('created_at',{ascending:false})
+  const rows=(data||[]) as FriendInvite[]
+  const ids=rows.map(x=>x.sender_id)
+  const {data:people}=ids.length?await supabase.from('profiles').select('id,display_name,username,avatar_url').in('id',ids):{data:[] as any[]}
+  setInvites(rows.map(x=>({...x,profile:people?.find(p=>p.id===x.sender_id)})))
+ }
+ async function loadMessages(uid:string) {
+  const {data,error:loadError}=await supabase.from('messages').select('id,sender,recipient,subject,body,created_at,is_read').or('recipient.eq.'+uid+',sender.eq.'+uid).order('created_at',{ascending:false})
+  if(loadError){setError('Impossible de charger les messages pour le moment.');return}
+  const rows=(data||[]) as Message[]
+  setMessages(rows)
+  const ids=[...new Set(rows.map(m=>m.sender===uid?m.recipient:m.sender))]
+  const {data:people}=ids.length?await supabase.from('profiles').select('id,display_name,username,avatar_url').in('id',ids):{data:[] as any[]}
+  setProfiles((people||[]) as Profile[])
+ }
+ useEffect(()=>{
+  let active=true
+  let channel:ReturnType<typeof supabase.channel>|null=null
+  async function start(){
+   const {data:{user},error:userError}=await supabase.auth.getUser()
+   if(!active)return
+   if(userError||!user){await router.replace('/auth');return}
+   setUserId(user.id);setEmail(user.email||'')
+   await Promise.all([loadMessages(user.id),loadInvites(user.id)])
+   if(!active)return
+   setLoading(false)
+   channel=supabase.channel('inbox-live-'+user.id)
+    .on('postgres_changes',{event:'*',schema:'public',table:'messages'},async payload=>{
+      const row:any=payload.new||payload.old
+      if(row?.sender===user.id||row?.recipient===user.id){
+       if(payload.eventType==='INSERT'&&row.recipient===user.id)notify('Nouveau message reçu')
+       if(active)await loadMessages(user.id)
+      }
+    })
+    .on('postgres_changes',{event:'*',schema:'public',table:'friend_requests'},async payload=>{
+      const row:any=payload.new||payload.old
+      if(row?.recipient_id===user.id){
+       if(payload.eventType==='INSERT')notify('Nouvelle demande d’ami')
+       if(active)await loadInvites(user.id)
+      }
+    }).subscribe()
   }
+  start()
+  return()=>{active=false;if(channel)supabase.removeChannel(channel)}
+ },[router])
 
-  useEffect(() => {
-    let active = true
-    let channel: ReturnType<typeof supabase.channel> | null = null
-    async function start() {
-      const { data: { user }, error: userError } = await supabase.auth.getUser()
-      if (!active) return
-      if (userError || !user) { await router.replace('/auth'); return }
-      setEmail(user.email || '')
-      const { data, error: messagesError } = await supabase.from('messages').select('*')
-        .or(`recipient.eq.${user.id},sender.eq.${user.id}`).order('created_at', { ascending: false })
-      if (!active) return
-      if (messagesError) setError('Impossible de charger les messages pour le moment.')
-      setMessages((data || []) as Message[])
-      await loadInvites(user.id)
-      if (!active) return
-      setLoading(false)
-      channel = supabase.channel('member-inbox')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, async () => {
-          const { data: fresh } = await supabase.from('messages').select('*')
-            .or(`recipient.eq.${user.id},sender.eq.${user.id}`).order('created_at', { ascending: false })
-          if (active) setMessages((fresh || []) as Message[])
-        })
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'friend_requests' }, async () => {
-          if (active) await loadInvites(user.id)
-        }).subscribe()
-    }
-    start()
-    return () => { active = false; if (channel) supabase.removeChannel(channel) }
-  }, [router])
+ const conversations=useMemo(()=>{
+  const map=new Map<string,Conversation>()
+  messages.forEach(m=>{
+   const other=m.sender===userId?m.recipient:m.sender
+   const person=profiles.find(p=>p.id===other)
+   if(!person)return
+   const current=map.get(other)
+   if(!current)map.set(other,{person,latest:m,unread:m.recipient===userId&&!m.is_read?1:0,count:1})
+   else {current.count++;if(m.recipient===userId&&!m.is_read)current.unread++}
+  })
+  return [...map.values()].sort((a,b)=>new Date(b.latest.created_at).getTime()-new Date(a.latest.created_at).getTime())
+ },[messages,profiles,userId])
 
-  async function answerInvite(invite: FriendInvite, answer: 'accepted' | 'declined') {
-    if (inviteBusy) return
-    setInviteBusy(invite.id)
-    const { error } = await supabase.from('friend_requests')
-      .update({ status: answer, updated_at: new Date().toISOString() })
-      .eq('id', invite.id).eq('status', 'pending')
-    if (error) setError('Impossible de traiter cette demande.')
-    else setInvites(current => current.filter(item => item.id !== invite.id))
-    setInviteBusy('')
-  }
-
-  async function logout() { await supabase.auth.signOut(); await router.push('/') }
-
-  return (
-    <main className="member-shell">
-      <header className="member-topbar">
-        <Link href="/" className="brand"><span className="brand-mark">w</span><span>weshbien2<span className="brand-dot">.</span></span></Link>
-        <nav className="member-nav" aria-label="Navigation membre">
-          <Link href="/inbox" className="member-nav-active">Accueil</Link><Link href="/send">Envoyer un message</Link><button type="button" onClick={logout}>Déconnexion</button>
-        </nav>
-      </header>
-      <div className="member-content">
-        <section className="member-welcome"><div><span className="member-eyebrow">TON ESPACE PERSONNEL</span><h1>Bienvenue ! 👋</h1><p>Retrouve tes conversations et tes demandes d’amis.</p>{email && <span className="member-email">{email}</span>}</div><Link href="/explore" className="member-primary">Découvrir des membres <span>→</span></Link></section>
-        <section className="member-stats"><article className="member-stat"><span className="member-stat-icon">✉</span><div><strong>{messages.length}</strong><span>Message{messages.length > 1 ? 's' : ''}</span></div></article><article className="member-stat"><span className="member-stat-icon">♡</span><div><strong>{invites.length}</strong><span>Demande{invites.length > 1 ? 's' : ''} d’ami</span></div></article></section>
-        {error && <p className="member-muted">{error}</p>}
-        <section className="member-panel">
-          <div className="member-panel-heading"><div><span className="member-eyebrow">FAIRE CONNAISSANCE</span><h2>Demandes d’amis</h2></div></div>
-          {loading ? <p className="member-muted">Chargement…</p> : invites.length === 0 ? <p className="member-muted">Aucune nouvelle demande pour le moment.</p> :
-            <div className="member-message-list">{invites.map(invite => <article className="member-message" key={invite.id}>
-              <div className="member-message-avatar">W</div><div className="member-message-copy"><strong>{invite.profile?.display_name || invite.profile?.username || 'Membre'}</strong><p>@{invite.profile?.username || 'membre'} souhaite t’ajouter en ami.</p><div className="friend-actions"><button type="button" disabled={inviteBusy === invite.id} onClick={() => answerInvite(invite, 'accepted')}>Accepter</button><button type="button" className="friend-secondary" disabled={inviteBusy === invite.id} onClick={() => answerInvite(invite, 'declined')}>Refuser</button><Link href={'/profile?id=' + invite.sender_id}>Voir le profil</Link></div></div>
-            </article>)}</div>}
-        </section>
-        <section className="member-panel">
-          <div className="member-panel-heading"><div><span className="member-eyebrow">RESTER EN CONTACT</span><h2>Mes messages</h2></div><Link href="/send">Nouveau message +</Link></div>
-          {loading ? <p className="member-muted">Chargement de tes messages…</p> : messages.length === 0 ? <div className="member-empty"><div className="member-empty-icon">✉</div><h3>Ta boîte de réception est vide</h3><p>Une fois amis, vous pourrez discuter ici.</p><Link href="/explore" className="member-secondary">Découvrir les membres</Link></div> :
-            <div className="member-message-list">{messages.map(message => <article className="member-message" key={message.id}><div className="member-message-avatar">W</div><div className="member-message-copy"><strong>{message.subject || 'Message'}</strong><p>{message.body || 'Aucun contenu'}</p><small>{new Date(message.created_at).toLocaleString('fr-FR')}</small></div></article>)}</div>}
-        </section>
-        <footer className="member-footer"><Link href="/">weshbien2.</Link><span>Échange avec respect, protège tes informations.</span></footer>
-      </div>
-    </main>
-  )
+ async function answerInvite(invite:FriendInvite,answer:'accepted'|'declined'){
+  if(inviteBusy)return;setInviteBusy(invite.id)
+  const {error}=await supabase.from('friend_requests').update({status:answer,updated_at:new Date().toISOString()}).eq('id',invite.id).eq('status','pending')
+  if(error)setError('Impossible de traiter cette demande.')
+  else {setInvites(v=>v.filter(x=>x.id!==invite.id));notify(answer==='accepted'?'Demande d’ami acceptée':'Demande refusée')}
+  setInviteBusy('')
+ }
+ async function logout(){await supabase.auth.signOut();await router.push('/')}
+ return <main className="member-shell">
+  <header className="member-topbar"><Link href="/" className="brand"><span className="brand-mark">w</span><span>weshbien2<span className="brand-dot">.</span></span></Link><nav className="member-nav"><Link href="/feed">Fil</Link><Link href="/explore">Découvrir</Link><Link href="/forums">Forums</Link><Link href="/inbox" className="member-nav-active">Messages</Link><button onClick={logout}>Déconnexion</button></nav></header>
+  <div className="member-content">
+   <section className="member-welcome"><div><span className="member-eyebrow">TON ESPACE PERSONNEL</span><h1>Ta messagerie 💬</h1><p>Toutes tes conversations, rangées par personne et par activité récente.</p>{email&&<span className="member-email">{email}</span>}</div><Link href="/explore" className="member-primary">Découvrir des membres →</Link></section>
+   <section className="member-stats"><article className="member-stat"><span className="member-stat-icon">✉</span><div><strong>{messages.length}</strong><span>Messages</span></div></article><article className="member-stat"><span className="member-stat-icon">♡</span><div><strong>{invites.length}</strong><span>Demandes d’amis</span></div></article></section>
+   {error&&<p className="notice">{error}</p>}
+   <section className="member-panel"><div className="member-panel-heading"><div><span className="member-eyebrow">FAIRE CONNAISSANCE</span><h2>Demandes d’amis</h2></div></div>
+    {loading?<p className="member-muted">Chargement…</p>:invites.length===0?<p className="member-muted">Aucune nouvelle demande pour le moment.</p>:<div className="member-message-list">{invites.map(invite=><article className="member-message" key={invite.id}><div className="member-message-avatar">{(invite.profile?.display_name||invite.profile?.username||'W').slice(0,1).toUpperCase()}</div><div className="member-message-copy"><strong>{invite.profile?.display_name||invite.profile?.username||'Membre'}</strong><p>@{invite.profile?.username||'membre'} souhaite t’ajouter en ami.</p><div className="friend-actions"><button disabled={inviteBusy===invite.id} onClick={()=>answerInvite(invite,'accepted')}>Accepter</button><button className="friend-secondary" disabled={inviteBusy===invite.id} onClick={()=>answerInvite(invite,'declined')}>Refuser</button><Link href={'/profile?id='+invite.sender_id}>Voir le profil</Link></div></div></article>)}</div>}
+   </section>
+   <section className="member-panel"><div className="member-panel-heading"><div><span className="member-eyebrow">RESTER EN CONTACT</span><h2>Conversations</h2><p className="member-muted">La plus récente apparaît en premier. Appuie sur une personne pour ouvrir vos messages.</p></div><Link href="/send">Nouveau message +</Link></div>
+    {loading?<p className="member-muted">Chargement des conversations…</p>:conversations.length===0?<div className="member-empty"><div className="member-empty-icon">✉</div><h3>Aucune conversation pour le moment</h3><p>Une fois amis, vous pourrez discuter ici.</p><Link href="/explore" className="member-secondary">Découvrir les membres</Link></div>:<div className="member-message-list">{conversations.map(c=><Link href={'/conversation?with='+c.person.id} className="member-message conversation-row" key={c.person.id}><div className="member-message-avatar">{(c.person.display_name||c.person.username||'W').slice(0,1).toUpperCase()}</div><div className="member-message-copy"><strong>{c.person.display_name||c.person.username||'Membre'} <small>@{c.person.username||'membre'}</small></strong><p>{c.latest.sender===userId?'Vous : ':''}{c.latest.body||c.latest.subject||'Message'}</p><small>{new Date(c.latest.created_at).toLocaleString('fr-FR')}</small></div><div className="conversation-meta">{c.unread>0&&<b className="unread-count">{c.unread}</b>}<span>Ouvrir →</span></div></Link>)}</div>}
+   </section>
+   <footer className="member-footer"><Link href="/">weshbien2.</Link><span>Échange avec respect, protège tes informations.</span></footer>
+  </div>
+ </main>
 }
