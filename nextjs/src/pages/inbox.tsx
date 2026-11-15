@@ -23,7 +23,8 @@ export default function InboxPage() {
     const channel = supabase
       .channel('public:messages')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, payload => {
-        const m = payload.new
+        const m = payload.new as { id?: string; [key: string]: any }
+        if (!m.id) return
         setMessages(prev => [m, ...prev.filter(x => x.id !== m.id)])
       })
       .subscribe()
