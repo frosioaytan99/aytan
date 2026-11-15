@@ -379,3 +379,9 @@ html[data-theme="dark"] .phone-card{background:#29243a;border-color:#49405e}
 html[data-theme="dark"] .poll-create-toggle,html[data-theme="dark"] .poll-create-fields{background:#191725;border-color:#39334d}
 html[data-theme="dark"] .poll-create-fields input:not([type=checkbox]){background:#191725;border-color:#39334d;color:#f1edf9}
 html[data-theme="dark"] .poll-result-track{background:#39334d}
+
+.profile-last-seen{margin:8px 0 14px;padding:10px 12px;border-radius:11px;background:#f4f1fc;color:var(--muted);font-size:12px}
+.conversation-search{display:block;width:100%;margin:14px 0 16px;padding:13px 15px;border:1px solid var(--line);border-radius:13px;background:var(--surface,#fff);color:var(--ink);font:inherit}
+.conversation-search:focus{outline:3px solid rgba(118,82,232,.16);border-color:var(--purple)}
+html[data-theme="dark"] .profile-last-seen{background:#29243a}
+html[data-theme="dark"] .conversation-search{background:#191725;border-color:#39334d;color:#f1edf9}
