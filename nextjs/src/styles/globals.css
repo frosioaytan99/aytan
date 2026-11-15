@@ -398,3 +398,6 @@ html[data-theme="dark"] .message-read-status{color:#b9a9ff}
 .member-unread-dot{right:-1px;top:-1px;background:#9333ea}
 .member-avatar-wrap>.avatar.large~.member-presence-dot,.member-avatar-wrap>.avatar.large~.member-unread-dot{width:14px;height:14px}
 html[data-theme="dark"] .member-presence-dot,html[data-theme="dark"] .member-unread-dot{border-color:#242136}
+
+.question-author-avatar{width:28px;height:28px;min-width:28px;border-radius:50%;font-size:11px;vertical-align:middle}
+.question-byline{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
