@@ -33,6 +33,8 @@ export default function ProfilePage() {
  const [friendRequest,setFriendRequest]=useState<FriendRequest|null>(null)
  const [friendBusy,setFriendBusy]=useState(false)
  const [blocked,setBlocked]=useState(false)
+ const [following,setFollowing]=useState(false)
+ const [followerCount,setFollowerCount]=useState(0)
 
  async function loadFriendState(userId:string,targetId:string){
   const {data,error}=await supabase.from('friend_requests').select('id,sender_id,recipient_id,status').or(`and(sender_id.eq.${userId},recipient_id.eq.${targetId}),and(sender_id.eq.${targetId},recipient_id.eq.${userId})`).maybeSingle()
@@ -55,7 +57,7 @@ export default function ProfilePage() {
    if(error){setProfile(null);setStatus('Impossible de charger ce profil : '+error.message)}
    else if(data){
     setProfile(data as ProfileData);setName(data.display_name||'');setUsername(data.username||'');setBio(data.bio||'');setInterests(data.interests||'');setAvatarUrl(data.avatar_url||'');setPrivateProfile(!!data.is_private);setAge(data.age?String(data.age):'');setCity(data.city||'');setFavoriteMusic(data.favorite_music||'');setHobbies(data.hobbies||'');setGalleryUrls(data.gallery_urls||[])
-    if(target!==user.id){await loadFriendState(user.id,target);const likes=await supabase.from('profile_likes').select('id',{count:'exact',head:true}).eq('to_user_id',target);const mine=await supabase.from('profile_likes').select('id').eq('from_user_id',user.id).eq('to_user_id',target).maybeSingle();setLikeCount(likes.count||0);setLiked(!!mine.data)}
+    if(target!==user.id){await loadFriendState(user.id,target);const likes=await supabase.from('profile_likes').select('id',{count:'exact',head:true}).eq('to_user_id',target);const mine=await supabase.from('profile_likes').select('id').eq('from_user_id',user.id).eq('to_user_id',target).maybeSingle();setLikeCount(likes.count||0);setLiked(!!mine.data);const follows=await supabase.from('profile_follows').select('id',{count:'exact',head:true}).eq('followed_id',target);const mineFollow=await supabase.from('profile_follows').select('id').eq('follower_id',user.id).eq('followed_id',target).maybeSingle();setFollowerCount(follows.count||0);setFollowing(!!mineFollow.data)}
    }else{setProfile(null);setName('');setUsername('');setBio('');setInterests('');setGalleryUrls([]);setAge('');setCity('');setFavoriteMusic('');setHobbies('');setStatus(target===user.id?'Ton profil n’a pas encore été créé. Tu peux le compléter ci-dessous.':'Ce profil est introuvable, privé ou indisponible.')}
    if(!cancelled)setLoading(false)
   }
@@ -118,6 +120,20 @@ export default function ProfilePage() {
   const {data,error}=await supabase.from('profiles').upsert({id:uid,display_name:name.trim(),username:username.trim().toLowerCase(),bio:bio.trim(),interests:interests.trim(),avatar_url:avatarUrl||null,is_private:privateProfile,age:parsedAge,city:city.trim(),favorite_music:favoriteMusic.trim(),hobbies:hobbies.trim(),gallery_urls:galleryUrls},{onConflict:'id'}).select('id,display_name,username,bio,interests,avatar_url,is_private,age,city,favorite_music,hobbies,gallery_urls').single()
   if(error){setStatus('Enregistrement impossible : '+error.message);return}
   setProfile(data as ProfileData);setStatus('Profil enregistré !')
+ }
+ async function toggleFollow(){
+  if(!currentUser||!uid||friendBusy||blocked)return
+  setFriendBusy(true);setStatus('')
+  if(following){
+   const {error}=await supabase.from('profile_follows').delete().eq('follower_id',currentUser).eq('followed_id',uid)
+   if(error)setStatus('Impossible de ne plus suivre ce profil : '+error.message)
+   else{setFollowing(false);setFollowerCount(v=>Math.max(0,v-1))}
+  }else{
+   const {error}=await supabase.from('profile_follows').insert({follower_id:currentUser,followed_id:uid})
+   if(error)setStatus('Impossible de suivre ce profil : '+error.message)
+   else{setFollowing(true);setFollowerCount(v=>v+1)}
+  }
+  setFriendBusy(false)
  }
  async function toggleLike(){
   if(!currentUser||!uid||friendBusy)return
@@ -196,9 +212,12 @@ export default function ProfilePage() {
      <button type="submit">Enregistrer mon profil</button>{status&&<p className="notice" role="status">{status}</p>}
     </form>
    ):profile?(
-    <div className="card profile-form">
-     <MemberAvatar userId={profile.id} name={profile.display_name||profile.username} avatarUrl={profile.avatar_url} className="avatar large profile-avatar-preview"/>
-     <h2>{profile.display_name||profile.username||'Membre'}</h2><p>@{profile.username||'membre'}</p>{profile.last_seen_at&&<p className="profile-last-seen"><strong>Dernière connexion :</strong> {new Date(profile.last_seen_at).toLocaleString('fr-FR',{dateStyle:'medium',timeStyle:'short'})}</p>}<p>{profile.bio||'Ce membre n’a pas encore ajouté de présentation.'}</p>{profile.age&&<p><strong>Âge :</strong> {profile.age} ans</p>}{profile.city&&<p><strong>Ville :</strong> {profile.city}</p>}{profile.interests&&<p><strong>Centres d’intérêt :</strong> {profile.interests}</p>}{profile.hobbies&&<p><strong>Loisirs et passions :</strong> {profile.hobbies}</p>}{profile.favorite_music&&<p><strong>Musique préférée :</strong> {profile.favorite_music}</p>}{profile.gallery_urls&&profile.gallery_urls.length>0&&<section className="profile-gallery-view"><h3>Ses photos</h3><div className="profile-gallery-grid">{profile.gallery_urls.map(url=><a href={url} target="_blank" rel="noreferrer" key={url}><img src={url} alt="Photo de galerie"/></a>)}</div></section>}<p className="profile-likes-count">♡ {likeCount} {likeCount===1?'like':'likes'}</p>
+    <div className="card profile-form profile-public-card">
+     <div className="profile-cover"></div>
+     <div className="profile-identity"><MemberAvatar userId={profile.id} name={profile.display_name||profile.username} avatarUrl={profile.avatar_url} className="avatar large profile-avatar-preview"/><div className="profile-identity-copy"><h2>{profile.display_name||profile.username||'Membre'}</h2><p>@{profile.username||'membre'}</p><small>{followerCount} abonné{followerCount>1?'s':''}</small></div><button type="button" className="profile-follow-button" disabled={friendBusy||blocked} onClick={toggleFollow}>{following?'✓ Abonné':'＋ Suivre'}</button></div>
+     <div className="profile-public-tabs"><a href="#profile-about">À propos</a><a href="#profile-photos">Photos</a></div>
+     <section id="profile-about" className="profile-about-section"><h3>À propos</h3><p>{profile.bio||'Ce membre n’a pas encore ajouté de présentation.'}</p><div className="profile-details-grid">{profile.age&&<p><strong>Âge</strong><span>{profile.age} ans</span></p>}{profile.city&&<p><strong>Ville</strong><span>{profile.city}</span></p>}{profile.interests&&<p><strong>Centres d’intérêt</strong><span>{profile.interests}</span></p>}{profile.hobbies&&<p><strong>Loisirs et passions</strong><span>{profile.hobbies}</span></p>}{profile.favorite_music&&<p><strong>Musique préférée</strong><span>{profile.favorite_music}</span></p>}</div>{profile.last_seen_at&&<p className="profile-last-seen"><strong>Dernière connexion :</strong> {new Date(profile.last_seen_at).toLocaleString('fr-FR',{dateStyle:'medium',timeStyle:'short'})}</p>}</section>
+     {profile.gallery_urls&&profile.gallery_urls.length>0&&<section id="profile-photos" className="profile-gallery-view"><h3>Ses photos</h3><div className="profile-gallery-grid">{profile.gallery_urls.map(url=><a href={url} target="_blank" rel="noreferrer" key={url}><img src={url} alt="Photo de galerie"/></a>)}</div></section>}<p className="profile-likes-count">♡ {likeCount} {likeCount===1?'like':'likes'}</p>
      {!blocked&&<button type="button" className="profile-like-button" disabled={friendBusy} onClick={toggleLike}>{liked?'♥ Tu aimes ce profil':'♡ J’aime ce profil'}</button>}{blocked?<p className="notice">Cette personne est bloquée. Elle ne peut plus t’envoyer de messages.</p>:friendRequest?.status==='accepted'?<><Link className="member-primary" href={'/send?to='+profile.id}>Envoyer un message →</Link><button type="button" className="friend-secondary" disabled={friendBusy} onClick={removeFriend}>Retirer des amis</button></>:friendRequest?.status==='pending'&&friendRequest.sender_id===currentUser?<button type="button" disabled>Demande envoyée ✓</button>:friendRequest?.status==='pending'?<div className="friend-actions"><p>Cette personne souhaite t’ajouter en ami.</p><button type="button" disabled={friendBusy} onClick={()=>answerFriendRequest('accepted')}>Accepter</button><button type="button" className="friend-secondary" disabled={friendBusy} onClick={()=>answerFriendRequest('declined')}>Refuser</button></div>:friendRequest?.status==='declined'?<p className="notice">Demande refusée.</p>:<button type="button" disabled={friendBusy} onClick={sendFriendRequest}>＋ Ajouter en ami</button>}
      <button type="button" className={blocked?'friend-secondary':'danger-action'} disabled={friendBusy} onClick={toggleBlock}>{blocked?'Débloquer cette personne':'Bloquer cette personne'}</button>
      <button type="button" className="friend-secondary" onClick={reportProfile}>⚑ Signaler ce profil</button>{status&&<p className="notice" role="status">{status}</p>}<Link href="/explore">Retour à la communauté</Link>
