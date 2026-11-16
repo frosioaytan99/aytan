@@ -26,7 +26,7 @@ export default function ProfilePage() {
  const [photoBusy,setPhotoBusy]=useState(false)
  const [liked,setLiked]=useState(false)
  const [likeCount,setLikeCount]=useState(0)
- const [privateProfile,setPrivateProfile]=useState(false)
+ const [privateProfile,setPrivateProfile]=useState(true)
  const [status,setStatus]=useState('')
  const [loading,setLoading]=useState(true)
  const [currentUser,setCurrentUser]=useState('')
@@ -58,7 +58,7 @@ export default function ProfilePage() {
    else if(data){
     setProfile(data as ProfileData);setName(data.display_name||'');setUsername(data.username||'');setBio(data.bio||'');setInterests(data.interests||'');setAvatarUrl(data.avatar_url||'');setPrivateProfile(!!data.is_private);setAge(data.age?String(data.age):'');setCity(data.city||'');setFavoriteMusic(data.favorite_music||'');setHobbies(data.hobbies||'');setGalleryUrls(data.gallery_urls||[])
     if(target!==user.id){await loadFriendState(user.id,target);const likes=await supabase.from('profile_likes').select('id',{count:'exact',head:true}).eq('to_user_id',target);const mine=await supabase.from('profile_likes').select('id').eq('from_user_id',user.id).eq('to_user_id',target).maybeSingle();setLikeCount(likes.count||0);setLiked(!!mine.data);const follows=await supabase.from('profile_follows').select('id',{count:'exact',head:true}).eq('followed_id',target);const mineFollow=await supabase.from('profile_follows').select('id').eq('follower_id',user.id).eq('followed_id',target).maybeSingle();setFollowerCount(follows.count||0);setFollowing(!!mineFollow.data)}
-   }else{setProfile(null);setName('');setUsername('');setBio('');setInterests('');setGalleryUrls([]);setAge('');setCity('');setFavoriteMusic('');setHobbies('');setStatus(target===user.id?'Ton profil n’a pas encore été créé. Tu peux le compléter ci-dessous.':'Ce profil est introuvable, privé ou indisponible.')}
+   }else{setProfile(null);setName('');setUsername('');setBio('');setInterests('');setGalleryUrls([]);setAge('');setCity('');setFavoriteMusic('');setHobbies('');setPrivateProfile(true);setStatus(target===user.id?'Ton profil n’a pas encore été créé. Tu peux le compléter ci-dessous.':'Ce profil est introuvable, privé ou indisponible.')}
    if(!cancelled)setLoading(false)
   }
   loadProfile()
