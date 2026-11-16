@@ -1,0 +1,19 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /admin
+Disallow: /profile
+Disallow: /settings
+Disallow: /inbox
+Disallow: /conversation
+Disallow: /notifications
+Disallow: /friends
+Disallow: /feed
+Disallow: /forums
+Disallow: /forum
+Disallow: /questions
+Disallow: /stories
+Disallow: /communities
+Disallow: /search
+
+Sitemap: https://aytan-six.vercel.app/sitemap.xml
