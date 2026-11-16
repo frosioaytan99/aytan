@@ -50,7 +50,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(403).json({ error: 'moderator_access_required' })
     }
 
-    const functionUrl = `${supabaseUrl.replace(/\\/+$/, '')}/functions/v1/moderate`
+    const functionUrl = `${supabaseUrl.replace(/\/+$/, '')}/functions/v1/moderate`
     const response = await fetch(functionUrl, {
       method: 'POST',
       headers: {
