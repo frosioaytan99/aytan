@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabaseClient'
+import CommunityImage from './CommunityImage'
 
 type Props = { userId?:string|null; name?:string|null; avatarUrl?:string|null; className?:string; imageSize?:number }
 
@@ -28,7 +29,7 @@ export default function MemberAvatar({userId,name,avatarUrl,className='avatar',i
  },[userId])
  const style=imageSize?{width:imageSize,height:imageSize,objectFit:'cover' as const}:undefined
  return <span className="member-avatar-wrap">
-  <span className={className}>{avatarUrl?<img src={avatarUrl} alt={name||'Photo de profil'} style={style}/>:((name||'Membre').slice(0,1).toUpperCase())}</span>
+  <span className={className}>{avatarUrl?<CommunityImage src={avatarUrl} alt={name||'Photo de profil'} style={style} fallback={(name||'Membre').slice(0,1).toUpperCase()}/>:((name||'Membre').slice(0,1).toUpperCase())}</span>
   {online&&<i className="member-presence-dot" title="En ligne" aria-label="En ligne"/>}
   {unread&&<i className="member-unread-dot" title="Message non lu" aria-label="Message non lu"/>}
  </span>

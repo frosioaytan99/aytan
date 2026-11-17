@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { supabase } from '../lib/supabaseClient'
 import MemberAvatar from '../components/MemberAvatar'
+import CommunityImage from '../components/CommunityImage'
+import { communityImageExtension, isAllowedCommunityImage, PRIVATE_MEDIA_PREFIX } from '../lib/communityMedia'
 
 type Story = { id:string; user_id:string; media_url:string; caption:string; created_at:string; expires_at:string; profile?:any }
 
@@ -29,14 +31,13 @@ export default function StoriesPage(){
  async function publish(e:any){
   e.preventDefault()
   if(!file||!userId)return
-  if(!file.type.startsWith('image/')){setStatus('Choisis une image.');return}
-  if(file.size>8*1024*1024){setStatus('Image trop lourde : 8 Mo maximum.');return}
+  if(!isAllowedCommunityImage(file)){setStatus('Choisis une image JPG, PNG, WEBP ou GIF de 8 Mo maximum.');return}
   setBusy(true);setStatus('')
-  const ext=(file.name.split('.').pop()||'jpg').toLowerCase().replace(/[^a-z0-9]/g,'')
+  const ext=communityImageExtension(file)
   const path=userId+'/story-'+Date.now()+'.'+ext
-  const {error:uploadError}=await supabase.storage.from('community-photos').upload(path,file,{contentType:file.type})
+  const {error:uploadError}=await supabase.storage.from('community-private').upload(path,file,{contentType:file.type,upsert:false})
   if(uploadError){setBusy(false);setStatus('Envoi impossible : '+uploadError.message);return}
-  const media_url=supabase.storage.from('community-photos').getPublicUrl(path).data.publicUrl
+  const media_url=PRIVATE_MEDIA_PREFIX+path
   const {error}=await supabase.from('stories').insert({user_id:userId,media_url,caption:caption.trim(),expires_at:new Date(Date.now()+24*60*60*1000).toISOString()})
   setBusy(false)
   if(error){setStatus('Story envoyée mais publication impossible : '+error.message);return}
@@ -47,16 +48,16 @@ export default function StoriesPage(){
   <div className="directory stories-page">
    <small>LES MOMENTS DE LA COMMUNAUTÉ</small><h1>Stories</h1><p>Partage un moment avec la communauté. Les stories disparaissent automatiquement après 24 heures.</p>
    <form className="card story-composer" onSubmit={publish}>
-    <label>Ajouter une story</label><input type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={e=>{const f=e.target.files?.[0];if(!f)return;if(!f.type.startsWith('image/')||f.size>8*1024*1024){setStatus('Choisis une image de 8 Mo maximum.');return}setFile(f);setPreview(URL.createObjectURL(f))}}/>
+    <label>Ajouter une story</label><input type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={e=>{const f=e.target.files?.[0];if(!f)return;if(!isAllowedCommunityImage(f)){setStatus('Choisis une image JPG, PNG, WEBP ou GIF de 8 Mo maximum.');return}setFile(f);setPreview(URL.createObjectURL(f))}}/>
     {preview&&<img className="story-preview" src={preview} alt="Aperçu de la story"/>}
     <input value={caption} maxLength={180} onChange={e=>setCaption(e.target.value)} placeholder="Ajoute une petite légende…"/>
     <button disabled={busy||!file}>{busy?'Publication…':'Partager ma story'}</button>
    </form>
    {status&&<p className="notice">{status}</p>}
    <div className="story-grid">{stories.length===0?<div className="card empty">Aucune story pour le moment. Lance la première !</div>:stories.map(s=><button type="button" className="story-tile" key={s.id} onClick={()=>setActive(s)}>
-    <img src={s.media_url} alt={s.caption||'Story de la communauté'}/><span className="story-owner"><MemberAvatar userId={s.user_id} name={s.profile?.display_name||s.profile?.username} avatarUrl={s.profile?.avatar_url} className="avatar"/><b>{s.profile?.display_name||s.profile?.username||'Membre'}</b></span>{s.caption&&<span className="story-caption">{s.caption}</span>}
+    <CommunityImage src={s.media_url} alt={s.caption||'Story de la communauté'}/><span className="story-owner"><MemberAvatar userId={s.user_id} name={s.profile?.display_name||s.profile?.username} avatarUrl={s.profile?.avatar_url} className="avatar"/><b>{s.profile?.display_name||s.profile?.username||'Membre'}</b></span>{s.caption&&<span className="story-caption">{s.caption}</span>}
    </button>)}</div>
   </div>
-  {active&&<div className="story-viewer" role="dialog" aria-modal="true" onClick={()=>setActive(null)}><button type="button" aria-label="Fermer" onClick={()=>setActive(null)}>×</button><img src={active.media_url} alt={active.caption||'Story'}/>{active.caption&&<p>{active.caption}</p>}<small>{active.profile?.display_name||active.profile?.username||'Membre'}</small></div>}
+  {active&&<div className="story-viewer" role="dialog" aria-modal="true" onClick={()=>setActive(null)}><button type="button" aria-label="Fermer" onClick={()=>setActive(null)}>×</button><CommunityImage src={active.media_url} alt={active.caption||'Story'}/>{active.caption&&<p>{active.caption}</p>}<small>{active.profile?.display_name||active.profile?.username||'Membre'}</small></div>}
  </main>
 }

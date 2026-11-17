@@ -3,6 +3,8 @@ import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { supabase } from '../lib/supabaseClient'
 import MemberAvatar from '../components/MemberAvatar'
+import CommunityImage from '../components/CommunityImage'
+import { communityImageExtension, isAllowedCommunityImage, PRIVATE_MEDIA_PREFIX } from '../lib/communityMedia'
 
 type ProfileData = { id:string; display_name:string|null; username:string|null; bio:string|null; interests:string|null; avatar_url?:string|null; is_private:boolean|null; age?:number|null; city?:string|null; favorite_music?:string|null; hobbies?:string|null; gallery_urls?:string[]|null; last_seen_at?:string|null }
 type FriendRequest = { id:string; sender_id:string; recipient_id:string; status:'pending'|'accepted'|'declined' }
@@ -75,14 +77,13 @@ export default function ProfilePage() {
  }
  async function uploadAvatar(file?:File){
   if(!file||!uid)return
-  if(!file.type.startsWith('image/')){setStatus('Choisis un fichier image.');return}
-  if(file.size>8*1024*1024){setStatus('Photo trop lourde : 8 Mo maximum.');return}
+  if(!isAllowedCommunityImage(file)){setStatus('Choisis une image JPG, PNG, WEBP ou GIF de 8 Mo maximum.');return}
   setPhotoBusy(true);setStatus('')
-  const ext=(file.name.split('.').pop()||'jpg').toLowerCase().replace(/[^a-z0-9]/g,'')
+  const ext=communityImageExtension(file)
   const path=uid+'/avatar-'+Date.now()+'.'+ext
-  const {error:uploadError}=await supabase.storage.from('community-photos').upload(path,file,{contentType:file.type})
+  const {error:uploadError}=await supabase.storage.from('community-private').upload(path,file,{contentType:file.type,upsert:false})
   if(uploadError){setStatus('Envoi impossible : '+uploadError.message);setPhotoBusy(false);return}
-  const url=supabase.storage.from('community-photos').getPublicUrl(path).data.publicUrl
+  const url=PRIVATE_MEDIA_PREFIX+path
   const {error}=await supabase.from('profiles').upsert({id:uid,avatar_url:url},{onConflict:'id'})
   if(error)setStatus('Photo envoyée mais profil non actualisé : '+error.message)
   else{setAvatarUrl(url);setStatus('Photo de profil mise à jour !')}
@@ -90,15 +91,14 @@ export default function ProfilePage() {
  }
  async function uploadGalleryPhoto(file?:File){
   if(!file||!uid)return
-  if(!file.type.startsWith('image/')){setStatus('Choisis un fichier image.');return}
-  if(file.size>8*1024*1024){setStatus('Photo trop lourde : 8 Mo maximum.');return}
+  if(!isAllowedCommunityImage(file)){setStatus('Choisis une image JPG, PNG, WEBP ou GIF de 8 Mo maximum.');return}
   if(galleryUrls.length>=6){setStatus('Tu peux ajouter jusqu’à 6 photos dans ta galerie.');return}
   setGalleryBusy(true);setStatus('')
-  const ext=(file.name.split('.').pop()||'jpg').toLowerCase().replace(/[^a-z0-9]/g,'')
+  const ext=communityImageExtension(file)
   const path=uid+'/gallery-'+Date.now()+'.'+ext
-  const {error:uploadError}=await supabase.storage.from('community-photos').upload(path,file,{contentType:file.type})
+  const {error:uploadError}=await supabase.storage.from('community-private').upload(path,file,{contentType:file.type,upsert:false})
   if(uploadError){setStatus('Envoi impossible : '+uploadError.message);setGalleryBusy(false);return}
-  const url=supabase.storage.from('community-photos').getPublicUrl(path).data.publicUrl
+  const url=PRIVATE_MEDIA_PREFIX+path
   const next=[...galleryUrls,url]
   const {error}=await supabase.from('profiles').upsert({id:uid,gallery_urls:next},{onConflict:'id'})
   if(error)setStatus('Photo envoyée mais galerie non actualisée : '+error.message)
@@ -207,7 +207,7 @@ export default function ProfilePage() {
      <label>Centres d’intérêt<input maxLength={180} value={interests} onChange={e=>setInterests(e.target.value)} placeholder="Musique, sport, jeux vidéo…"/></label>
      <label>Loisirs et passions<input maxLength={180} value={hobbies} onChange={e=>setHobbies(e.target.value)} placeholder="Danse, dessin, football…"/></label>
      <label>Musique préférée<input maxLength={120} value={favoriteMusic} onChange={e=>setFavoriteMusic(e.target.value)} placeholder="Tes artistes ou styles préférés…"/></label>
-     <section className="profile-gallery-editor"><h3>Ma galerie photo ({galleryUrls.length}/6)</h3><label className="photo-upload-button">🖼️ {galleryBusy?'Envoi…':'Ajouter une photo à la galerie'}<input type="file" accept="image/jpeg,image/png,image/webp,image/gif" disabled={galleryBusy||galleryUrls.length>=6} onChange={e=>{uploadGalleryPhoto(e.target.files?.[0]);e.currentTarget.value=''}}/></label><div className="profile-gallery-grid">{galleryUrls.map(url=><div className="profile-gallery-thumb" key={url}><img src={url} alt="Photo de ma galerie"/><button type="button" onClick={()=>removeGalleryPhoto(url)}>Retirer</button></div>)}</div><small>Jusqu’à 6 photos · 8 Mo maximum chacune</small></section>
+     <section className="profile-gallery-editor"><h3>Ma galerie photo ({galleryUrls.length}/6)</h3><label className="photo-upload-button">🖼️ {galleryBusy?'Envoi…':'Ajouter une photo à la galerie'}<input type="file" accept="image/jpeg,image/png,image/webp,image/gif" disabled={galleryBusy||galleryUrls.length>=6} onChange={e=>{uploadGalleryPhoto(e.target.files?.[0]);e.currentTarget.value=''}}/></label><div className="profile-gallery-grid">{galleryUrls.map(url=><div className="profile-gallery-thumb" key={url}><CommunityImage src={url} alt="Photo de ma galerie"/><button type="button" onClick={()=>removeGalleryPhoto(url)}>Retirer</button></div>)}</div><small>Jusqu’à 6 photos · 8 Mo maximum chacune</small></section>
      <label className="checkline"><input type="checkbox" checked={privateProfile} onChange={e=>setPrivateProfile(e.target.checked)}/>Rendre mon profil privé</label>
      <button type="submit">Enregistrer mon profil</button>{status&&<p className="notice" role="status">{status}</p>}
     </form>
@@ -217,7 +217,7 @@ export default function ProfilePage() {
      <div className="profile-identity"><MemberAvatar userId={profile.id} name={profile.display_name||profile.username} avatarUrl={profile.avatar_url} className="avatar large profile-avatar-preview"/><div className="profile-identity-copy"><h2>{profile.display_name||profile.username||'Membre'}</h2><p>@{profile.username||'membre'}</p><small>{followerCount} abonné{followerCount>1?'s':''}</small></div><button type="button" className="profile-follow-button" disabled={friendBusy||blocked} onClick={toggleFollow}>{following?'✓ Abonné':'＋ Suivre'}</button></div>
      <div className="profile-public-tabs"><a href="#profile-about">À propos</a><a href="#profile-photos">Photos</a></div>
      <section id="profile-about" className="profile-about-section"><h3>À propos</h3><p>{profile.bio||'Ce membre n’a pas encore ajouté de présentation.'}</p><div className="profile-details-grid">{profile.age&&<p><strong>Âge</strong><span>{profile.age} ans</span></p>}{profile.city&&<p><strong>Ville</strong><span>{profile.city}</span></p>}{profile.interests&&<p><strong>Centres d’intérêt</strong><span>{profile.interests}</span></p>}{profile.hobbies&&<p><strong>Loisirs et passions</strong><span>{profile.hobbies}</span></p>}{profile.favorite_music&&<p><strong>Musique préférée</strong><span>{profile.favorite_music}</span></p>}</div>{profile.last_seen_at&&<p className="profile-last-seen"><strong>Dernière connexion :</strong> {new Date(profile.last_seen_at).toLocaleString('fr-FR',{dateStyle:'medium',timeStyle:'short'})}</p>}</section>
-     {profile.gallery_urls&&profile.gallery_urls.length>0&&<section id="profile-photos" className="profile-gallery-view"><h3>Ses photos</h3><div className="profile-gallery-grid">{profile.gallery_urls.map(url=><a href={url} target="_blank" rel="noreferrer" key={url}><img src={url} alt="Photo de galerie"/></a>)}</div></section>}<p className="profile-likes-count">♡ {likeCount} {likeCount===1?'like':'likes'}</p>
+     {profile.gallery_urls&&profile.gallery_urls.length>0&&<section id="profile-photos" className="profile-gallery-view"><h3>Ses photos</h3><div className="profile-gallery-grid">{profile.gallery_urls.map(url=><CommunityImage key={url} src={url} alt="Photo de galerie"/>)}</div></section>}<p className="profile-likes-count">♡ {likeCount} {likeCount===1?'like':'likes'}</p>
      {!blocked&&<button type="button" className="profile-like-button" disabled={friendBusy} onClick={toggleLike}>{liked?'♥ Tu aimes ce profil':'♡ J’aime ce profil'}</button>}{blocked?<p className="notice">Cette personne est bloquée. Elle ne peut plus t’envoyer de messages.</p>:friendRequest?.status==='accepted'?<><Link className="member-primary" href={'/send?to='+profile.id}>Envoyer un message →</Link><button type="button" className="friend-secondary" disabled={friendBusy} onClick={removeFriend}>Retirer des amis</button></>:friendRequest?.status==='pending'&&friendRequest.sender_id===currentUser?<button type="button" disabled>Demande envoyée ✓</button>:friendRequest?.status==='pending'?<div className="friend-actions"><p>Cette personne souhaite t’ajouter en ami.</p><button type="button" disabled={friendBusy} onClick={()=>answerFriendRequest('accepted')}>Accepter</button><button type="button" className="friend-secondary" disabled={friendBusy} onClick={()=>answerFriendRequest('declined')}>Refuser</button></div>:friendRequest?.status==='declined'?<p className="notice">Demande refusée.</p>:<button type="button" disabled={friendBusy} onClick={sendFriendRequest}>＋ Ajouter en ami</button>}
      <button type="button" className={blocked?'friend-secondary':'danger-action'} disabled={friendBusy} onClick={toggleBlock}>{blocked?'Débloquer cette personne':'Bloquer cette personne'}</button>
      <button type="button" className="friend-secondary" onClick={reportProfile}>⚑ Signaler ce profil</button>{status&&<p className="notice" role="status">{status}</p>}<Link href="/explore">Retour à la communauté</Link>
