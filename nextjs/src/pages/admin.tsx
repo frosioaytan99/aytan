@@ -70,12 +70,22 @@ export default function AdminPage(){
  async function toggleSuspension(person:Profile){
   const blocked=suspended.includes(person.id)
   if(blocked&&!window.confirm('Réactiver ce compte ?'))return
-  if(!blocked&&!window.confirm('Suspendre ce compte ? La personne ne pourra plus utiliser la communauté.'))return
+  if(!blocked&&!window.confirm('Suspendre ce compte ? La personne sera déconnectée et ne pourra plus se connecter tant que la restriction sera active.'))return
   setBusy(person.id)
-  const {data:{user}}=await supabase.auth.getUser()
-  const result=blocked?await supabase.from('account_suspensions').delete().eq('user_id',person.id):await supabase.from('account_suspensions').insert({user_id:person.id,created_by:user?.id,reason:'Suspension décidée par un administrateur'})
-  if(result.error)setStatus('Action impossible : '+result.error.message)
-  else{setSuspended(v=>blocked?v.filter(x=>x!==person.id):[...v,person.id]);setStatus(blocked?'Compte réactivé.':'Compte suspendu.')}
+  const {data:{session}}=await supabase.auth.getSession()
+  if(!session?.access_token){setStatus('Session expirée. Reconnecte-toi.');setBusy('');return}
+  const response=await fetch('/api/admin/suspensions',{
+   method:'POST',
+   headers:{'Content-Type':'application/json',Authorization:'Bearer '+session.access_token},
+   body:JSON.stringify({user_id:person.id,suspended:!blocked})
+  })
+  const payload=await response.json().catch(()=>null)
+  if(!response.ok){
+   setStatus('Action impossible : '+(payload?.error||'erreur serveur'))
+  }else{
+   setSuspended(v=>blocked?v.filter(x=>x!==person.id):[...v,person.id])
+   setStatus(blocked?'Compte réactivé.':'Compte suspendu et connexion bloquée.')
+  }
   setBusy('')
  }
 
