@@ -3,7 +3,8 @@ import Link from 'next/link'
 import { supabase } from '../lib/supabaseClient'
 import MemberAvatar from '../components/MemberAvatar'
 import CommunityImage from '../components/CommunityImage'
-import { communityImageExtension, isAllowedCommunityImage, PRIVATE_MEDIA_PREFIX } from '../lib/communityMedia'
+import { isAllowedCommunityImage } from '../lib/communityMedia'
+import { uploadModeratedCommunityImage } from '../lib/uploadModeratedCommunityImage'
 
 type Story = { id:string; user_id:string; media_url:string; caption:string; created_at:string; expires_at:string; profile?:any }
 
@@ -37,11 +38,9 @@ export default function StoriesPage(){
   if(!file||!userId)return
   if(!isAllowedCommunityImage(file)){setStatus('Choisis une image JPG, PNG, WEBP ou GIF de 8 Mo maximum.');return}
   setBusy(true);setStatus('')
-  const ext=communityImageExtension(file)
-  const path=userId+'/story-'+Date.now()+'.'+ext
-  const {error:uploadError}=await supabase.storage.from('community-private').upload(path,file,{contentType:file.type,upsert:false})
-  if(uploadError){setBusy(false);setStatus('Envoi impossible : '+uploadError.message);return}
-  const media_url=PRIVATE_MEDIA_PREFIX+path
+  let media_url:string
+  try { media_url=await uploadModeratedCommunityImage(file) }
+  catch(error:any){setBusy(false);setStatus(error?.message||'La photo a été refusée ou n’a pas pu être envoyée.');return}
   // The database assigns expires_at so a client cannot extend a story's lifetime.
   const {error}=await supabase.from('stories').insert({user_id:userId,media_url,caption:caption.trim()})
   setBusy(false)
