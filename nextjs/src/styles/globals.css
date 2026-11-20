@@ -461,3 +461,17 @@ html[data-theme="dark"] .member-presence-dot,html[data-theme="dark"] .member-unr
 .profile-empty-photos{padding:24px 12px;text-align:center;color:var(--muted);font-size:13px;background:var(--paper);border-radius:12px}
 .profile-remove-friend{display:inline-flex;margin-top:8px!important}
 @media(max-width:600px){.profile-identity{flex-wrap:wrap}.profile-identity-actions{width:100%;margin:0 0 0 83px;justify-content:flex-start}.profile-identity-actions .profile-follow-button,.profile-add-friend-button{min-height:36px;padding:8px 11px;font-size:11px}.profile-friend-actions{width:100%}}
+
+
+/* Images responsives : ne jamais laisser une photo agrandir la page */
+.post-image,.post-photo-preview img,.story-viewer>img,.story-preview,.profile-gallery-grid img{display:block;max-width:100%;height:auto;}
+.post-image{width:100%;max-height:420px;object-fit:contain;object-position:center;border-radius:14px;background:#100e18;}
+.post-photo-preview{max-width:100%;overflow:hidden;}
+.post-photo-preview img{width:100%;max-height:320px;object-fit:contain;}
+@media(max-width:900px){
+ .app-layout{width:100%;max-width:700px;grid-template-columns:minmax(0,1fr);padding-left:14px;padding-right:14px;}
+ .app-layout>.side-card,.app-layout>.right-card{display:none;}
+ .feed-column,.feed-column>*{min-width:0;max-width:100%;}
+ .post-image{max-height:min(55vh,360px);object-fit:contain;}
+}
+@media(max-width:650px){.post-image{max-height:min(50vh,300px);}}
