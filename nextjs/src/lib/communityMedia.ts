@@ -3,7 +3,7 @@ import { supabase } from './supabaseClient'
 
 export const PRIVATE_MEDIA_PREFIX = 'private-media:'
 const PRIVATE_BUCKET = 'community-private'
-const MAX_IMAGE_BYTES = 8 * 1024 * 1024
+const MAX_IMAGE_BYTES = 3 * 1024 * 1024
 const IMAGE_EXTENSIONS: Record<string, string> = {
   'image/jpeg': 'jpg',
   'image/png': 'png',
