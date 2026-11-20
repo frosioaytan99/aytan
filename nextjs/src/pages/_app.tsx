@@ -32,6 +32,7 @@ export default function App({ Component, pageProps }: AppProps) {
   const [signedIn, setSignedIn] = useState(false)
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
   const [currentUserId, setCurrentUserId] = useState('')
+  const [guestName, setGuestName] = useState('')
   const [accountMenuOpen, setAccountMenuOpen] = useState(false)
   const router = useRouter()
   const memberPage = router.pathname !== '/' && router.pathname !== '/auth' && router.pathname !== '/404'
@@ -98,10 +99,12 @@ export default function App({ Component, pageProps }: AppProps) {
         }).subscribe()
     }
     supabase.auth.getUser().then(({ data }) => {
-      if (active) { setSignedIn(!!data.user); attach(data.user?.id || null) }
+      if (active) { setSignedIn(!!data.user); setGuestName(data.user?.is_anonymous ? String(data.user.user_metadata?.display_name || 'Invité') : ''); document.documentElement.dataset.guest = data.user?.is_anonymous ? 'true' : 'false'; attach(data.user?.id || null) }
     })
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSignedIn(!!session?.user)
+      setGuestName(session?.user?.is_anonymous ? String(session.user.user_metadata?.display_name || 'Invité') : '')
+      document.documentElement.dataset.guest = session?.user?.is_anonymous ? 'true' : 'false'
       attach(session?.user.id || null)
     })
     return () => {
@@ -128,7 +131,7 @@ export default function App({ Component, pageProps }: AppProps) {
     {memberPage && signedIn && <>
       <header className="mobile-community-header">
         <button type="button" className="mobile-menu-trigger" onClick={() => setMenuOpen(true)} aria-label="Ouvrir le menu">☰</button>
-        <Link href="/feed" className="mobile-brand"><span className="brand-mark">w</span></Link><span className="mobile-header-spacer" />
+        <Link href="/feed" className="mobile-brand"><span className="brand-mark">w</span></Link>{guestName && <span className="guest-name-label">{guestName}</span>}<span className="mobile-header-spacer" />
 <div className="account-menu-wrap" style={{position:'relative'}}>
           <button type="button" className="mobile-user-dot" onClick={() => setAccountMenuOpen(value => !value)} aria-label="Ouvrir le menu du compte" aria-expanded={accountMenuOpen} style={{padding:0,overflow:'hidden',borderRadius:'50%',border:'2px solid var(--accent,#7c3aed)',background:'var(--surface,#fff)',width:38,height:38,display:'grid',placeItems:'center',cursor:'pointer'}}>
             {currentUserId ? <MemberAvatar userId={currentUserId} name="Mon profil" avatarUrl={avatarUrl} className="account-avatar-image"/> : <NavIcon name="profile" />}
