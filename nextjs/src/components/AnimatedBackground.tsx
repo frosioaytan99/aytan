@@ -5,33 +5,72 @@ export default function AnimatedBackground() {
     <style jsx global>{`
       html, body, #__next { min-height: 100%; }
       body {
+        position: relative;
+        isolation: isolate;
         background-color: var(--paper, #faf9fc) !important;
         background-image:
-          radial-gradient(ellipse at 12% 18%, rgba(130, 103, 235, .17), transparent 36%),
-          radial-gradient(ellipse at 88% 24%, rgba(91, 190, 176, .13), transparent 34%),
-          radial-gradient(ellipse at 72% 88%, rgba(239, 139, 184, .13), transparent 38%),
-          radial-gradient(ellipse at 20% 82%, rgba(112, 87, 217, .10), transparent 34%) !important;
-        background-size: 150% 150%, 160% 160%, 150% 150%, 170% 170% !important;
-        background-position: 0% 0%, 100% 0%, 100% 100%, 0% 100%;
+          radial-gradient(ellipse at 12% 18%, rgba(130, 103, 235, .16), transparent 38%),
+          radial-gradient(ellipse at 88% 24%, rgba(91, 190, 176, .12), transparent 36%),
+          radial-gradient(ellipse at 72% 88%, rgba(239, 139, 184, .12), transparent 40%),
+          radial-gradient(ellipse at 20% 82%, rgba(112, 87, 217, .09), transparent 36%) !important;
         background-attachment: fixed;
-        animation: weshbienAmbientDrift 26s ease-in-out infinite alternate;
       }
-      #__next { background: transparent !important; }
-      @keyframes weshbienAmbientDrift {
-        0% { background-position: 0% 0%, 100% 0%, 100% 100%, 0% 100%; }
-        50% { background-position: 35% 25%, 65% 40%, 70% 65%, 25% 75%; }
-        100% { background-position: 70% 45%, 20% 80%, 10% 30%, 85% 15%; }
+      body::before,
+      body::after {
+        content: "";
+        position: fixed;
+        inset: -35%;
+        z-index: -1;
+        pointer-events: none;
+        will-change: transform;
+      }
+      body::before {
+        opacity: .72;
+        filter: blur(48px) saturate(1.35);
+        background:
+          radial-gradient(ellipse 34% 22% at 18% 28%, rgba(121, 83, 255, .26), transparent 72%),
+          radial-gradient(ellipse 38% 24% at 76% 30%, rgba(36, 211, 190, .20), transparent 72%),
+          radial-gradient(ellipse 32% 26% at 62% 78%, rgba(255, 83, 174, .18), transparent 72%),
+          radial-gradient(ellipse 28% 22% at 28% 76%, rgba(74, 130, 255, .18), transparent 72%);
+        animation: weshbienAurora 30s ease-in-out infinite alternate;
+      }
+      body::after {
+        inset: 0;
+        opacity: .20;
+        background-image:
+          radial-gradient(circle, rgba(130, 103, 235, .65) 1px, transparent 1.8px),
+          radial-gradient(circle, rgba(50, 190, 180, .55) 1px, transparent 1.8px);
+        background-size: 86px 86px, 137px 137px;
+        background-position: 0 0, 42px 65px;
+        mask-image: linear-gradient(to bottom, transparent, black 18%, black 82%, transparent);
+        animation: weshbienParticles 55s linear infinite;
+      }
+      #__next {
+        position: relative;
+        z-index: 1;
+        background: transparent !important;
+      }
+      @keyframes weshbienAurora {
+        0% { transform: translate3d(-3%, -2%, 0) rotate(-5deg) scale(1); }
+        50% { transform: translate3d(3%, 2%, 0) rotate(4deg) scale(1.08); }
+        100% { transform: translate3d(-1%, 4%, 0) rotate(-2deg) scale(1.04); }
+      }
+      @keyframes weshbienParticles {
+        from { transform: translate3d(0, 0, 0); }
+        to { transform: translate3d(-86px, -137px, 0); }
       }
       html[data-theme="dark"] body {
-        background-color: #171522 !important;
+        background-color: #11101b !important;
         background-image:
-          radial-gradient(ellipse at 12% 18%, rgba(130, 103, 235, .22), transparent 36%),
-          radial-gradient(ellipse at 88% 24%, rgba(65, 163, 157, .13), transparent 34%),
-          radial-gradient(ellipse at 72% 88%, rgba(190, 105, 153, .13), transparent 38%),
-          radial-gradient(ellipse at 20% 82%, rgba(112, 87, 217, .15), transparent 34%) !important;
+          radial-gradient(ellipse at 12% 18%, rgba(130, 103, 235, .19), transparent 38%),
+          radial-gradient(ellipse at 88% 24%, rgba(45, 190, 180, .14), transparent 36%),
+          radial-gradient(ellipse at 72% 88%, rgba(221, 83, 165, .15), transparent 40%),
+          radial-gradient(ellipse at 20% 82%, rgba(88, 104, 235, .16), transparent 36%) !important;
       }
+      html[data-theme="dark"] body::before { opacity: .9; }
+      html[data-theme="dark"] body::after { opacity: .25; }
       @media (prefers-reduced-motion: reduce) {
-        body { animation: none !important; }
+        body::before, body::after { animation: none !important; }
       }
     `}</style>
   )
