@@ -9,6 +9,7 @@ export default function AuthPage() {
   const router = useRouter()
   const [mode, setMode] = useState<Mode>('login')
   const [email, setEmail] = useState('')
+  const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [message, setMessage] = useState('')
   const [loading, setLoading] = useState(false)
@@ -47,12 +48,18 @@ export default function AuthPage() {
     setLoading(true)
     setMessage('')
     const cleanEmail = email.trim().toLowerCase()
+    const cleanUsername = username.trim().replace(/^@+/, '').toLowerCase()
 
     if (mode === 'forgot') {
       const redirectTo = `${window.location.origin}/reset-password`
       const { error } = await supabase.auth.resetPasswordForEmail(cleanEmail, { redirectTo })
       setMessage(error ? `Impossible d'envoyer le lien : ${error.message}` : 'Si un compte existe avec cette adresse, un e-mail de récupération vient d’être envoyé. Pense à vérifier tes courriers indésirables.')
     } else if (mode === 'signup') {
+      if (!/^[a-z0-9_]{3,20}$/.test(cleanUsername)) {
+        setMessage("Choisis un identifiant de 3 à 20 caractères : lettres, chiffres et _ uniquement.")
+        setLoading(false)
+        return
+      }
       const { data, error } = await supabase.auth.signUp({
         email: cleanEmail,
         password,
@@ -60,11 +67,19 @@ export default function AuthPage() {
       })
       if (error) {
         setMessage(error.message)
+      } else if (data.session && data.user && !data.user.email_confirmed_at) {
+        await supabase.auth.signOut()
+        setMessage("La confirmation par e-mail n'est pas activée sur le serveur. Active-la dans Supabase avant de valider les inscriptions.")
       } else if (data.session && data.user) {
-        await supabase.from('profiles').upsert({ id: data.user.id }, { onConflict: 'id' })
-        await router.push('/feed')
+        const { error: profileError } = await supabase.from('profiles').upsert({ id: data.user.id, username: cleanUsername, display_name: cleanUsername }, { onConflict: 'id' })
+        if (profileError) {
+          await supabase.auth.signOut()
+          setMessage(profileError.code === '23505' ? "Cet identifiant est déjà pris. Choisis-en un autre." : "Impossible d'enregistrer ton identifiant : " + profileError.message)
+        } else {
+          await router.push('/feed')
+        }
       } else {
-        setMessage('Ton inscription est presque terminée ! Ouvre le lien envoyé par e-mail pour confirmer ton adresse et activer ton compte.')
+        setMessage('Inscription presque terminée ! Ouvre le lien envoyé par e-mail pour confirmer ton adresse et activer ton compte.')
       }
     } else {
       const { error } = await supabase.auth.signInWithPassword({ email: cleanEmail, password })
@@ -90,6 +105,11 @@ export default function AuthPage() {
           <button type="button" className={mode === 'signup' ? 'auth-tab active' : 'auth-tab'} onClick={() => { setMode('signup'); setMessage('') }}>Inscription</button>
         </div>}
         <form onSubmit={submit}>
+          {mode === 'signup' && <>
+            <label className="auth-label" htmlFor="auth-username">Nom d'utilisateur</label>
+            <input id="auth-username" type="text" required minLength={3} maxLength={20} pattern="[A-Za-z0-9_]{3,20}" value={username} onChange={e => setUsername(e.target.value)} placeholder="ex. aytan_22" autoComplete="username" />
+            <small className="auth-help">Ton identifiant unique, affiché avec @. Lettres, chiffres et _ uniquement.</small>
+          </>}
           <label className="auth-label" htmlFor="auth-email">Adresse e-mail</label>
           <input id="auth-email" type="email" required value={email} onChange={e => setEmail(e.target.value)} placeholder="Ton adresse e-mail" autoComplete="email" />
           {mode !== 'forgot' && <>
