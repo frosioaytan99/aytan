@@ -36,7 +36,7 @@ export default function StoriesPage(){
  async function publish(e:any){
   e.preventDefault()
   if(!file||!userId)return
-  if(!isAllowedCommunityImage(file)){setStatus('Choisis une image JPG, PNG, WEBP ou GIF de 8 Mo maximum.');return}
+  if(!isAllowedCommunityImage(file)){setStatus('Choisis une image JPG, PNG, WEBP ou GIF de 3 Mo maximum.');return}
   setBusy(true);setStatus('')
   let media_url:string
   try { media_url=await uploadModeratedCommunityImage(file) }
@@ -56,7 +56,7 @@ export default function StoriesPage(){
   <div className="directory stories-page">
    <small>LES MOMENTS DE LA COMMUNAUTÉ</small><h1>Stories</h1><p>Partage un moment avec la communauté. Les stories disparaissent automatiquement après 24 heures.</p>
    <form className="card story-composer" onSubmit={publish}>
-    <label>Ajouter une story</label><input type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={e=>{const selected=e.target.files?.[0];e.currentTarget.value='';if(!selected)return;if(!isAllowedCommunityImage(selected)){setFile(null);setPreview('');setStatus('Choisis une image JPG, PNG, WEBP ou GIF de 8 Mo maximum.');return}setFile(selected);setPreview(URL.createObjectURL(selected))}}/>
+    <label>Ajouter une story</label><input type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={e=>{const selected=e.target.files?.[0];e.currentTarget.value='';if(!selected)return;if(!isAllowedCommunityImage(selected)){setFile(null);setPreview('');setStatus('Choisis une image JPG, PNG, WEBP ou GIF de 3 Mo maximum.');return}setFile(selected);setPreview(URL.createObjectURL(selected))}}/>
     {preview&&<img className="story-preview" src={preview} alt="Aperçu de la story"/>}
     <input value={caption} maxLength={180} onChange={e=>setCaption(e.target.value)} placeholder="Ajoute une petite légende…"/>
     <button disabled={busy||!file}>{busy?'Publication…':'Partager ma story'}</button>
