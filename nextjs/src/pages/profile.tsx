@@ -79,7 +79,7 @@ export default function ProfilePage() {
  }
  async function uploadAvatar(file?:File){
   if(!file||!uid)return
-  if(!isAllowedCommunityImage(file)){setStatus('Choisis une image JPG, PNG, WEBP ou GIF de 8 Mo maximum.');return}
+  if(!isAllowedCommunityImage(file)){setStatus('Choisis une image JPG, PNG, WEBP ou GIF de 3 Mo maximum.');return}
   setPhotoBusy(true);setStatus('')
   let url:string
   try { url=await uploadModeratedCommunityImage(file) }
@@ -91,7 +91,7 @@ export default function ProfilePage() {
  }
  async function uploadGalleryPhoto(file?:File){
   if(!file||!uid)return
-  if(!isAllowedCommunityImage(file)){setStatus('Choisis une image JPG, PNG, WEBP ou GIF de 8 Mo maximum.');return}
+  if(!isAllowedCommunityImage(file)){setStatus('Choisis une image JPG, PNG, WEBP ou GIF de 3 Mo maximum.');return}
   if(galleryUrls.length>=6){setStatus('Tu peux ajouter jusqu’à 6 photos dans ta galerie.');return}
   setGalleryBusy(true);setStatus('')
   let url:string
@@ -196,7 +196,7 @@ export default function ProfilePage() {
   <section className="profile-wrap"><small>ESPACE PERSONNEL</small><h1>{me?'Mon profil':'Profil membre'}</h1>
    {loading?<div className="card empty" role="status">Chargement du profil…</div>:me?(
     <form className="card profile-form" onSubmit={save}>
-     <div className="profile-photo-editor"><MemberAvatar userId={uid} name={name||username} avatarUrl={avatarUrl} className="avatar profile-avatar-preview"/><label className="photo-upload-button">📷 {photoBusy?'Envoi…':'Ajouter une photo'}<input type="file" accept="image/jpeg,image/png,image/webp,image/gif" disabled={photoBusy} onChange={e=>uploadAvatar(e.target.files?.[0])}/></label><small>JPG, PNG, WEBP ou GIF · 8 Mo maximum</small></div>
+     <div className="profile-photo-editor"><MemberAvatar userId={uid} name={name||username} avatarUrl={avatarUrl} className="avatar profile-avatar-preview"/><label className="photo-upload-button">📷 {photoBusy?'Envoi…':'Ajouter une photo'}<input type="file" accept="image/jpeg,image/png,image/webp,image/gif" disabled={photoBusy} onChange={e=>uploadAvatar(e.target.files?.[0])}/></label><small>JPG, PNG, WEBP ou GIF · 3 Mo maximum</small></div>
      <label>Nom affiché<input maxLength={50} value={name} onChange={e=>setName(e.target.value)} placeholder="Ton nom affiché"/></label>
      <label>Pseudo<input required pattern="[a-zA-Z0-9_]{3,24}" value={username} onChange={e=>setUsername(e.target.value)} placeholder="pseudo (3 à 24 caractères)"/></label>
      <label>Âge (facultatif)<input type="number" min="13" max="26" value={age} onChange={e=>setAge(e.target.value)} placeholder="Ton âge"/></label>
@@ -205,7 +205,7 @@ export default function ProfilePage() {
      <label>Centres d’intérêt<input maxLength={180} value={interests} onChange={e=>setInterests(e.target.value)} placeholder="Musique, sport, jeux vidéo…"/></label>
      <label>Loisirs et passions<input maxLength={180} value={hobbies} onChange={e=>setHobbies(e.target.value)} placeholder="Danse, dessin, football…"/></label>
      <label>Musique préférée<input maxLength={120} value={favoriteMusic} onChange={e=>setFavoriteMusic(e.target.value)} placeholder="Tes artistes ou styles préférés…"/></label>
-     <section className="profile-gallery-editor"><h3>Ma galerie photo ({galleryUrls.length}/6)</h3><label className="photo-upload-button">🖼️ {galleryBusy?'Envoi…':'Ajouter une photo à la galerie'}<input type="file" accept="image/jpeg,image/png,image/webp,image/gif" disabled={galleryBusy||galleryUrls.length>=6} onChange={e=>{uploadGalleryPhoto(e.target.files?.[0]);e.currentTarget.value=''}}/></label><div className="profile-gallery-grid">{galleryUrls.map(url=><div className="profile-gallery-thumb" key={url}><CommunityImage src={url} alt="Photo de ma galerie"/><button type="button" onClick={()=>removeGalleryPhoto(url)}>Retirer</button></div>)}</div><small>Jusqu’à 6 photos · 8 Mo maximum chacune</small></section>
+     <section className="profile-gallery-editor"><h3>Ma galerie photo ({galleryUrls.length}/6)</h3><label className="photo-upload-button">🖼️ {galleryBusy?'Envoi…':'Ajouter une photo à la galerie'}<input type="file" accept="image/jpeg,image/png,image/webp,image/gif" disabled={galleryBusy||galleryUrls.length>=6} onChange={e=>{uploadGalleryPhoto(e.target.files?.[0]);e.currentTarget.value=''}}/></label><div className="profile-gallery-grid">{galleryUrls.map(url=><div className="profile-gallery-thumb" key={url}><CommunityImage src={url} alt="Photo de ma galerie"/><button type="button" onClick={()=>removeGalleryPhoto(url)}>Retirer</button></div>)}</div><small>Jusqu’à 6 photos · 3 Mo maximum chacune</small></section>
      <label className="checkline"><input type="checkbox" checked={privateProfile} onChange={e=>setPrivateProfile(e.target.checked)}/>Rendre mon profil privé</label>
      <button type="submit">Enregistrer mon profil</button>{status&&<p className="notice" role="status">{status}</p>}
     </form>
