@@ -1,21 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { createClient } from '@supabase/supabase-js'
 
-const BLOCKED_CATEGORIES = [
-  'harassment',
-  'harassment/threatening',
-  'hate',
-  'hate/threatening',
-  'violence',
-  'violence/graphic',
-  'sexual',
-  'sexual/minors',
-  'self-harm',
-  'self-harm/intent',
-  'self-harm/instructions',
-  'illicit',
-  'illicit/violent',
-]
+
 
 export const config = {
   api: { bodyParser: { sizeLimit: '12kb' } },
@@ -54,6 +40,27 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const { data, error } = await supabase.auth.getUser(accessToken)
     if (error || !data.user) return res.status(401).json({ error: 'invalid_session' })
 
+    const adminDb = createClient(supabaseUrl, process.env.SUPABASE_SERVICE_ROLE_KEY || '', {
+      auth: { persistSession: false, autoRefreshToken: false },
+    })
+    if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      return res.status(503).json({ error: 'moderation_not_configured' })
+    }
+    const { data: settings, error: settingsError } = await adminDb
+      .from('ai_moderation_settings')
+      .select('enabled,blocked_categories')
+      .eq('id', true)
+      .single()
+    if (settingsError || !settings) return res.status(503).json({ error: 'moderation_settings_unavailable' })
+
+    if (!settings.enabled) {
+      await adminDb.from('ai_moderation_logs').insert({
+        user_id: data.user.id, content, allowed: true, flagged: false,
+        categories: {}, category_scores: {}, decision: 'automatic',
+      })
+      return res.status(200).json({ allowed: true, moderation_paused: true })
+    }
+
     const moderationResponse = await fetch('https://api.openai.com/v1/moderations', {
       method: 'POST',
       headers: {
@@ -75,12 +82,25 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (!moderation) return res.status(502).json({ error: 'moderation_result_unavailable' })
 
     const categories = moderation.categories || {}
-    const blocked = BLOCKED_CATEGORIES.some((category) => categories[category] === true)
+    const categoryScores = moderation.category_scores || {}
+    const blockedCategories = Array.isArray(settings.blocked_categories) ? settings.blocked_categories : []
+    const flagged = moderation.flagged === true
+    const blocked = blockedCategories.some((category: string) => categories[category] === true)
+
+    await adminDb.from('ai_moderation_logs').insert({
+      user_id: data.user.id,
+      content,
+      allowed: !blocked,
+      flagged,
+      categories,
+      category_scores: categoryScores,
+      decision: 'automatic',
+    })
 
     return res.status(200).json({
       allowed: !blocked,
       message: blocked
-        ? 'Ton texte contient peut-être des propos insultants, haineux, menaçants ou dangereux. Modifie-le avant de publier.'
+        ? 'Ton texte a été bloqué par la modération automatique. Tu peux le modifier ou contacter un modérateur.'
         : undefined,
     })
   } catch {
