@@ -497,6 +497,7 @@ html[data-theme="dark"] .member-presence-dot,html[data-theme="dark"] .member-unr
  padding-right:clamp(12px,2.5vw,36px);
  gap:16px;
 }
+.site-shell>.topbar{width:100vw;margin-left:calc(50% - 50vw);padding-left:clamp(12px,2.5vw,36px);padding-right:clamp(12px,2.5vw,36px)}
 .app-header>.brand,.topbar>.brand{flex:0 0 auto;white-space:nowrap}
 .app-header nav,.top-nav{
  min-width:0;
