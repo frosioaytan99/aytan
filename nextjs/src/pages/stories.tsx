@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { supabase } from '../lib/supabaseClient'
 import MemberAvatar from '../components/MemberAvatar'
 import CommunityImage from '../components/CommunityImage'
-import { isAllowedCommunityImage } from '../lib/communityMedia'
+import { isAllowedCommunityImage, PRIVATE_MEDIA_PREFIX } from '../lib/communityMedia'
 import { uploadModeratedCommunityImage } from '../lib/uploadModeratedCommunityImage'
 
 type Story = { id:string; user_id:string; media_url:string; caption:string; created_at:string; expires_at:string; profile?:any }
@@ -45,7 +45,7 @@ export default function StoriesPage(){
   const {error}=await supabase.from('stories').insert({user_id:userId,media_url,caption:caption.trim()})
   setBusy(false)
   if(error){
-   await supabase.storage.from('community-private').remove([path])
+   await supabase.storage.from('community-private').remove([media_url.slice(PRIVATE_MEDIA_PREFIX.length)])
    setStatus('Publication impossible : '+error.message)
    return
   }
