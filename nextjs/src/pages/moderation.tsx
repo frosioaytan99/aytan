@@ -42,23 +42,24 @@ export default function ModerationPage(){
   try{
    const {data:{user}}=await supabase.auth.getUser()
    if(!user){location.href='/auth';return}
-   const {data:role}=await supabase.from('user_roles').select('role').eq('user_id',user.id).maybeSingle()
-   if(!role||!['admin','moderator'].includes(role.role)){setStatus('Accès réservé aux administrateurs et modérateurs.');return}
-   setAllowed(true)
-   if(role.role==='admin'){
+   const {data:{session}}=await supabase.auth.getSession()
+   if(!session?.access_token)throw new Error('Session expirée. Reconnecte-toi.')
+   // Le serveur vérifie le rôle admin avec la clé service : pas de dépendance aux droits RLS du navigateur.
+   const assistantResponse=await fetch('/api/admin/ai-assistant-settings',{headers:{Authorization:'Bearer '+session.access_token},cache:'no-store'})
+   const assistantPayload=await assistantResponse.json().catch(()=>null)
+   if(assistantResponse.ok){
     setIsAdmin(true)
-    const {data:{session}}=await supabase.auth.getSession()
-    if(session?.access_token){
-     const response=await fetch('/api/admin/ai-assistant-settings',{headers:{Authorization:'Bearer '+session.access_token}})
-     const payload=await response.json().catch(()=>null)
-     if(response.ok){
-      setAssistantSettings({enabled:payload.settings.enabled,max_tokens:payload.settings.max_tokens})
-      setAssistantKeyConfigured(payload.api_key_configured===true)
-      setAssistantStatus(payload.api_key_configured?'Clé API détectée sur Vercel.':'Clé API absente sur Vercel.')
-     }else setAssistantStatus('Réglages de l’aide IA indisponibles : '+(payload?.error||'erreur serveur'))
-    }
+    setAssistantSettings({enabled:assistantPayload.settings.enabled,max_tokens:assistantPayload.settings.max_tokens})
+    setAssistantKeyConfigured(assistantPayload.api_key_configured===true)
+    setAssistantStatus(assistantPayload.api_key_configured?'Clé API détectée sur Vercel.':'Clé API absente sur Vercel.')
+   }else if(assistantResponse.status===403){
+    setIsAdmin(false)
+    setAssistantStatus('Les réglages de l’aide IA sont réservés aux administrateurs.')
+   }else{
+    setAssistantStatus('Réglages de l’aide IA indisponibles : '+(assistantPayload?.error||'erreur serveur'))
    }
    const data=await request('GET')
+   setAllowed(true)
    setSettings({enabled:data.settings.enabled,blocked_categories:data.settings.blocked_categories||[]})
    setLogs(data.logs||[])
    setStats(data.stats||{analyzed:0,blocked:0,flagged:0,approved:0})
