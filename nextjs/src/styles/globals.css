@@ -447,3 +447,17 @@ html[data-theme="dark"] .member-presence-dot,html[data-theme="dark"] .member-unr
 
 /* Global search */
 .search-page{max-width:1000px}.search-results{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}.search-results section{display:grid;align-content:start;gap:10px}.search-results h2{font:800 17px Manrope}.search-result{padding:14px;display:flex;gap:10px;align-items:flex-start}.search-result b{font-size:13px}.search-result p{font-size:12px;line-height:1.5;color:var(--muted);margin:6px 0}.search-result small{display:block;color:var(--muted);font-size:10px;margin-top:3px}.member-result span{min-width:0}@media(max-width:760px){.search-results{grid-template-columns:1fr}}
+
+
+/* Profil public : actions alignées et vrais onglets accessibles */
+.profile-identity-actions{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap;margin:38px 0 0 auto}
+.profile-identity-actions .profile-follow-button{margin:0}
+.profile-add-friend-button{display:inline-flex;align-items:center;justify-content:center;min-height:38px;padding:9px 14px;border:0;border-radius:999px;background:var(--purple);color:#fff;text-decoration:none;font-size:12px;font-weight:800;white-space:nowrap;cursor:pointer}
+.profile-add-friend-button:disabled{opacity:.65;cursor:default}
+.profile-friend-actions{display:flex;gap:6px;flex-wrap:wrap}
+.profile-friend-status{font-size:11px;color:var(--muted);font-weight:700}
+.profile-public-tabs button{appearance:none;border:0;border-bottom:2px solid transparent;background:transparent;color:var(--muted);padding:13px 2px;margin-bottom:-1px;font:inherit;font-size:12px;font-weight:800;cursor:pointer}
+.profile-public-tabs button.active{color:var(--purple);border-bottom-color:var(--purple)}
+.profile-empty-photos{padding:24px 12px;text-align:center;color:var(--muted);font-size:13px;background:var(--paper);border-radius:12px}
+.profile-remove-friend{display:inline-flex;margin-top:8px!important}
+@media(max-width:600px){.profile-identity{flex-wrap:wrap}.profile-identity-actions{width:100%;margin:0 0 0 83px;justify-content:flex-start}.profile-identity-actions .profile-follow-button,.profile-add-friend-button{min-height:36px;padding:8px 11px;font-size:11px}.profile-friend-actions{width:100%}}
