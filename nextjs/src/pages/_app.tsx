@@ -39,6 +39,7 @@ export default function App({ Component, pageProps }: AppProps) {
   useEffect(() => {
     let timer: ReturnType<typeof setTimeout> | undefined
     let presenceTimer: ReturnType<typeof setInterval> | undefined
+    let suspensionTimer: ReturnType<typeof setInterval> | undefined
     let presenceVisibilityHandler: (() => void) | null = null
     let channel: ReturnType<typeof supabase.channel> | null = null
     let active = true
@@ -57,12 +58,22 @@ export default function App({ Component, pageProps }: AppProps) {
     }
     window.addEventListener('weshbien:notify', onNotice)
 
+    const checkSuspension = async (userId: string) => {
+      const { data, error } = await supabase.rpc('is_user_suspended', { target_id: userId })
+      if (active && !error && data === true) {
+        await supabase.auth.signOut({ scope: 'local' })
+        await router.replace('/account-suspended')
+      }
+    }
     const attach = (userId: string | null) => {
       if (channel) { supabase.removeChannel(channel); channel = null }
       if (presenceTimer) { clearInterval(presenceTimer); presenceTimer = undefined }
+      if (suspensionTimer) { clearInterval(suspensionTimer); suspensionTimer = undefined }
       if (presenceVisibilityHandler) { document.removeEventListener('visibilitychange', presenceVisibilityHandler); presenceVisibilityHandler = null }
       if (!userId) { setUnread(0); setAvatarUrl(null); setCurrentUserId(''); return }
       setCurrentUserId(userId)
+      checkSuspension(userId)
+      suspensionTimer = setInterval(() => checkSuspension(userId), 4000)
       supabase.from('profiles').select('avatar_url').eq('id', userId).maybeSingle().then(({ data }) => { if (active) setAvatarUrl(data?.avatar_url || null) })
       const updatePresence = () => {
         if (document.visibilityState === 'visible') {
@@ -101,6 +112,7 @@ export default function App({ Component, pageProps }: AppProps) {
       if (channel) supabase.removeChannel(channel)
       if (timer) clearTimeout(timer)
       if (presenceTimer) clearInterval(presenceTimer)
+      if (suspensionTimer) clearInterval(suspensionTimer)
     }
   }, [])
   function toggleTheme() {
