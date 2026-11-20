@@ -30,7 +30,7 @@ export default function ForumsPage(){
  useEffect(()=>{load()},[])
  async function createQuestion(e:any){
   e.preventDefault();if(!qTitle.trim()||!qBody.trim()||!userId)return
-  setBusy(true);const moderation=await moderateForumContent(qTitle.trim()+'\\n\\n'+qBody.trim())
+  setBusy(true);const moderation=await moderateForumContent(qTitle.trim()+'\n\n'+qBody.trim())
   if(!moderation.allowed){setBusy(false);setStatus(moderation.message||'Cette question ne peut pas être publiée.');return}
   const {error}=await supabase.from('questions').insert({author_id:userId,title:qTitle.trim(),body:qBody.trim()})
   setBusy(false);if(error){setStatus('Impossible de publier la question.');return}
@@ -41,7 +41,7 @@ export default function ForumsPage(){
   const cleanOptions=pollOptions.map(x=>x.trim()).filter(Boolean)
   if(withPoll&&(!pollQuestion.trim()||cleanOptions.length<2)){setStatus('Un sondage doit avoir une question et au moins 2 choix.');return}
   setBusy(true)
-  const moderation=await moderateForumContent(title.trim()+'\\n\\n'+body.trim())
+  const moderation=await moderateForumContent(title.trim()+'\n\n'+body.trim())
   if(!moderation.allowed){setBusy(false);setStatus(moderation.message||'Ce sujet ne peut pas être publié.');return}
   const {data:newTopic,error}=await supabase.from('forum_topics').insert({category_id:category,author_id:userId,title:title.trim(),body:body.trim()}).select('id').single()
   if(error||!newTopic){setBusy(false);setStatus('Impossible de créer le sujet.');return}
