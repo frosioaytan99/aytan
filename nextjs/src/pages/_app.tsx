@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
 import Link from 'next/link'
+import Head from 'next/head'
 import '../styles/globals.css'
 import type { AppProps } from 'next/app'
 import { supabase } from '../lib/supabaseClient'
@@ -108,6 +109,7 @@ export default function App({ Component, pageProps }: AppProps) {
     try { window.localStorage.setItem('weshbien-theme', next) } catch {}
   }
   return <>
+    <Head><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" /></Head>
     <div className="global-tools global-tools-top">
       <button type="button" onClick={toggleTheme} aria-label="Changer le thème">{theme === 'dark' ? '☀️ Mode clair' : '🌙 Mode sombre'}</button>
     </div>
