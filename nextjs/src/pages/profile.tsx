@@ -4,7 +4,8 @@ import { useRouter } from 'next/router'
 import { supabase } from '../lib/supabaseClient'
 import MemberAvatar from '../components/MemberAvatar'
 import CommunityImage from '../components/CommunityImage'
-import { communityImageExtension, isAllowedCommunityImage, PRIVATE_MEDIA_PREFIX } from '../lib/communityMedia'
+import { isAllowedCommunityImage } from '../lib/communityMedia'
+import { uploadModeratedCommunityImage } from '../lib/uploadModeratedCommunityImage'
 
 type ProfileData = { id:string; display_name:string|null; username:string|null; bio:string|null; interests:string|null; avatar_url?:string|null; is_private:boolean|null; age?:number|null; city?:string|null; favorite_music?:string|null; hobbies?:string|null; gallery_urls?:string[]|null; last_seen_at?:string|null }
 type FriendRequest = { id:string; sender_id:string; recipient_id:string; status:'pending'|'accepted'|'declined' }
@@ -80,11 +81,9 @@ export default function ProfilePage() {
   if(!file||!uid)return
   if(!isAllowedCommunityImage(file)){setStatus('Choisis une image JPG, PNG, WEBP ou GIF de 8 Mo maximum.');return}
   setPhotoBusy(true);setStatus('')
-  const ext=communityImageExtension(file)
-  const path=uid+'/avatar-'+Date.now()+'.'+ext
-  const {error:uploadError}=await supabase.storage.from('community-private').upload(path,file,{contentType:file.type,upsert:false})
-  if(uploadError){setStatus('Envoi impossible : '+uploadError.message);setPhotoBusy(false);return}
-  const url=PRIVATE_MEDIA_PREFIX+path
+  let url:string
+  try { url=await uploadModeratedCommunityImage(file) }
+  catch(error:any){setStatus(error?.message||'La photo a été refusée ou n’a pas pu être envoyée.');setPhotoBusy(false);return}
   const {error}=await supabase.from('profiles').upsert({id:uid,avatar_url:url},{onConflict:'id'})
   if(error)setStatus('Photo envoyée mais profil non actualisé : '+error.message)
   else{setAvatarUrl(url);setStatus('Photo de profil mise à jour !')}
@@ -95,11 +94,9 @@ export default function ProfilePage() {
   if(!isAllowedCommunityImage(file)){setStatus('Choisis une image JPG, PNG, WEBP ou GIF de 8 Mo maximum.');return}
   if(galleryUrls.length>=6){setStatus('Tu peux ajouter jusqu’à 6 photos dans ta galerie.');return}
   setGalleryBusy(true);setStatus('')
-  const ext=communityImageExtension(file)
-  const path=uid+'/gallery-'+Date.now()+'.'+ext
-  const {error:uploadError}=await supabase.storage.from('community-private').upload(path,file,{contentType:file.type,upsert:false})
-  if(uploadError){setStatus('Envoi impossible : '+uploadError.message);setGalleryBusy(false);return}
-  const url=PRIVATE_MEDIA_PREFIX+path
+  let url:string
+  try { url=await uploadModeratedCommunityImage(file) }
+  catch(error:any){setStatus(error?.message||'La photo a été refusée ou n’a pas pu être envoyée.');setGalleryBusy(false);return}
   const next=[...galleryUrls,url]
   const {error}=await supabase.from('profiles').upsert({id:uid,gallery_urls:next},{onConflict:'id'})
   if(error)setStatus('Photo envoyée mais galerie non actualisée : '+error.message)
