@@ -2,6 +2,7 @@ import {useEffect,useState} from 'react'
 import Link from 'next/link'
 import {useRouter} from 'next/router'
 import {supabase} from '../lib/supabaseClient'
+import { moderateForumContent } from '../lib/moderateForumContent'
 export default function ForumsPage(){
  const router=useRouter(),[questions,setQuestions]=useState<any[]>([]),[qTitle,setQTitle]=useState(''),[qBody,setQBody]=useState(''),[categories,setCategories]=useState<any[]>([]),[topics,setTopics]=useState<any[]>([]),[userId,setUserId]=useState(''),[category,setCategory]=useState(''),[title,setTitle]=useState(''),[body,setBody]=useState(''),[busy,setBusy]=useState(false),[status,setStatus]=useState(''),[pollQuestion,setPollQuestion]=useState(''),[pollOptions,setPollOptions]=useState(['','']),[withPoll,setWithPoll]=useState(false)
  async function load(){
@@ -29,8 +30,10 @@ export default function ForumsPage(){
  useEffect(()=>{load()},[])
  async function createQuestion(e:any){
   e.preventDefault();if(!qTitle.trim()||!qBody.trim()||!userId)return
+  setBusy(true);const moderation=await moderateForumContent(qTitle.trim()+'\\n\\n'+qBody.trim())
+  if(!moderation.allowed){setBusy(false);setStatus(moderation.message||'Cette question ne peut pas être publiée.');return}
   const {error}=await supabase.from('questions').insert({author_id:userId,title:qTitle.trim(),body:qBody.trim()})
-  if(error){setStatus('Impossible de publier la question.');return}
+  setBusy(false);if(error){setStatus('Impossible de publier la question.');return}
   setQTitle('');setQBody('');setStatus('Question publiée dans le forum !');await load()
  }
  async function create(e:any){
@@ -38,6 +41,8 @@ export default function ForumsPage(){
   const cleanOptions=pollOptions.map(x=>x.trim()).filter(Boolean)
   if(withPoll&&(!pollQuestion.trim()||cleanOptions.length<2)){setStatus('Un sondage doit avoir une question et au moins 2 choix.');return}
   setBusy(true)
+  const moderation=await moderateForumContent(title.trim()+'\\n\\n'+body.trim())
+  if(!moderation.allowed){setBusy(false);setStatus(moderation.message||'Ce sujet ne peut pas être publié.');return}
   const {data:newTopic,error}=await supabase.from('forum_topics').insert({category_id:category,author_id:userId,title:title.trim(),body:body.trim()}).select('id').single()
   if(error||!newTopic){setBusy(false);setStatus('Impossible de créer le sujet.');return}
   if(withPoll){
