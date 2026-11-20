@@ -60,10 +60,19 @@ export default function AuthPage() {
         setLoading(false)
         return
       }
+      const { data: usernameMatch } = await supabase.from('profiles').select('id').ilike('username', cleanUsername).maybeSingle()
+      if (usernameMatch) {
+        setMessage("Cet identifiant est déjà utilisé. Choisis-en un autre.")
+        setLoading(false)
+        return
+      }
       const { data, error } = await supabase.auth.signUp({
         email: cleanEmail,
         password,
-        options: { emailRedirectTo: `${window.location.origin}/auth` },
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth`,
+          data: { username: cleanUsername, display_name: cleanUsername },
+        },
       })
       if (error) {
         setMessage(error.message)
@@ -87,7 +96,21 @@ export default function AuthPage() {
         setMessage(`Connexion impossible : ${error.message}`)
       } else {
         const { data: { user } } = await supabase.auth.getUser()
-        if (user) await supabase.from('profiles').upsert({ id: user.id }, { onConflict: 'id' })
+        if (user) {
+          const savedUsername = String(user.user_metadata?.username || '').trim().toLowerCase()
+          const profileData: any = { id: user.id }
+          if (/^[a-z0-9_]{3,20}$/.test(savedUsername)) {
+            profileData.username = savedUsername
+            profileData.display_name = String(user.user_metadata?.display_name || savedUsername)
+          }
+          const { error: profileError } = await supabase.from('profiles').upsert(profileData, { onConflict: 'id' })
+          if (profileError) {
+            setMessage(profileError.code === '23505' ? "Ton identifiant est déjà utilisé. Contacte un administrateur pour le modifier." : "Impossible de charger ton profil : " + profileError.message)
+            await supabase.auth.signOut()
+            setLoading(false)
+            return
+          }
+        }
         await router.push('/feed')
       }
     }
