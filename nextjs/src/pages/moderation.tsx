@@ -3,6 +3,7 @@ import Link from 'next/link'
 import {supabase} from '../lib/supabaseClient'
 
 type Settings={enabled:boolean;blocked_categories:string[]}
+type AssistantSettings={enabled:boolean;max_tokens:number}
 type Log={id:string;user_id:string|null;content:string;allowed:boolean;flagged:boolean;categories:Record<string,boolean>;category_scores:Record<string,number>;decision:string;created_at:string;reviewed_at:string|null}
 const LABELS:Record<string,string>={
  harassment:'Harcèlement', 'harassment/threatening':'Menaces et harcèlement',
@@ -22,6 +23,11 @@ export default function ModerationPage(){
  const [busy,setBusy]=useState(false)
  const [filter,setFilter]=useState('all')
  const [allowed,setAllowed]=useState(false)
+ const [isAdmin,setIsAdmin]=useState(false)
+ const [assistantSettings,setAssistantSettings]=useState<AssistantSettings>({enabled:true,max_tokens:700})
+ const [assistantKeyConfigured,setAssistantKeyConfigured]=useState(false)
+ const [assistantStatus,setAssistantStatus]=useState('')
+ const [assistantBusy,setAssistantBusy]=useState(false)
 
  const request=useCallback(async(method:'GET'|'PATCH'|'POST',body?:any)=>{
   const {data:{session}}=await supabase.auth.getSession()
@@ -39,6 +45,19 @@ export default function ModerationPage(){
    const {data:role}=await supabase.from('user_roles').select('role').eq('user_id',user.id).maybeSingle()
    if(!role||!['admin','moderator'].includes(role.role)){setStatus('Accès réservé aux administrateurs et modérateurs.');return}
    setAllowed(true)
+   if(role.role==='admin'){
+    setIsAdmin(true)
+    const {data:{session}}=await supabase.auth.getSession()
+    if(session?.access_token){
+     const response=await fetch('/api/admin/ai-assistant-settings',{headers:{Authorization:'Bearer '+session.access_token}})
+     const payload=await response.json().catch(()=>null)
+     if(response.ok){
+      setAssistantSettings({enabled:payload.settings.enabled,max_tokens:payload.settings.max_tokens})
+      setAssistantKeyConfigured(payload.api_key_configured===true)
+      setAssistantStatus(payload.api_key_configured?'Clé API détectée sur Vercel.':'Clé API absente sur Vercel.')
+     }else setAssistantStatus('Réglages de l’aide IA indisponibles : '+(payload?.error||'erreur serveur'))
+    }
+   }
    const data=await request('GET')
    setSettings({enabled:data.settings.enabled,blocked_categories:data.settings.blocked_categories||[]})
    setLogs(data.logs||[])
@@ -55,6 +74,20 @@ export default function ModerationPage(){
   catch(e:any){setStatus('Enregistrement impossible : '+e.message)}
   setBusy(false)
  }
+ async function saveAssistant(next:AssistantSettings){
+  setAssistantBusy(true);setAssistantStatus('Enregistrement des réglages de Weshbien IA…')
+  try{
+   const {data:{session}}=await supabase.auth.getSession()
+   if(!session?.access_token)throw new Error('Session expirée.')
+   const response=await fetch('/api/admin/ai-assistant-settings',{method:'PATCH',headers:{'Content-Type':'application/json',Authorization:'Bearer '+session.access_token},body:JSON.stringify({enabled:next.enabled,max_tokens:next.max_tokens})})
+   const payload=await response.json().catch(()=>null)
+   if(!response.ok)throw new Error(payload?.error||'Erreur serveur')
+   setAssistantSettings({enabled:payload.settings.enabled,max_tokens:payload.settings.max_tokens})
+   setAssistantKeyConfigured(payload.api_key_configured===true)
+   setAssistantStatus('Réglages de Weshbien IA enregistrés.')
+  }catch(e:any){setAssistantStatus('Enregistrement impossible : '+(e.message||'erreur'))}
+  setAssistantBusy(false)
+ }
  async function review(log:Log,decision:'approved'|'rejected'){
   setBusy(true)
   try{await request('POST',{log_id:log.id,decision});setLogs(v=>v.map(x=>x.id===log.id?{...x,allowed:decision==='approved',decision,reviewed_at:new Date().toISOString()}:x));setStatus(decision==='approved'?'Décision marquée comme approuvée dans le journal.':'Décision marquée comme rejetée dans le journal.')}
@@ -65,6 +98,7 @@ export default function ModerationPage(){
  return <main className="app-shell"><header className="app-header"><Link className="brand" href="/">weshbien2<span>.</span></Link><nav><Link href="/admin">Administration</Link><Link href="/feed">Fil</Link></nav></header><section className="directory">
  <small>SÉCURITÉ DE LA COMMUNAUTÉ</small><h1>Centre de contrôle de l’IA</h1><p>{status}</p>
  {allowed&&<>
+ {isAdmin&&<div className="card profile-form"><h2>Réglages de l’aide Weshbien IA</h2><p>Contrôle l’accès à l’assistant de discussion et la longueur de ses réponses. Ces réglages sont réservés aux administrateurs.</p><p><b>État de la clé OpenAI :</b> {assistantKeyConfigured?'Clé détectée dans Vercel':'Aucune clé détectée dans Vercel'} <small>(cela ne vérifie pas son solde ni sa validité)</small></p><button disabled={assistantBusy} onClick={()=>saveAssistant({...assistantSettings,enabled:!assistantSettings.enabled})}>{assistantSettings.enabled?'Désactiver l’aide IA':'Activer l’aide IA'}</button><label style={{display:'grid',gap:6,marginTop:14,maxWidth:320}}>Longueur des réponses<select value={assistantSettings.max_tokens} disabled={assistantBusy} onChange={e=>saveAssistant({...assistantSettings,max_tokens:Number(e.target.value)})}><option value={400}>Courtes</option><option value={700}>Normales</option><option value={1200}>Détaillées</option></select></label><small>{assistantStatus}</small></div>}
  <div className="card profile-form"><h2>État de la modération automatique</h2><p>{settings.enabled?'L’IA analyse les textes des forums et les photos envoyées dans le fil, les stories et les profils.':'La modération automatique des textes et des photos est en pause.'}</p><button disabled={busy} onClick={()=>save({...settings,enabled:!settings.enabled})}>{settings.enabled?'Mettre l’IA en pause':'Réactiver la modération IA'}</button></div>
  <div className="card profile-form"><h2>Règles de détection</h2><p>Coche les catégories que l’IA doit bloquer automatiquement.</p><div className="moderation-category-list">{CATEGORIES.map(category=><label key={category} className="moderation-category"><input type="checkbox" checked={settings.blocked_categories.includes(category)} disabled={busy} onChange={e=>{const next=e.target.checked?[...settings.blocked_categories,category]:settings.blocked_categories.filter(x=>x!==category);save({...settings,blocked_categories:next})}}/><span>{LABELS[category]}</span></label>)}</div></div>
  <div className="admin-stats-grid">{[['Analysés',stats.analyzed],['Bloqués',stats.blocked],['Signalés par l’IA',stats.flagged],['Approuvés après revue',stats.approved]].map(([label,value])=><div className="card" key={String(label)}><small>{label}</small><h2>{value}</h2></div>)}</div>
