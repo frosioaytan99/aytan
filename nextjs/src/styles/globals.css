@@ -475,3 +475,14 @@ html[data-theme="dark"] .member-presence-dot,html[data-theme="dark"] .member-unr
  .post-image{max-height:min(55vh,360px);object-fit:contain;}
 }
 @media(max-width:650px){.post-image{max-height:min(50vh,300px);}}
+
+
+/* Centre de contrôle de la modération IA */
+.moderation-category-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin-top:16px}
+.moderation-category{display:flex;align-items:center;gap:10px;padding:12px;border:1px solid rgba(255,255,255,.12);border-radius:12px;background:rgba(255,255,255,.035)}
+.moderation-category input{width:18px;height:18px;accent-color:#9874ff}
+.admin-stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin:16px 0}
+.admin-stats-grid .card{padding:16px}
+.admin-stats-grid h2{margin:8px 0 0;font-size:26px}
+.moderation-log-content{white-space:pre-wrap;overflow-wrap:anywhere;max-height:180px;overflow:auto;padding:12px;border-radius:10px;background:rgba(0,0,0,.18)}
+@media(max-width:600px){.moderation-category-list{grid-template-columns:1fr}.admin-stats-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
