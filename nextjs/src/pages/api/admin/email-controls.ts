@@ -46,7 +46,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         if (error) return res.status(503).json({ error: 'email_block_failed' })
         const { data, error: listError } = await db.auth.admin.listUsers({ page: 1, perPage: 1000 })
         if (listError) return res.status(503).json({ error: 'account_lookup_failed' })
-        const matches = data.users.filter(account => account.email?.trim().toLowerCase() === email)
+        const matches = (data.users as any[]).filter(account => account.email?.trim().toLowerCase() === email)
         for (const account of matches) {
           const { error: banError } = await db.auth.admin.updateUserById(account.id, { ban_duration: '876000h' })
           if (banError) return res.status(503).json({ error: 'existing_account_block_failed' })
