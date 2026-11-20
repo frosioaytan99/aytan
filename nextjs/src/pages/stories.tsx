@@ -28,6 +28,10 @@ export default function StoriesPage(){
   setStories((data||[]).map((s:any)=>({...s,profile:profiles?.find((p:any)=>p.id===s.user_id)})))
  }
  useEffect(()=>{load()},[])
+ useEffect(()=>{
+  if(!preview)return
+  return()=>URL.revokeObjectURL(preview)
+ },[preview])
  async function publish(e:any){
   e.preventDefault()
   if(!file||!userId)return
@@ -38,9 +42,14 @@ export default function StoriesPage(){
   const {error:uploadError}=await supabase.storage.from('community-private').upload(path,file,{contentType:file.type,upsert:false})
   if(uploadError){setBusy(false);setStatus('Envoi impossible : '+uploadError.message);return}
   const media_url=PRIVATE_MEDIA_PREFIX+path
-  const {error}=await supabase.from('stories').insert({user_id:userId,media_url,caption:caption.trim(),expires_at:new Date(Date.now()+24*60*60*1000).toISOString()})
+  // The database assigns expires_at so a client cannot extend a story's lifetime.
+  const {error}=await supabase.from('stories').insert({user_id:userId,media_url,caption:caption.trim()})
   setBusy(false)
-  if(error){setStatus('Story envoyée mais publication impossible : '+error.message);return}
+  if(error){
+   await supabase.storage.from('community-private').remove([path])
+   setStatus('Publication impossible : '+error.message)
+   return
+  }
   setCaption('');setFile(null);setPreview('');setStatus('Ta story est publiée pour 24 heures !');load()
  }
  return <main className="app-shell">
@@ -48,7 +57,7 @@ export default function StoriesPage(){
   <div className="directory stories-page">
    <small>LES MOMENTS DE LA COMMUNAUTÉ</small><h1>Stories</h1><p>Partage un moment avec la communauté. Les stories disparaissent automatiquement après 24 heures.</p>
    <form className="card story-composer" onSubmit={publish}>
-    <label>Ajouter une story</label><input type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={e=>{const f=e.target.files?.[0];if(!f)return;if(!isAllowedCommunityImage(f)){setStatus('Choisis une image JPG, PNG, WEBP ou GIF de 8 Mo maximum.');return}setFile(f);setPreview(URL.createObjectURL(f))}}/>
+    <label>Ajouter une story</label><input type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={e=>{const selected=e.target.files?.[0];e.currentTarget.value='';if(!selected)return;if(!isAllowedCommunityImage(selected)){setFile(null);setPreview('');setStatus('Choisis une image JPG, PNG, WEBP ou GIF de 8 Mo maximum.');return}setFile(selected);setPreview(URL.createObjectURL(selected))}}/>
     {preview&&<img className="story-preview" src={preview} alt="Aperçu de la story"/>}
     <input value={caption} maxLength={180} onChange={e=>setCaption(e.target.value)} placeholder="Ajoute une petite légende…"/>
     <button disabled={busy||!file}>{busy?'Publication…':'Partager ma story'}</button>
