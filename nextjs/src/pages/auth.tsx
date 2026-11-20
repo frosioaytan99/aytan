@@ -12,6 +12,34 @@ export default function AuthPage() {
   const [password, setPassword] = useState('')
   const [message, setMessage] = useState('')
   const [loading, setLoading] = useState(false)
+  const [guestLoading, setGuestLoading] = useState(false)
+
+
+  async function continueAsGuest() {
+    if (guestLoading || loading) return
+    setGuestLoading(true)
+    setMessage('')
+    const { data, error } = await supabase.auth.signInAnonymously()
+    if (error || !data.session) {
+      setMessage("Le mode invité n'est pas encore activé dans Supabase. Il faut activer les connexions anonymes dans les paramètres d'authentification.")
+      setGuestLoading(false)
+      return
+    }
+    const response = await fetch('/api/guest-name', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer ' + data.session.access_token },
+    })
+    const result = await response.json().catch(() => null)
+    if (!response.ok || !result?.display_name) {
+      await supabase.auth.signOut()
+      setMessage("Impossible de créer ton nom d'invité. Réessaie dans un instant.")
+      setGuestLoading(false)
+      return
+    }
+    await supabase.auth.refreshSession()
+    await router.push('/feed')
+    setGuestLoading(false)
+  }
 
   async function submit(e: any) {
     e.preventDefault()
@@ -73,6 +101,7 @@ export default function AuthPage() {
         {mode === 'login' && <p><button type="button" className="auth-link-button" onClick={() => { setMode('forgot'); setMessage('') }}>Mot de passe oublié ?</button></p>}
         {mode === 'forgot' && <p><button type="button" className="auth-link-button" onClick={() => { setMode('login'); setMessage('') }}>← Retour à la connexion</button></p>}
         {message && <p className="auth-message" role="status">{message}</p>}
+        {mode === 'login' && <button type="button" className="auth-guest-button" onClick={continueAsGuest} disabled={guestLoading || loading}>{guestLoading ? 'Préparation…' : '👀 Continuer en invité'}</button>}
         <p className="auth-footnote">Ton compte Weshbien2 est indépendant de tout autre site.</p>
         <p><Link href="/">← Retour à l'accueil</Link></p>
       </section>
