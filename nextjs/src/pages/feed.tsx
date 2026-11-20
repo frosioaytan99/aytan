@@ -3,7 +3,8 @@ import Link from 'next/link'
 import { supabase } from '../lib/supabaseClient'
 import MemberAvatar from '../components/MemberAvatar'
 import CommunityImage from '../components/CommunityImage'
-import { communityImageExtension, isAllowedCommunityImage, PRIVATE_MEDIA_PREFIX } from '../lib/communityMedia'
+import { isAllowedCommunityImage } from '../lib/communityMedia'
+import { uploadModeratedCommunityImage } from '../lib/uploadModeratedCommunityImage'
 
 type Comment = { id:string; post_id:string; author_id:string; body:string; created_at:string; profile?:any }
 type Post = { id:string; author_id:string; body:string; image_url:string|null; created_at:string; profile?:any; likes:number; liked:boolean; comments:Comment[] }
@@ -29,11 +30,8 @@ export default function FeedPage(){
   setBusy(true)
   let image_url:string|null=null
   if(photoFile){
-   const ext=communityImageExtension(photoFile)
-   const path=userId+'/post-'+Date.now()+'.'+ext
-   const {error:upErr}=await supabase.storage.from('community-private').upload(path,photoFile,{contentType:photoFile.type,upsert:false})
-   if(upErr){setBusy(false);setStatus('Envoi de la photo impossible : '+upErr.message);return}
-   image_url=PRIVATE_MEDIA_PREFIX+path
+   try { image_url=await uploadModeratedCommunityImage(photoFile) }
+   catch(error:any){setBusy(false);setStatus(error?.message||'La photo a été refusée ou n’a pas pu être envoyée.');return}
   }
   const {error}=await supabase.from('posts').insert({author_id:userId,body:body.trim(),image_url})
   setBusy(false)
