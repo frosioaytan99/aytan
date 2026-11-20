@@ -16,7 +16,7 @@ async function getAdmin(req: NextApiRequest) {
   if (error || !data.user) throw new Error('unauthorized')
   const db = createClient(url, service, { auth: { persistSession: false, autoRefreshToken: false } })
   const { data: role, error: roleError } = await db.from('user_roles').select('role').eq('user_id', data.user.id).maybeSingle()
-  if (roleError || role?.role !== 'admin') throw new Error('forbidden')
+  if (roleError || role?.role !== 'admin' || data.user.id !== '928fbdab-d471-4bfd-a98e-21d05f86a825') throw new Error('forbidden')
   return { db, user: data.user }
 }
 
