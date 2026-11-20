@@ -6,6 +6,7 @@ import '../styles/globals.css'
 import type { AppProps } from 'next/app'
 import { supabase } from '../lib/supabaseClient'
 import MemberAvatar from '../components/MemberAvatar'
+import AnimatedBackground from '../components/AnimatedBackground'
 
 function NavIcon({name}:{name:string}) {
  const common={width:22,height:22,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:1.8,strokeLinecap:"round" as const,strokeLinejoin:"round" as const, "aria-hidden":true as const}
@@ -153,6 +154,7 @@ export default function App({ Component, pageProps }: AppProps) {
   }
   return <>
     <Head><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" /></Head>
+    <AnimatedBackground />
     <div className="global-tools global-tools-top">
       {guestName && <span className="guest-name-label">{guestName} · Consultation seule</span>}
       <button type="button" onClick={toggleTheme} aria-label="Changer le thème">{theme === 'dark' ? '☀️ Mode clair' : '🌙 Mode sombre'}</button>
