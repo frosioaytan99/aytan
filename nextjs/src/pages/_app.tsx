@@ -33,9 +33,37 @@ export default function App({ Component, pageProps }: AppProps) {
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
   const [currentUserId, setCurrentUserId] = useState('')
   const [guestName, setGuestName] = useState('')
+  const [authChecked, setAuthChecked] = useState(false)
   const [accountMenuOpen, setAccountMenuOpen] = useState(false)
   const router = useRouter()
   const memberPage = router.pathname !== '/' && router.pathname !== '/auth' && router.pathname !== '/404'
+
+  useEffect(() => {
+    if (!router.isReady) return
+    const publicPaths = ['/', '/auth', '/404', '/reset-password', '/account-suspended']
+    if (publicPaths.includes(router.pathname)) {
+      setAuthChecked(true)
+      return
+    }
+    let active = true
+    setAuthChecked(false)
+    const redirectToLogin = () => {
+      const next = encodeURIComponent(router.asPath || '/feed')
+      router.replace('/auth?next=' + next)
+    }
+    supabase.auth.getSession().then(({ data }) => {
+      if (!active) return
+      if (!data.session) redirectToLogin()
+      else setAuthChecked(true)
+    })
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (!active || event !== 'SIGNED_OUT' || publicPaths.includes(router.pathname)) return
+      setAuthChecked(false)
+      redirectToLogin()
+    })
+    return () => { active = false; subscription.unsubscribe() }
+  }, [router.isReady, router.asPath, router.pathname])
+
 
   useEffect(() => {
     let timer: ReturnType<typeof setTimeout> | undefined
@@ -160,7 +188,7 @@ export default function App({ Component, pageProps }: AppProps) {
         </aside>
       </div>}
     </>}
-    <Component {...pageProps} />
+    {(!memberPage || authChecked) ? <Component {...pageProps} /> : <main className="auth-shell"><section className="auth-card"><p>Vérification de ta connexion…</p></section></main>}
     {notice && <button type="button" className="app-toast" role="status" aria-live="polite" onClick={() => { setNotice(''); router.push('/notifications') }}><span className="toast-icon">✓</span><span>{notice}<small>Appuie pour ouvrir tes notifications</small></span></button>}
   </>
 }
