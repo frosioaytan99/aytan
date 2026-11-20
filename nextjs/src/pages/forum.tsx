@@ -3,6 +3,7 @@ import Link from 'next/link'
 import {useRouter} from 'next/router'
 import {supabase} from '../lib/supabaseClient'
 import MemberAvatar from '../components/MemberAvatar'
+import { moderateForumContent } from '../lib/moderateForumContent'
 export default function ForumTopicPage(){
  const router=useRouter(),[topic,setTopic]=useState<any>(null),[replies,setReplies]=useState<any[]>([]),[uid,setUid]=useState(''),[body,setBody]=useState(''),[status,setStatus]=useState(''),[busy,setBusy]=useState(false),[poll,setPoll]=useState<any>(null),[votes,setVotes]=useState<any[]>([]),[selected,setSelected]=useState<number|null>(null),[voted,setVoted]=useState(false),[viewCount,setViewCount]=useState(0)
  async function load(id:string,userId:string){
@@ -27,6 +28,8 @@ export default function ForumTopicPage(){
  useEffect(()=>{if(!router.isReady||typeof router.query.id!=='string')return;let active=true;supabase.auth.getUser().then(({data})=>{if(!active)return;if(!data.user){router.replace('/auth');return}setUid(data.user.id);load(router.query.id as string,data.user.id)});return()=>{active=false}},[router.isReady,router.query.id])
  async function reply(e:any){
   e.preventDefault();if(!body.trim()||!topic||!uid)return;setBusy(true)
+  const moderation=await moderateForumContent(body.trim())
+  if(!moderation.allowed){setBusy(false);setStatus(moderation.message||'Cette réponse ne peut pas être publiée.');return}
   const {error}=await supabase.from('forum_replies').insert({topic_id:topic.id,author_id:uid,body:body.trim()})
   setBusy(false);if(error){setStatus('Impossible de publier la réponse.');return}
   setBody('');setStatus('Réponse publiée !');await load(topic.id,uid)
