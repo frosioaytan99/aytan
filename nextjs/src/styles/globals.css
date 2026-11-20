@@ -518,7 +518,7 @@ html[data-theme="dark"] .member-presence-dot,html[data-theme="dark"] .member-unr
 
 /* Read-only guest interface */
 .auth-guest-button{width:100%;margin-top:10px;padding:13px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--purple);font-weight:800}
-.guest-name-label{font-size:12px;font-weight:800;color:var(--purple);white-space:nowrap}
+.guest-name-label{font-size:12px;font-weight:800;color:var(--purple);white-space:nowrap;padding:8px 10px;border-radius:999px;background:#f0edff}
 html[data-guest="true"] .composer,
 html[data-guest="true"] .story-composer,
 html[data-guest="true"] .community-create,
