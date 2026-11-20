@@ -513,3 +513,21 @@ html[data-theme="dark"] .member-presence-dot,html[data-theme="dark"] .member-unr
  .app-header,.topbar{height:auto;min-height:64px;flex-wrap:wrap;padding-top:10px;padding-bottom:10px}
  .app-header nav,.top-nav{width:100%;flex:1 1 100%;justify-content:flex-start;gap:16px;padding:4px 0 7px}
 }
+
+
+/* Read-only guest interface */
+.auth-guest-button{width:100%;margin-top:10px;padding:13px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--purple);font-weight:800}
+.guest-name-label{font-size:12px;font-weight:800;color:var(--purple);white-space:nowrap}
+html[data-guest="true"] .composer,
+html[data-guest="true"] .story-composer,
+html[data-guest="true"] .community-create,
+html[data-guest="true"] .community-send,
+html[data-guest="true"] .comment-form,
+html[data-guest="true"] .forum-reply-form,
+html[data-guest="true"] .forum-create,
+html[data-guest="true"] .question-create,
+html[data-guest="true"] .question-answer-form,
+html[data-guest="true"] .profile-form,
+html[data-guest="true"] .profile-identity-actions{display:none!important}
+html[data-guest="true"] .post-actions button{display:none!important}
+@media(max-width:760px){.guest-name-label{font-size:11px}}
