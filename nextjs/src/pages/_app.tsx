@@ -126,6 +126,7 @@ export default function App({ Component, pageProps }: AppProps) {
   return <>
     <Head><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" /></Head>
     <div className="global-tools global-tools-top">
+      {guestName && <span className="guest-name-label">{guestName} · Consultation seule</span>}
       <button type="button" onClick={toggleTheme} aria-label="Changer le thème">{theme === 'dark' ? '☀️ Mode clair' : '🌙 Mode sombre'}</button>
     </div>
     {memberPage && signedIn && <>
