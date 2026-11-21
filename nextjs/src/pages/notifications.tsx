@@ -42,6 +42,16 @@ export default function NotificationsPage(){
   const {error}=await supabase.from('notifications').update({is_read:true}).eq('user_id',uid).eq('is_read',false)
   if(error)setError('Impossible de tout marquer comme lu.');else{setRows(v=>v.map(x=>({...x,is_read:true})));window.dispatchEvent(new Event('weshbien:notifications-read'))}
  }
+ async function respondCouple(item:Notice,answer:'accepted'|'declined'){
+  const requestId=item.link.split('couple_request=')[1]?.split('&')[0]
+  if(!requestId)return
+  const {data:{session}}=await supabase.auth.getSession()
+  const response=await fetch('/api/couple-request',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+(session?.access_token||'')},body:JSON.stringify({action:'respond',request_id:requestId,answer})})
+  const result=await response.json().catch(()=>({}))
+  if(!response.ok){setError(result.error==='adults_only'?'Cette fonction est réservée aux membres majeurs.':result.error==='already_in_couple'?'Une des deux personnes est déjà en couple.':'Impossible de répondre à cette demande.');return}
+  setRows(current=>current.filter(x=>x.id!==item.id))
+  setError(answer==='accepted'?'Vous êtes maintenant en couple 💞':'Demande refusée.')
+ }
  async function openNotice(item:Notice){
   if(!item.is_read){const {error}=await supabase.from('notifications').update({is_read:true}).eq('id',item.id);if(!error){setRows(v=>v.map(x=>x.id===item.id?{...x,is_read:true}:x));window.dispatchEvent(new Event('weshbien:notifications-read'))}else setError('Impossible de marquer cette notification comme lue.')}
   router.push(item.link||'/notifications')
@@ -49,6 +59,6 @@ export default function NotificationsPage(){
  return <main className="member-shell"><header className="member-topbar"><Link href="/" className="brand"><span className="brand-mark">w</span><span>weshbien2<span className="brand-dot">.</span></span></Link><nav className="member-nav"><Link href="/feed">Fil</Link><Link href="/explore">Découvrir</Link><Link href="/forums">Forums</Link><Link href="/inbox">Messages</Link><Link href="/profile">Mon profil</Link></nav></header>
  <div className="notifications-page"><div className="notifications-heading"><div><span className="member-eyebrow">TON ESPACE PERSONNEL</span><h1>Notifications 🔔</h1><p>Retrouve ici tout ce que tu reçois sur weshbien2.</p></div><button onClick={markAll} disabled={!rows.some(x=>!x.is_read)}>Tout marquer comme lu</button></div>
  {error&&<p className="notice">{error}</p>}
- {loading?<p className="member-muted">Chargement…</p>:rows.length===0?<div className="member-empty card"><h3>Aucune notification</h3><p>Les nouveaux messages, demandes d’amis, J’aime et commentaires apparaîtront ici.</p></div>:<div className="notifications-list">{rows.map(item=>{const person=people.find(p=>p.id===item.actor_id);return <button type="button" key={item.id} className={'notification-item '+(!item.is_read?'notification-unread':'')} onClick={()=>openNotice(item)}><span className="notification-symbol">{item.type==='message'?'✉':item.type==='friend_request'?'♡':item.type==='like'?'♥':'💬'}</span><span className="notification-copy"><strong>{item.title}</strong><span>{person?(person.display_name||person.username||'Un membre')+' · ':''}{item.body}</span><small>{new Date(item.created_at).toLocaleString('fr-FR')}</small></span>{!item.is_read&&<i/>}</button>})}</div>}
+ {loading?<p className="member-muted">Chargement…</p>:rows.length===0?<div className="member-empty card"><h3>Aucune notification</h3><p>Les nouveaux messages, demandes d’amis, J’aime et commentaires apparaîtront ici.</p></div>:<div className="notifications-list">{rows.map(item=>{const person=people.find(p=>p.id===item.actor_id);return <article key={item.id} className={'notification-item '+(!item.is_read?'notification-unread':'')}><span className="notification-symbol">{item.type==='message'?'✉':item.type==='friend_request'?'♡':item.type==='couple_request'?'💞':item.type==='like'?'♥':'💬'}</span><span className="notification-copy"><strong>{item.title}</strong><span>{person?(person.display_name||person.username||'Un membre')+' · ':''}{item.body}</span><small>{new Date(item.created_at).toLocaleString('fr-FR')}</small></span>{!item.is_read&&<i/>}{item.type==='couple_request'&&<div className="friend-actions"><button type="button" onClick={()=>respondCouple(item,'accepted')}>Accepter</button><button type="button" className="friend-secondary" onClick={()=>respondCouple(item,'declined')}>Refuser</button></div>}{item.type!=='couple_request'&&<button type="button" className="friend-secondary" onClick={()=>openNotice(item)}>Ouvrir</button>}</article>})}</div>}
  <Link className="back-link" href="/feed">← Retour au fil</Link></div></main>
 }
