@@ -1115,3 +1115,7 @@ html[data-theme="dark"] .desktop-community-header{
 }
 html[data-theme="dark"] .desktop-header-actions>button,
 html[data-theme="dark"] .desktop-profile-link{background:#191629;border-color:rgba(195,184,235,.16);color:#f0edff}
+
+@media(min-width:651px) and (max-width:900px){
+  .app-layout>.side-card{display:grid}
+}
