@@ -27,18 +27,24 @@ export default function AnimatedBackground() {
     const apply = () => {
       let next = 'aurora'
       try { next = localStorage.getItem('weshbien-wallpaper') || 'aurora' } catch {}
-      setWallpaper(next)
-      document.body.dataset.wallpaper = next
-      document.documentElement.dataset.wallpaper = next
+      let night = 'cosmos'
+      try { night = localStorage.getItem('weshbien-dark-wallpaper') || 'cosmos' } catch {}
+      const dark = document.documentElement.dataset.theme === 'dark'
+      const activeWallpaper = dark ? night : next
+      setWallpaper(activeWallpaper)
+      document.body.dataset.wallpaper = activeWallpaper
+      document.documentElement.dataset.wallpaper = activeWallpaper
     }
     apply()
     window.addEventListener('weshbien:wallpaper-change', apply)
+    const observer = new MutationObserver(apply)
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] })
 
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
     const saveData = Boolean((navigator as any).connection?.saveData)
     const memory = (navigator as any).deviceMemory
     setVideoEnabled(!reduced && !saveData && (window.innerWidth >= 768 || !memory || memory >= 4))
-    return () => window.removeEventListener('weshbien:wallpaper-change', apply)
+    return () => { window.removeEventListener('weshbien:wallpaper-change', apply); observer.disconnect() }
   }, [])
 
   const videoGroup = videoByTheme[wallpaper] || 'stars'
@@ -116,6 +122,10 @@ export default function AnimatedBackground() {
         .wb-matrix-rain span:nth-child(2n){animation-duration:13s;animation-delay:-5s;opacity:.65}
         .wb-matrix-rain span:nth-child(3n){animation-duration:11s;animation-delay:-8s;opacity:.8}
         @keyframes wbMatrixFall {from{transform:translateY(-110%)}to{transform:translateY(110vh)}}
+        html[data-theme="dark"] body[data-wallpaper="rain"]::before { background:radial-gradient(ellipse at 25% 25%,#38bdf8aa,transparent 42%),linear-gradient(135deg,#020617,#0f172a,#164e63)!important; }
+        html[data-theme="dark"] body[data-wallpaper="volcano"]::before { background:radial-gradient(ellipse at 50% 75%,#f97316bb,transparent 38%),linear-gradient(135deg,#090909,#450a0a,#7f1d1d)!important; }
+        html[data-theme="dark"] body[data-wallpaper="aurora"]::before { background:radial-gradient(ellipse at 20% 25%,#14b8a6bb,transparent 40%),radial-gradient(ellipse at 75% 70%,#7c3aedbb,transparent 45%),linear-gradient(135deg,#020617,#071b2c,#171044)!important; }
+        html[data-theme="dark"] body[data-wallpaper="neon"]::before { background:radial-gradient(ellipse at 20% 25%,#a855f7bb,transparent 42%),radial-gradient(ellipse at 80% 70%,#db2777aa,transparent 48%),linear-gradient(135deg,#090018,#1e1035,#071a2d)!important; }
         .wb-wallpaper-video { position:fixed;inset:0;width:100vw;height:100vh;height:100dvh;object-fit:cover;z-index:-2;pointer-events:none;filter:brightness(.52) saturate(1.12); }
         body[data-wallpaper]::before { opacity:.34; }
         @keyframes wbFloat { 0%{transform:translate3d(-3%,-2%,0) rotate(-5deg) scale(1)} 50%{transform:translate3d(3%,2%,0) rotate(4deg) scale(1.08)} 100%{transform:translate3d(-1%,4%,0) rotate(-2deg) scale(1.04)} }
