@@ -7,7 +7,7 @@ import { isAllowedCommunityImage } from '../lib/communityMedia'
 import { uploadModeratedCommunityImage } from '../lib/uploadModeratedCommunityImage'
 
 type Comment = { id:string; post_id:string; author_id:string; body:string; created_at:string; profile?:any }
-type Post = { id:string; author_id:string; body:string; image_url:string|null; created_at:string; profile?:any; likes:number; liked:boolean; comments:Comment[] }
+type Post = { id:string; author_id:string; body:string; image_url:string|null; image_urls?:string[]|null; created_at:string; profile?:any; likes:number; liked:boolean; comments:Comment[] }
 export default function FeedPage(){
  const [posts,setPosts]=useState<Post[]>([]),[userId,setUserId]=useState(''),[body,setBody]=useState(''),[photoFiles,setPhotoFiles]=useState<File[]>([]),[photoPreviews,setPhotoPreviews]=useState<string[]>([]),[commentDrafts,setCommentDrafts]=useState<Record<string,string>>({}),[busy,setBusy]=useState(false),[status,setStatus]=useState('')
  async function load(){
