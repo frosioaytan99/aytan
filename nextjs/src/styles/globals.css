@@ -1429,3 +1429,26 @@ html[data-theme="dark"] .auth-tab.active{background:#292044!important;color:#d5c
   html[data-theme="dark"] .home-member-card{flex-basis:78vw;max-width:300px}
   html[data-theme="dark"] .home-refresh{width:100%;min-width:0}
 }
+
+
+/* Dark mode: remove remaining light surfaces on home cards and active navigation */
+html[data-theme="dark"] .home-member-details,
+html[data-theme="dark"] .home-member-details p,
+html[data-theme="dark"] .home-member-city {
+  background: linear-gradient(145deg, #21183f, #15152f) !important;
+  color: #f4f1ff !important;
+  border-color: rgba(157,119,255,.3) !important;
+}
+html[data-theme="dark"] .home-member-details p { color: #c5bddc !important; }
+html[data-theme="dark"] .home-member-city { background: #292044 !important; color: #d8ccff !important; }
+html[data-theme="dark"] .mobile-bottom-nav a.selected,
+html[data-theme="dark"] .mobile-bottom-nav a.selected *,
+html[data-theme="dark"] .mobile-bottom-nav a.active,
+html[data-theme="dark"] .mobile-bottom-nav a.active * {
+  background-color: transparent !important;
+  color: #b38cff !important;
+}
+html[data-theme="dark"] .mobile-bottom-nav a.selected::after,
+html[data-theme="dark"] .mobile-bottom-nav a.active::after {
+  background: #9b6bff !important;
+}
