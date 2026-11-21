@@ -66,6 +66,96 @@ export default function AnimatedBackground() {
       body[data-wallpaper="pink"]::before {
         background: radial-gradient(ellipse at 20% 25%, #f9a8d4bb, transparent 42%), radial-gradient(ellipse at 75% 70%, #c084fcaa, transparent 48%), linear-gradient(135deg,#3b123b,#831843,#4c1d95);
       }
+      body[data-wallpaper="mountain"]::before {
+        background: radial-gradient(ellipse at 22% 28%, #cbd5e1bb, transparent 43%), radial-gradient(ellipse at 78% 72%, #64748baa, transparent 48%), linear-gradient(135deg,#10243b,#64748b,#cbd5e1);
+      }
+      body[data-wallpaper="beach"]::before {
+        background: radial-gradient(ellipse at 22% 28%, #facc15bb, transparent 43%), radial-gradient(ellipse at 78% 72%, #0e7490aa, transparent 48%), linear-gradient(135deg,#064e3b,#0e7490,#facc15);
+      }
+      body[data-wallpaper="waterfall"]::before {
+        background: radial-gradient(ellipse at 22% 28%, #67e8f9bb, transparent 43%), radial-gradient(ellipse at 78% 72%, #0e7490aa, transparent 48%), linear-gradient(135deg,#082f49,#0e7490,#67e8f9);
+      }
+      body[data-wallpaper="desert"]::before {
+        background: radial-gradient(ellipse at 22% 28%, #fde68abb, transparent 43%), radial-gradient(ellipse at 78% 72%, #d97706aa, transparent 48%), linear-gradient(135deg,#78350f,#d97706,#fde68a);
+      }
+      body[data-wallpaper="volcano"]::before {
+        background: radial-gradient(ellipse at 22% 28%, #f97316bb, transparent 43%), radial-gradient(ellipse at 78% 72%, #b91c1caa, transparent 48%), linear-gradient(135deg,#1c1917,#b91c1c,#f97316);
+      }
+      body[data-wallpaper="jungle"]::before {
+        background: radial-gradient(ellipse at 22% 28%, #a3e635bb, transparent 43%), radial-gradient(ellipse at 78% 72%, #15803daa, transparent 48%), linear-gradient(135deg,#052e16,#15803d,#a3e635);
+      }
+      body[data-wallpaper="lavender"]::before {
+        background: radial-gradient(ellipse at 22% 28%, #e9d5ffbb, transparent 43%), radial-gradient(ellipse at 78% 72%, #8b5cf6aa, transparent 48%), linear-gradient(135deg,#312e81,#8b5cf6,#e9d5ff);
+      }
+      body[data-wallpaper="cherry"]::before {
+        background: radial-gradient(ellipse at 22% 28%, #fbcfe8bb, transparent 43%), radial-gradient(ellipse at 78% 72%, #ec4899aa, transparent 48%), linear-gradient(135deg,#831843,#ec4899,#fbcfe8);
+      }
+      body[data-wallpaper="rain"]::before {
+        background: radial-gradient(ellipse at 22% 28%, #38bdf8bb, transparent 43%), radial-gradient(ellipse at 78% 72%, #334155aa, transparent 48%), linear-gradient(135deg,#0f172a,#334155,#38bdf8);
+      }
+      body[data-wallpaper="storm"]::before {
+        background: radial-gradient(ellipse at 22% 28%, #a78bfabb, transparent 43%), radial-gradient(ellipse at 78% 72%, #4c1d95aa, transparent 48%), linear-gradient(135deg,#111827,#4c1d95,#a78bfa);
+      }
+      body[data-wallpaper="fire"]::before {
+        background: radial-gradient(ellipse at 22% 28%, #facc15bb, transparent 43%), radial-gradient(ellipse at 78% 72%, #c2410caa, transparent 48%), linear-gradient(135deg,#431407,#c2410c,#facc15);
+      }
+      body[data-wallpaper="smoke"]::before {
+        background: radial-gradient(ellipse at 22% 28%, #db2777bb, transparent 43%), radial-gradient(ellipse at 78% 72%, #6d28d9aa, transparent 48%), linear-gradient(135deg,#18181b,#6d28d9,#db2777);
+      }
+      body[data-wallpaper="clouds"]::before {
+        background: radial-gradient(ellipse at 22% 28%, #fbcfe8bb, transparent 43%), radial-gradient(ellipse at 78% 72%, #c4b5fdaa, transparent 48%), linear-gradient(135deg,#64748b,#c4b5fd,#fbcfe8);
+      }
+      body[data-wallpaper="dream"]::before {
+        background: radial-gradient(ellipse at 22% 28%, #f0abfcbb, transparent 43%), radial-gradient(ellipse at 78% 72%, #0891b2aa, transparent 48%), linear-gradient(135deg,#312e81,#0891b2,#f0abfc);
+      }
+      body[data-wallpaper="minimal"]::before {
+        background: radial-gradient(ellipse at 22% 28%, #52525bbb, transparent 43%), radial-gradient(ellipse at 78% 72%, #27272aaa, transparent 48%), linear-gradient(135deg,#09090b,#27272a,#52525b);
+      }
+      body[data-wallpaper="marble"]::before {
+        background: radial-gradient(ellipse at 22% 28%, #c4b5fdbb, transparent 43%), radial-gradient(ellipse at 78% 72%, #6d5ba6aa, transparent 48%), linear-gradient(135deg,#18112b,#6d5ba6,#c4b5fd);
+      }
+      body[data-wallpaper="crystal"]::before {
+        background: radial-gradient(ellipse at 22% 28%, #a5f3fcbb, transparent 43%), radial-gradient(ellipse at 78% 72%, #0e7490aa, transparent 48%), linear-gradient(135deg,#164e63,#0e7490,#a5f3fc);
+      }
+      body[data-wallpaper="copper"]::before {
+        background: radial-gradient(ellipse at 22% 28%, #fdba74bb, transparent 43%), radial-gradient(ellipse at 78% 72%, #9a3412aa, transparent 48%), linear-gradient(135deg,#431407,#9a3412,#fdba74);
+      }
+      body[data-wallpaper="silver"]::before {
+        background: radial-gradient(ellipse at 22% 28%, #e2e8f0bb, transparent 43%), radial-gradient(ellipse at 78% 72%, #64748baa, transparent 48%), linear-gradient(135deg,#1f2937,#64748b,#e2e8f0);
+      }
+      body[data-wallpaper="emerald"]::before {
+        background: radial-gradient(ellipse at 22% 28%, #6ee7b7bb, transparent 43%), radial-gradient(ellipse at 78% 72%, #047857aa, transparent 48%), linear-gradient(135deg,#022c22,#047857,#6ee7b7);
+      }
+      body[data-wallpaper="ruby"]::before {
+        background: radial-gradient(ellipse at 22% 28%, #fda4afbb, transparent 43%), radial-gradient(ellipse at 78% 72%, #be123caa, transparent 48%), linear-gradient(135deg,#450a0a,#be123c,#fda4af);
+      }
+      body[data-wallpaper="sapphire"]::before {
+        background: radial-gradient(ellipse at 22% 28%, #93c5fdbb, transparent 43%), radial-gradient(ellipse at 78% 72%, #1d4ed8aa, transparent 48%), linear-gradient(135deg,#172554,#1d4ed8,#93c5fd);
+      }
+      body[data-wallpaper="cosmos"]::before {
+        background: radial-gradient(ellipse at 22% 28%, #c084fcbb, transparent 43%), radial-gradient(ellipse at 78% 72%, #312e81aa, transparent 48%), linear-gradient(135deg,#020617,#312e81,#c084fc);
+      }
+      body[data-wallpaper="moon"]::before {
+        background: radial-gradient(ellipse at 22% 28%, #e2e8f0bb, transparent 43%), radial-gradient(ellipse at 78% 72%, #475569aa, transparent 48%), linear-gradient(135deg,#0f172a,#475569,#e2e8f0);
+      }
+      body[data-wallpaper="stars"]::before {
+        background: radial-gradient(ellipse at 22% 28%, #818cf8bb, transparent 43%), radial-gradient(ellipse at 78% 72%, #1e1b4baa, transparent 48%), linear-gradient(135deg,#020617,#1e1b4b,#818cf8);
+      }
+      body[data-wallpaper="matrix"]::before {
+        background: radial-gradient(ellipse at 22% 28%, #4ade80bb, transparent 43%), radial-gradient(ellipse at 78% 72%, #15803daa, transparent 48%), linear-gradient(135deg,#052e16,#15803d,#4ade80);
+      }
+      body[data-wallpaper="cyber"]::before {
+        background: radial-gradient(ellipse at 22% 28%, #22d3eebb, transparent 43%), radial-gradient(ellipse at 78% 72%, #be185daa, transparent 48%), linear-gradient(135deg,#2e1065,#be185d,#22d3ee);
+      }
+      body[data-wallpaper="laser"]::before {
+        background: radial-gradient(ellipse at 22% 28%, #f0abfcbb, transparent 43%), radial-gradient(ellipse at 78% 72%, #7c3aedaa, transparent 48%), linear-gradient(135deg,#1e1b4b,#7c3aed,#f0abfc);
+      }
+      body[data-wallpaper="rainbow"]::before {
+        background: radial-gradient(ellipse at 22% 28%, #facc15bb, transparent 43%), radial-gradient(ellipse at 78% 72%, #2563ebaa, transparent 48%), linear-gradient(135deg,#7f1d1d,#2563eb,#facc15);
+      }
+      body[data-wallpaper="electric"]::before {
+        background: radial-gradient(ellipse at 22% 28%, #67e8f9bb, transparent 43%), radial-gradient(ellipse at 78% 72%, #1d4ed8aa, transparent 48%), linear-gradient(135deg,#172554,#1d4ed8,#67e8f9);
+      }
       body[data-wallpaper="aurora"]::before { }
       #__next { position: relative; z-index: 1; background: transparent !important; }
       @keyframes wbFloat {
