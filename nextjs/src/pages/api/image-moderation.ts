@@ -69,15 +69,31 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const categories = result.categories || {}
     const scores = result.category_scores || {}
     const blocked = categories.sexual === true || categories['sexual/minors'] === true
-    await adminDb.from('ai_moderation_logs').insert({
+
+    // Keep the original image in the private bucket so an authorized moderator
+    // can inspect exactly what the model analyzed. The path is never exposed to members.
+    const ext = MIME_EXTENSIONS[mime]
+    const path = `${authData.user.id}/image-${Date.now()}-${Math.random().toString(36).slice(2, 9)}.${ext}`
+    const { error: uploadError } = await adminDb.storage.from('community-private').upload(path, bytes, {
+      contentType: mime,
+      upsert: false,
+    })
+    if (uploadError) return res.status(500).json({ error: 'image_evidence_storage_failed' })
+
+    const { error: logError } = await adminDb.from('ai_moderation_logs').insert({
       user_id: authData.user.id,
-      content: '[Photo envoyée - image non conservée dans le journal]',
+      content: '[Photo analysée par l’IA]',
+      image_path: path,
       allowed: !blocked,
       flagged: result.flagged === true,
       categories,
       category_scores: scores,
       decision: 'automatic',
     })
+    if (logError) {
+      await adminDb.storage.from('community-private').remove([path])
+      return res.status(500).json({ error: 'moderation_log_save_failed' })
+    }
 
     if (blocked) {
       return res.status(400).json({
@@ -85,14 +101,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         message: 'Cette photo semble contenir du contenu sexuel explicite. Elle ne peut pas être publiée sur Weshbien2.',
       })
     }
-
-    const ext = MIME_EXTENSIONS[mime]
-    const path = `${authData.user.id}/image-${Date.now()}-${Math.random().toString(36).slice(2, 9)}.${ext}`
-    const { error: uploadError } = await adminDb.storage.from('community-private').upload(path, bytes, {
-      contentType: mime,
-      upsert: false,
-    })
-    if (uploadError) return res.status(500).json({ error: 'image_upload_failed' })
 
     return res.status(200).json({ image_url: 'private-media:' + path })
   } catch {
