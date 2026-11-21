@@ -15,7 +15,8 @@ function NavIcon({name}:{name:string}) {
   explore:<><circle cx="12" cy="12" r="9"/><path d="m15.5 8.5-2.2 5-4.8 2 2-4.8z"/></>,
   questions:<><path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8A8.5 8.5 0 0 1 8.7 3.9a8.4 8.4 0 0 1 3.8-.9h.5a8.5 8.5 0 0 1 8 8z"/></>,
   chat:<><path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8A8.5 8.5 0 0 1 8.7 3.9a8.4 8.4 0 0 1 3.8-.9h.5a8.5 8.5 0 0 1 8 8z"/></>,
-  profile:<><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></>
+  profile:<><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></>,
+  bell:<><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/></>
  }
  return <svg {...common}>{paths[name]||paths.explore}</svg>
 }
@@ -170,7 +171,8 @@ export default function App({ Component, pageProps }: AppProps) {
       <header className="mobile-community-header">
         <button type="button" className="mobile-menu-trigger" onClick={() => setMenuOpen(true)} aria-label="Ouvrir le menu">☰</button>
         <Link href="/feed" className="mobile-brand"><span className="brand-mark">w</span></Link>{guestName && <span className="guest-name-label">{guestName}</span>}<span className="mobile-header-spacer" />
-<div className="account-menu-wrap" style={{position:'relative'}}>
+<Link href="/notifications" className="mobile-notification-button" aria-label="Notifications"><NavIcon name="bell"/>{unread > 0 && <span className="mobile-notification-count">{unread > 99 ? '99+' : unread}</span>}</Link>
+        <div className="account-menu-wrap" style={{position:'relative'}}>
           <button type="button" className="mobile-user-dot" onClick={() => setAccountMenuOpen(value => !value)} aria-label="Ouvrir le menu du compte" aria-expanded={accountMenuOpen} style={{padding:0,overflow:'hidden',borderRadius:'50%',border:'2px solid var(--accent,#7c3aed)',background:'var(--surface,#fff)',width:28,height:28,minWidth:28,minHeight:28,display:'grid',placeItems:'center',cursor:'pointer'}}>
             {currentUserId ? <MemberAvatar userId={currentUserId} name="Mon profil" avatarUrl={avatarUrl} className="account-avatar-image"/> : <NavIcon name="profile" />}
           </button>
