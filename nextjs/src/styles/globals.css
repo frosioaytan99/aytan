@@ -686,3 +686,12 @@ html[data-theme="dark"] .member-welcome { box-shadow: 0 16px 42px rgba(0,0,0,.2)
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; }
 }
+
+
+/* Multi-image feed posts */
+.post-photo-preview-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;max-width:100%}
+.post-photo-preview-grid>div{min-width:0;display:grid;gap:6px}
+.post-photo-preview-grid img{width:100%;height:150px;object-fit:cover;border-radius:12px}
+.post-photo-preview-grid button{justify-self:start;border:0;border-radius:9px;padding:7px 10px;background:var(--paper);color:var(--ink);font-weight:700}
+.post-photo-preview-grid+.composer-bottom{margin-top:10px}
+@media(max-width:520px){.post-photo-preview-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.post-photo-preview-grid img{height:125px}}
