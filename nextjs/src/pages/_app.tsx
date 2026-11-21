@@ -164,7 +164,7 @@ export default function App({ Component, pageProps }: AppProps) {
         <button type="button" className="mobile-menu-trigger" onClick={() => setMenuOpen(true)} aria-label="Ouvrir le menu">☰</button>
         <Link href="/feed" className="mobile-brand"><span className="brand-mark">w</span></Link>{guestName && <span className="guest-name-label">{guestName}</span>}<span className="mobile-header-spacer" />
 <div className="account-menu-wrap" style={{position:'relative'}}>
-          <button type="button" className="mobile-user-dot" onClick={() => setAccountMenuOpen(value => !value)} aria-label="Ouvrir le menu du compte" aria-expanded={accountMenuOpen} style={{padding:0,overflow:'hidden',borderRadius:'50%',border:'2px solid var(--accent,#7c3aed)',background:'var(--surface,#fff)',width:38,height:38,display:'grid',placeItems:'center',cursor:'pointer'}}>
+          <button type="button" className="mobile-user-dot" onClick={() => setAccountMenuOpen(value => !value)} aria-label="Ouvrir le menu du compte" aria-expanded={accountMenuOpen} style={{padding:0,overflow:'hidden',borderRadius:'50%',border:'2px solid var(--accent,#7c3aed)',background:'var(--surface,#fff)',width:28,height:28,minWidth:28,minHeight:28,display:'grid',placeItems:'center',cursor:'pointer'}}>
             {currentUserId ? <MemberAvatar userId={currentUserId} name="Mon profil" avatarUrl={avatarUrl} className="account-avatar-image"/> : <NavIcon name="profile" />}
           </button>
           {accountMenuOpen && <div role="menu" style={{position:'absolute',right:0,top:'calc(100% + 10px)',zIndex:1000,minWidth:180,padding:8,borderRadius:14,background:'var(--card,#fff)',border:'1px solid var(--border,#ddd)',boxShadow:'0 12px 32px #0002',display:'grid',gap:4}}>
