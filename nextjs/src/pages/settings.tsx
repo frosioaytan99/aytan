@@ -44,13 +44,26 @@ const wallpapers = [
   { id: 'electric', name: 'Électricité', group: 'Néon', colors: 'linear-gradient(135deg,#172554,#1d4ed8,#67e8f9)' },
 ]
 
+
+const darkWallpapers = [
+  { id: 'cosmos', name: 'Cosmos nocturne', group: 'Espace', colors: 'linear-gradient(135deg,#020617,#312e81,#a855f7)' },
+  { id: 'rain', name: 'Pluie sur la ville', group: 'Ville', colors: 'linear-gradient(135deg,#020617,#164e63,#64748b)' },
+  { id: 'ocean', name: 'Océan de nuit', group: 'Nature', colors: 'linear-gradient(135deg,#020b20,#075985,#0e7490)' },
+  { id: 'forest', name: 'Forêt mystérieuse', group: 'Nature', colors: 'linear-gradient(135deg,#020b08,#064e3b,#14532d)' },
+  { id: 'neon', name: 'Néons violets', group: 'Futuriste', colors: 'linear-gradient(135deg,#090018,#6b21a8,#db2777)' },
+  { id: 'matrix', name: 'Code Matrix', group: 'Futuriste', colors: 'linear-gradient(135deg,#010805,#052e16,#22c55e)' },
+  { id: 'aurora', name: 'Aurores boréales', group: 'Espace', colors: 'linear-gradient(135deg,#071126,#0f766e,#7c3aed)' },
+  { id: 'volcano', name: 'Volcan incandescent', group: 'Nature', colors: 'linear-gradient(135deg,#090909,#7f1d1d,#f97316)' },
+]
+
 export default function SettingsPage() {
   const [theme, setTheme] = useState<'light'|'dark'>('light')
   const [wallpaper, setWallpaper] = useState('aurora')
+  const [darkWallpaper, setDarkWallpaper] = useState('cosmos')
   const [status, setStatus] = useState('')
   useEffect(() => {
     setTheme(document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light')
-    try { const saved = localStorage.getItem('weshbien-wallpaper') || 'aurora'; setWallpaper(saved); document.documentElement.dataset.wallpaper = saved; document.body.dataset.wallpaper = saved } catch {}
+    try { const saved = localStorage.getItem('weshbien-wallpaper') || 'aurora'; const darkSaved = localStorage.getItem('weshbien-dark-wallpaper') || 'cosmos'; setWallpaper(saved); setDarkWallpaper(darkSaved); const active = document.documentElement.dataset.theme === 'dark' ? darkSaved : saved; document.documentElement.dataset.wallpaper = active; document.body.dataset.wallpaper = active } catch {}
   }, [])
   function chooseWallpaper(id: string) {
     setWallpaper(id)
@@ -60,10 +73,20 @@ export default function SettingsPage() {
     window.dispatchEvent(new Event('weshbien:wallpaper-change'))
     setStatus('Thème complet appliqué sur cet appareil : interface, couleurs et fond vidéo.')
   }
+  function chooseDarkWallpaper(id: string) {
+    setDarkWallpaper(id)
+    try { localStorage.setItem('weshbien-dark-wallpaper', id) } catch {}
+    if (document.documentElement.dataset.theme === 'dark') { document.documentElement.dataset.wallpaper = id; document.body.dataset.wallpaper = id }
+    window.dispatchEvent(new Event('weshbien:wallpaper-change'))
+    setStatus('Ambiance sombre enregistrée : ' + (darkWallpapers.find(item => item.id === id)?.name || id))
+  }
   function changeTheme() {
     const next = theme === 'dark' ? 'light' : 'dark'
     setTheme(next)
     document.documentElement.dataset.theme = next
+    const activeWallpaper = next === 'dark' ? darkWallpaper : wallpaper
+    document.documentElement.dataset.wallpaper = activeWallpaper; document.body.dataset.wallpaper = activeWallpaper
+    window.dispatchEvent(new Event('weshbien:wallpaper-change'))
     try { localStorage.setItem('weshbien-theme', next) } catch {}
   }
   async function logout() {
@@ -88,6 +111,14 @@ export default function SettingsPage() {
       </button>)}
     </div>
     <p className="wallpaper-status" role="status">{status || 'Ton thème est enregistré sur cet appareil.'}</p>
+    <div className="wallpaper-heading dark-wallpaper-heading"><div><span>MODE SOMBRE</span><h2>Ambiances nocturnes & vidéos 4K</h2><p>Ces fonds sont réservés au mode sombre. Ton thème clair garde son propre fond.</p></div><b>8 ambiances</b></div>
+    <div className="wallpaper-grid">
+      {darkWallpapers.map(item => <button type="button" key={item.id} onClick={() => chooseDarkWallpaper(item.id)} className={'wallpaper-option' + (darkWallpaper === item.id ? ' selected' : '')} aria-pressed={darkWallpaper === item.id}>
+        <span className="wallpaper-preview" style={{ background: item.colors }}><i/><i/><i/><em>4K · NUIT</em></span>
+        <span className="wallpaper-option-copy"><strong>{item.name}</strong><small>{item.group}</small></span>
+        <span className="wallpaper-check">{darkWallpaper === item.id ? '✓' : '+'}</span>
+      </button>)}
+    </div>
     <div className="wallpaper-library-link"><strong>Vidéos 4K en mouvement</strong><p>Les scènes vidéo sont diffusées en UHD 3840 × 2160 quand l’appareil le permet. Pour économiser les données ou préserver la batterie, les appareils compatibles avec l’économie de données utilisent le fond animé léger à la place.</p><small>Vidéos libres issues de Pexels : <a href="https://www.pexels.com/video/ocean-from-above-17098934/" target="_blank" rel="noreferrer">Océan</a> · <a href="https://www.pexels.com/video/stunning-forest-waterfall-aerial-view-31346765/" target="_blank" rel="noreferrer">Forêt & cascade</a> · <a href="https://www.pexels.com/video/aerial-view-of-a-forest-at-sunset-20583509/" target="_blank" rel="noreferrer">Coucher de soleil</a> · <a href="https://www.pexels.com/video/stunning-night-sky-time-lapse-in-forest-29628756/" target="_blank" rel="noreferrer">Ciel étoilé</a>.</small></div>
   </section>
   <style jsx global>{`
