@@ -28,6 +28,10 @@ export default function NotificationsPage(){
    if(!user){router.replace('/auth');return}
    setUid(user.id);await load(user.id)
    if(!active)return
+   const {error:markError}=await supabase.from('notifications').update({is_read:true}).eq('user_id',user.id).eq('is_read',false)
+   if(!active)return
+   if(!markError){setRows(current=>current.map(item=>({...item,is_read:true})));window.dispatchEvent(new Event('weshbien:notifications-read'))}
+   else setError('Les notifications ne peuvent pas être marquées comme lues.')
    setLoading(false)
    channel=supabase.channel('notifications-page-'+user.id).on('postgres_changes',{event:'*',schema:'public',table:'notifications',filter:'user_id=eq.'+user.id},()=>load(user.id)).subscribe()
   }
@@ -36,10 +40,10 @@ export default function NotificationsPage(){
  async function markAll(){
   if(!uid)return
   const {error}=await supabase.from('notifications').update({is_read:true}).eq('user_id',uid).eq('is_read',false)
-  if(error)setError('Impossible de tout marquer comme lu.');else setRows(v=>v.map(x=>({...x,is_read:true})))
+  if(error)setError('Impossible de tout marquer comme lu.');else{setRows(v=>v.map(x=>({...x,is_read:true})));window.dispatchEvent(new Event('weshbien:notifications-read'))}
  }
  async function openNotice(item:Notice){
-  if(!item.is_read){await supabase.from('notifications').update({is_read:true}).eq('id',item.id);setRows(v=>v.map(x=>x.id===item.id?{...x,is_read:true}:x))}
+  if(!item.is_read){const {error}=await supabase.from('notifications').update({is_read:true}).eq('id',item.id);if(!error){setRows(v=>v.map(x=>x.id===item.id?{...x,is_read:true}:x));window.dispatchEvent(new Event('weshbien:notifications-read'))}else setError('Impossible de marquer cette notification comme lue.')}
   router.push(item.link||'/notifications')
  }
  return <main className="member-shell"><header className="member-topbar"><Link href="/" className="brand"><span className="brand-mark">w</span><span>weshbien2<span className="brand-dot">.</span></span></Link><nav className="member-nav"><Link href="/feed">Fil</Link><Link href="/explore">Découvrir</Link><Link href="/forums">Forums</Link><Link href="/inbox">Messages</Link><Link href="/profile">Mon profil</Link></nav></header>
