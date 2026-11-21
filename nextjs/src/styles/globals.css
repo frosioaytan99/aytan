@@ -1157,3 +1157,93 @@ html[data-theme="dark"] .desktop-profile-link{background:#191629;border-color:rg
 html[data-theme="dark"] .community-activity-post{background:linear-gradient(120deg,#211d31,#29233d);border-color:#39334f}
 html[data-theme="dark"] .community-activity-post .post-author b,html[data-theme="dark"] .community-activity-post .post-body{color:#f0edff}
 html[data-theme="dark"] .community-activity-post>p:not(.post-body){color:#b9b3cb}
+
+
+
+/* Complete Weshbien themes: palette is shared by every page and navigation surface. */
+html[data-wallpaper]{
+  --purple:var(--wb-accent);--purple-dark:color-mix(in srgb,var(--wb-accent) 82%,#171522);
+  --line:var(--wb-border);--paper:var(--wb-paper);--ink:var(--wb-ink);--muted:var(--wb-muted);
+}
+html[data-wallpaper="aurora"]{--wb-accent:#7057d9;--wb-paper:#f2efff;--wb-surface:#ffffffed;--wb-surface-2:#ffffffb8;--wb-border:color-mix(in srgb,#7057d9 14%,#e7e5ef);--wb-ink:#29263a;--wb-muted:#77758b;}
+html[data-wallpaper="ocean"]{--wb-accent:#0891b2;--wb-paper:#eaf8fb;--wb-surface:#ffffffed;--wb-surface-2:#ffffffb8;--wb-border:color-mix(in srgb,#0891b2 14%,#e7e5ef);--wb-ink:#29263a;--wb-muted:#77758b;}
+html[data-wallpaper="sunset"]{--wb-accent:#df6d62;--wb-paper:#fff3ed;--wb-surface:#ffffffed;--wb-surface-2:#ffffffb8;--wb-border:color-mix(in srgb,#df6d62 14%,#e7e5ef);--wb-ink:#29263a;--wb-muted:#77758b;}
+html[data-wallpaper="forest"]{--wb-accent:#278765;--wb-paper:#e9f7ef;--wb-surface:#ffffffed;--wb-surface-2:#ffffffb8;--wb-border:color-mix(in srgb,#278765 14%,#e7e5ef);--wb-ink:#29263a;--wb-muted:#77758b;}
+html[data-wallpaper="space"]{--wb-accent:#7966db;--wb-paper:#f0edff;--wb-surface:#ffffffed;--wb-surface-2:#ffffffb8;--wb-border:color-mix(in srgb,#7966db 14%,#e7e5ef);--wb-ink:#29263a;--wb-muted:#77758b;}
+html[data-wallpaper="neon"]{--wb-accent:#d34ab7;--wb-paper:#fff0fa;--wb-surface:#ffffffed;--wb-surface-2:#ffffffb8;--wb-border:color-mix(in srgb,#d34ab7 14%,#e7e5ef);--wb-ink:#29263a;--wb-muted:#77758b;}
+html[data-wallpaper="gold"]{--wb-accent:#b7791f;--wb-paper:#fff6df;--wb-surface:#ffffffed;--wb-surface-2:#ffffffb8;--wb-border:color-mix(in srgb,#b7791f 14%,#e7e5ef);--wb-ink:#29263a;--wb-muted:#77758b;}
+html[data-wallpaper="ice"]{--wb-accent:#3988bd;--wb-paper:#eaf6ff;--wb-surface:#ffffffed;--wb-surface-2:#ffffffb8;--wb-border:color-mix(in srgb,#3988bd 14%,#e7e5ef);--wb-ink:#29263a;--wb-muted:#77758b;}
+html[data-wallpaper="pink"]{--wb-accent:#d34b9c;--wb-paper:#fff0f8;--wb-surface:#ffffffed;--wb-surface-2:#ffffffb8;--wb-border:color-mix(in srgb,#d34b9c 14%,#e7e5ef);--wb-ink:#29263a;--wb-muted:#77758b;}
+html[data-wallpaper="mountain"]{--wb-accent:#64748b;--wb-paper:#f1f5f9;--wb-surface:#ffffffed;--wb-surface-2:#ffffffb8;--wb-border:color-mix(in srgb,#64748b 14%,#e7e5ef);--wb-ink:#29263a;--wb-muted:#77758b;}
+html[data-wallpaper="beach"]{--wb-accent:#0d9488;--wb-paper:#e8faf5;--wb-surface:#ffffffed;--wb-surface-2:#ffffffb8;--wb-border:color-mix(in srgb,#0d9488 14%,#e7e5ef);--wb-ink:#29263a;--wb-muted:#77758b;}
+html[data-wallpaper="waterfall"]{--wb-accent:#0e91ad;--wb-paper:#eafaff;--wb-surface:#ffffffed;--wb-surface-2:#ffffffb8;--wb-border:color-mix(in srgb,#0e91ad 14%,#e7e5ef);--wb-ink:#29263a;--wb-muted:#77758b;}
+html[data-wallpaper="desert"]{--wb-accent:#c27a32;--wb-paper:#fff5e8;--wb-surface:#ffffffed;--wb-surface-2:#ffffffb8;--wb-border:color-mix(in srgb,#c27a32 14%,#e7e5ef);--wb-ink:#29263a;--wb-muted:#77758b;}
+html[data-wallpaper="volcano"]{--wb-accent:#c2410c;--wb-paper:#fff0e9;--wb-surface:#ffffffed;--wb-surface-2:#ffffffb8;--wb-border:color-mix(in srgb,#c2410c 14%,#e7e5ef);--wb-ink:#29263a;--wb-muted:#77758b;}
+html[data-wallpaper="jungle"]{--wb-accent:#3f8f45;--wb-paper:#eff9e9;--wb-surface:#ffffffed;--wb-surface-2:#ffffffb8;--wb-border:color-mix(in srgb,#3f8f45 14%,#e7e5ef);--wb-ink:#29263a;--wb-muted:#77758b;}
+html[data-wallpaper="lavender"]{--wb-accent:#8b5cf6;--wb-paper:#f4efff;--wb-surface:#ffffffed;--wb-surface-2:#ffffffb8;--wb-border:color-mix(in srgb,#8b5cf6 14%,#e7e5ef);--wb-ink:#29263a;--wb-muted:#77758b;}
+html[data-wallpaper="cherry"]{--wb-accent:#db4d85;--wb-paper:#fff0f6;--wb-surface:#ffffffed;--wb-surface-2:#ffffffb8;--wb-border:color-mix(in srgb,#db4d85 14%,#e7e5ef);--wb-ink:#29263a;--wb-muted:#77758b;}
+html[data-wallpaper="rain"]{--wb-accent:#4d82b8;--wb-paper:#eef5ff;--wb-surface:#ffffffed;--wb-surface-2:#ffffffb8;--wb-border:color-mix(in srgb,#4d82b8 14%,#e7e5ef);--wb-ink:#29263a;--wb-muted:#77758b;}
+html[data-wallpaper="storm"]{--wb-accent:#7155d9;--wb-paper:#f0edff;--wb-surface:#ffffffed;--wb-surface-2:#ffffffb8;--wb-border:color-mix(in srgb,#7155d9 14%,#e7e5ef);--wb-ink:#29263a;--wb-muted:#77758b;}
+html[data-wallpaper="fire"]{--wb-accent:#e05b24;--wb-paper:#fff1e8;--wb-surface:#ffffffed;--wb-surface-2:#ffffffb8;--wb-border:color-mix(in srgb,#e05b24 14%,#e7e5ef);--wb-ink:#29263a;--wb-muted:#77758b;}
+html[data-wallpaper="smoke"]{--wb-accent:#9a4bc4;--wb-paper:#f9efff;--wb-surface:#ffffffed;--wb-surface-2:#ffffffb8;--wb-border:color-mix(in srgb,#9a4bc4 14%,#e7e5ef);--wb-ink:#29263a;--wb-muted:#77758b;}
+html[data-wallpaper="clouds"]{--wb-accent:#7c87b9;--wb-paper:#f1f3ff;--wb-surface:#ffffffed;--wb-surface-2:#ffffffb8;--wb-border:color-mix(in srgb,#7c87b9 14%,#e7e5ef);--wb-ink:#29263a;--wb-muted:#77758b;}
+html[data-wallpaper="dream"]{--wb-accent:#8b5cf6;--wb-paper:#f3efff;--wb-surface:#ffffffed;--wb-surface-2:#ffffffb8;--wb-border:color-mix(in srgb,#8b5cf6 14%,#e7e5ef);--wb-ink:#29263a;--wb-muted:#77758b;}
+html[data-wallpaper="minimal"]{--wb-accent:#52525b;--wb-paper:#f4f4f5;--wb-surface:#ffffffed;--wb-surface-2:#ffffffb8;--wb-border:color-mix(in srgb,#52525b 14%,#e7e5ef);--wb-ink:#29263a;--wb-muted:#77758b;}
+html[data-wallpaper="marble"]{--wb-accent:#7561a8;--wb-paper:#f3efff;--wb-surface:#ffffffed;--wb-surface-2:#ffffffb8;--wb-border:color-mix(in srgb,#7561a8 14%,#e7e5ef);--wb-ink:#29263a;--wb-muted:#77758b;}
+html[data-wallpaper="crystal"]{--wb-accent:#0d9488;--wb-paper:#e9fbf9;--wb-surface:#ffffffed;--wb-surface-2:#ffffffb8;--wb-border:color-mix(in srgb,#0d9488 14%,#e7e5ef);--wb-ink:#29263a;--wb-muted:#77758b;}
+html[data-wallpaper="copper"]{--wb-accent:#b76536;--wb-paper:#fff2e8;--wb-surface:#ffffffed;--wb-surface-2:#ffffffb8;--wb-border:color-mix(in srgb,#b76536 14%,#e7e5ef);--wb-ink:#29263a;--wb-muted:#77758b;}
+html[data-wallpaper="silver"]{--wb-accent:#64748b;--wb-paper:#f1f5f9;--wb-surface:#ffffffed;--wb-surface-2:#ffffffb8;--wb-border:color-mix(in srgb,#64748b 14%,#e7e5ef);--wb-ink:#29263a;--wb-muted:#77758b;}
+html[data-wallpaper="emerald"]{--wb-accent:#059669;--wb-paper:#e8fbf3;--wb-surface:#ffffffed;--wb-surface-2:#ffffffb8;--wb-border:color-mix(in srgb,#059669 14%,#e7e5ef);--wb-ink:#29263a;--wb-muted:#77758b;}
+html[data-wallpaper="ruby"]{--wb-accent:#be123c;--wb-paper:#fff0f2;--wb-surface:#ffffffed;--wb-surface-2:#ffffffb8;--wb-border:color-mix(in srgb,#be123c 14%,#e7e5ef);--wb-ink:#29263a;--wb-muted:#77758b;}
+html[data-wallpaper="sapphire"]{--wb-accent:#2563eb;--wb-paper:#edf4ff;--wb-surface:#ffffffed;--wb-surface-2:#ffffffb8;--wb-border:color-mix(in srgb,#2563eb 14%,#e7e5ef);--wb-ink:#29263a;--wb-muted:#77758b;}
+html[data-wallpaper="cosmos"]{--wb-accent:#7c3aed;--wb-paper:#f3edff;--wb-surface:#ffffffed;--wb-surface-2:#ffffffb8;--wb-border:color-mix(in srgb,#7c3aed 14%,#e7e5ef);--wb-ink:#29263a;--wb-muted:#77758b;}
+html[data-wallpaper="moon"]{--wb-accent:#64748b;--wb-paper:#f1f5f9;--wb-surface:#ffffffed;--wb-surface-2:#ffffffb8;--wb-border:color-mix(in srgb,#64748b 14%,#e7e5ef);--wb-ink:#29263a;--wb-muted:#77758b;}
+html[data-wallpaper="stars"]{--wb-accent:#6366f1;--wb-paper:#eff0ff;--wb-surface:#ffffffed;--wb-surface-2:#ffffffb8;--wb-border:color-mix(in srgb,#6366f1 14%,#e7e5ef);--wb-ink:#29263a;--wb-muted:#77758b;}
+html[data-wallpaper="matrix"]{--wb-accent:#16a34a;--wb-paper:#edfaef;--wb-surface:#ffffffed;--wb-surface-2:#ffffffb8;--wb-border:color-mix(in srgb,#16a34a 14%,#e7e5ef);--wb-ink:#29263a;--wb-muted:#77758b;}
+html[data-wallpaper="cyber"]{--wb-accent:#c026d3;--wb-paper:#fff0fd;--wb-surface:#ffffffed;--wb-surface-2:#ffffffb8;--wb-border:color-mix(in srgb,#c026d3 14%,#e7e5ef);--wb-ink:#29263a;--wb-muted:#77758b;}
+html[data-wallpaper="laser"]{--wb-accent:#9333ea;--wb-paper:#f4edff;--wb-surface:#ffffffed;--wb-surface-2:#ffffffb8;--wb-border:color-mix(in srgb,#9333ea 14%,#e7e5ef);--wb-ink:#29263a;--wb-muted:#77758b;}
+html[data-wallpaper="rainbow"]{--wb-accent:#d94680;--wb-paper:#fff2f7;--wb-surface:#ffffffed;--wb-surface-2:#ffffffb8;--wb-border:color-mix(in srgb,#d94680 14%,#e7e5ef);--wb-ink:#29263a;--wb-muted:#77758b;}
+html[data-wallpaper="electric"]{--wb-accent:#0284c7;--wb-paper:#ecf8ff;--wb-surface:#ffffffed;--wb-surface-2:#ffffffb8;--wb-border:color-mix(in srgb,#0284c7 14%,#e7e5ef);--wb-ink:#29263a;--wb-muted:#77758b;}
+
+html[data-theme="dark"][data-wallpaper]{
+  --wb-paper:#151421;--wb-surface:#242136;--wb-surface-2:#2d2942;
+  --wb-border:#403a58;--wb-ink:#f1effa;--wb-muted:#b2abc8;
+}
+html[data-wallpaper] body,html[data-wallpaper] #__next{background:transparent!important;color:var(--wb-ink)}
+html[data-wallpaper] .card,html[data-wallpaper] .right-card,html[data-wallpaper] .side-card,
+html[data-wallpaper] .feature-card,html[data-wallpaper] .post,html[data-wallpaper] .composer,
+html[data-wallpaper] .member-panel,html[data-wallpaper] .member-stat,html[data-wallpaper] .conversation-heading,
+html[data-wallpaper] .conversation-compose,html[data-wallpaper] .forum-original,html[data-wallpaper] .forum-reply,
+html[data-wallpaper] .forum-create,html[data-wallpaper] .forum-reply-form,html[data-wallpaper] .notification-item,
+html[data-wallpaper] .settings-main-card,html[data-wallpaper] .wallpaper-option,html[data-wallpaper] .wallpaper-library-link,
+html[data-wallpaper] .desktop-community-header,html[data-wallpaper] .mobile-community-header,
+html[data-wallpaper] .mobile-bottom-nav,html[data-wallpaper] .mobile-drawer{
+  background:var(--wb-surface)!important;color:var(--wb-ink);border-color:var(--wb-border)!important;
+}
+html[data-wallpaper] input,html[data-wallpaper] textarea,html[data-wallpaper] select,
+html[data-wallpaper] .conversation-compose textarea,html[data-wallpaper] .forum-create input,
+html[data-wallpaper] .forum-create select,html[data-wallpaper] .forum-create textarea,
+html[data-wallpaper] .forum-reply-form textarea{
+  background:var(--wb-surface)!important;color:var(--wb-ink);border-color:var(--wb-border)!important;
+}
+html[data-wallpaper] .mobile-bottom-nav a.selected,html[data-wallpaper] .desktop-community-nav a.active,
+html[data-wallpaper] .desktop-community-nav a:hover,html[data-wallpaper] .back-link,
+html[data-wallpaper] .conversation-meta,html[data-wallpaper] .post-actions button,
+html[data-wallpaper] .forum-topic>div span:nth-child(2){color:var(--wb-accent)!important}
+html[data-wallpaper] .mobile-bottom-nav a.selected:before{background:var(--wb-accent)}
+html[data-wallpaper] .mobile-bottom-nav,html[data-wallpaper] .mobile-community-header{border-color:var(--wb-border)}
+html[data-wallpaper] .notification-symbol,html[data-wallpaper] .forum-category,
+html[data-wallpaper] .chat-line-bubble,html[data-wallpaper] .bubble-left,
+html[data-wallpaper] .comment{background:var(--wb-surface-2);color:var(--wb-ink)}
+html[data-wallpaper] .chat-mine .chat-line-bubble{background:var(--wb-accent);color:#fff}
+html[data-wallpaper] .primary-link,html[data-wallpaper] .member-primary,
+html[data-wallpaper] .composer button,html[data-wallpaper] .search-row button,
+html[data-wallpaper] .profile-form>button,html[data-wallpaper] .conversation-compose button,
+html[data-wallpaper] .forum-create button,html[data-wallpaper] .forum-reply-form button,
+html[data-wallpaper] .notifications-heading button{background:var(--wb-accent);border-color:var(--wb-accent);color:#fff}
+html[data-wallpaper] .brand-mark{background:var(--wb-accent)}
+html[data-wallpaper] .activity-heading{background:linear-gradient(115deg,color-mix(in srgb,var(--wb-accent) 35%,#201a3d),var(--wb-accent));}
+html[data-wallpaper] .community-activity-post{border-color:var(--wb-border)}
+html[data-wallpaper] .wallpaper-status{color:var(--wb-accent)}
+html[data-wallpaper] .wb-wallpaper-video{opacity:.96}
+@media(prefers-reduced-motion:reduce){html[data-wallpaper] .wb-wallpaper-video{display:none!important}}
