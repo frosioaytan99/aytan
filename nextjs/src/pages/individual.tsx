@@ -156,8 +156,8 @@ export default function IndividualPage() {
               <div className="post-actions"><button type="button" onClick={()=>toggleLike(p)}>{p.liked?'♥':'♡'} {p.likes} J’aime</button><span>{p.comments.length} commentaire{p.comments.length>1?'s':''}</span><button type="button" onClick={()=>reportPost(p.id)}>⚑ Signaler</button></div>
               <section className="comments"><div className="comments-list">{p.comments.map(c=><div className="comment" key={c.id}><Link href={'/profile?id='+c.author_id} className="comment-profile-link"><MemberAvatar userId={c.author_id} name={c.profile?.display_name||c.profile?.username} avatarUrl={c.profile?.avatar_url} className="avatar comment-author-avatar"/><b>{c.profile?.display_name||c.profile?.username||'Membre'}</b></Link><p>{c.body}</p><small>{new Date(c.created_at).toLocaleString('fr-FR')}</small></div>)}</div><form className="comment-form" onSubmit={e=>addComment(e,p.id)}><input aria-label="Écrire un commentaire" maxLength={500} value={drafts[p.id]||''} onChange={e=>setDrafts(v=>({...v,[p.id]:e.target.value}))} placeholder="Écrire un commentaire…"/><button type="submit" disabled={!(drafts[p.id]||'').trim()}>Envoyer</button></form></section>
             </article>)}
-          </section>
             </>}
+          </section>
           <aside className="right-card"><b>Un espace à part</b><p>Les publications et images ici sont stockées séparément du fil Weshbien classique. Utilise le bouton Signaler en cas de problème.</p><Link href="/feed">Retour au fil classique →</Link></aside>
         </div>
       </main>
