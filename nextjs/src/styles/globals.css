@@ -831,3 +831,9 @@ html[data-theme="dark"] .messenger-search input,html[data-theme="dark"] .messeng
  .home-muted{font-size:13px!important;line-height:1.4!important;margin:0!important}
  .home-refresh{margin:9px 0 4px!important;padding:9px 13px!important;font-size:13px!important}
 }
+
+/* Conversation contact photo: match the compact round avatar shown in the reference */
+@media(max-width:600px){
+ .messenger-personbar{gap:12px!important}
+ .messenger-personbar .messenger-avatar{width:80px!important;height:80px!important;min-width:80px!important;max-width:80px!important;border-radius:50%!important;object-fit:cover!important;flex:0 0 80px!important}
+}
