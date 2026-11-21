@@ -997,3 +997,28 @@ html[data-theme="dark"] .messenger-compose{
     scroll-padding-bottom:176px;
   }
 }
+
+
+/* Reply mode: keep the composer controls visible when the quoted-message preview appears. */
+.messenger-compose{
+  display:flex!important;
+  flex-wrap:wrap!important;
+  align-items:center!important;
+}
+.messenger-compose .messenger-reply-preview{
+  flex:0 0 100%!important;
+  width:100%!important;
+  min-width:0!important;
+  order:0!important;
+}
+.messenger-compose textarea{
+  flex:1 1 0!important;
+  min-width:0!important;
+  width:1px!important;
+}
+.messenger-compose>button{
+  flex:0 0 60px;
+}
+@media(max-width:600px){
+  .messenger-compose>button{flex-basis:54px}
+}
