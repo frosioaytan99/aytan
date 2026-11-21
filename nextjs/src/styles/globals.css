@@ -1022,3 +1022,17 @@ html[data-theme="dark"] .messenger-compose{
 @media(max-width:600px){
   .messenger-compose>button{flex-basis:54px}
 }
+
+
+/* Persistent home shortcut in the top-right area of every authenticated page. */
+.mobile-home-button{
+  width:42px;height:42px;min-width:42px;flex:0 0 42px;
+  display:grid;place-items:center;border-radius:14px;
+  color:var(--accent,#7055df);background:var(--surface,#f2efff);
+  border:1px solid var(--border,#e6e0f7);
+}
+.mobile-home-button svg{width:24px;height:24px}
+.mobile-home-button:active{transform:scale(.96)}
+@media(min-width:651px){
+  .mobile-home-button{width:46px;height:46px;min-width:46px;flex-basis:46px}
+}
