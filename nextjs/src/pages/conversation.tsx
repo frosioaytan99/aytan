@@ -1,10 +1,11 @@
-import { useEffect,useMemo,useState } from 'react'
+import { useEffect,useMemo,useRef,useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { supabase } from '../lib/supabaseClient'
 import MemberAvatar from '../components/MemberAvatar'
 type Msg={id:string;sender:string;recipient:string;subject:string|null;body:string|null;created_at:string;is_read:boolean}
 export default function ConversationPage(){
+ const historyRef=useRef<HTMLDivElement|null>(null),hasInitialScroll=useRef(false)
  const router=useRouter(),[uid,setUid]=useState(''),[other,setOther]=useState(''),[person,setPerson]=useState<any>(null),[presenceLastSeen,setPresenceLastSeen]=useState<string|null>(null),[messages,setMessages]=useState<Msg[]>([]),[body,setBody]=useState(''),[busy,setBusy]=useState(false),[status,setStatus]=useState(''),[search,setSearch]=useState(''),[menuFor,setMenuFor]=useState(''),[hiddenIds,setHiddenIds]=useState<string[]>([])
  async function load(a:string,b:string){
   const {data,error}=await supabase.from('messages').select('id,sender,recipient,subject,body,created_at,is_read').or('and(sender.eq.'+a+',recipient.eq.'+b+'),and(sender.eq.'+b+',recipient.eq.'+a+')').order('created_at',{ascending:true})
@@ -47,6 +48,15 @@ export default function ConversationPage(){
   return()=>{supabase.removeChannel(channel)}
  },[uid,other])
  const visibleMessages=useMemo(()=>{const q=search.trim().toLocaleLowerCase('fr-FR');return q?messages.filter(m=>(m.body||m.subject||'').toLocaleLowerCase('fr-FR').includes(q)):messages},[messages,search])
+ useEffect(()=>{
+  const el=historyRef.current
+  if(!el)return
+  const nearBottom=el.scrollHeight-el.scrollTop-el.clientHeight<160
+  if(!hasInitialScroll.current||nearBottom){
+   requestAnimationFrame(()=>{el.scrollTop=el.scrollHeight})
+   hasInitialScroll.current=true
+  }
+ },[visibleMessages.length])
  async function messageAction(action:string,m:Msg){
   setMenuFor('')
   if(action==='save'||action==='pin'){
@@ -91,7 +101,7 @@ export default function ConversationPage(){
   <section className="messenger-window">
    <div className="messenger-personbar"><Link href="/inbox" className="messenger-back" aria-label="Retour">←</Link><MemberAvatar userId={other} name={person?.display_name||person?.username} avatarUrl={person?.avatar_url} className="messenger-avatar" imageSize={56}/><div className="messenger-person-copy"><strong>{person?.display_name||person?.username||'Conversation'}</strong><span>@{person?.username||'membre'} · {presenceLabel()}</span></div><Link href={'/profile?id='+other} className="messenger-more" aria-label="Options du profil">•••</Link></div>
    <div className="messenger-search"><span>⌕</span><input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Rechercher dans cette conversation…" aria-label="Rechercher dans cette conversation"/></div>
-   <div className="messenger-history" aria-live="polite">
+   <div ref={historyRef} className="messenger-history" aria-live="polite">
     {visibleMessages.filter(m=>!hiddenIds.includes(m.id)).length===0?<div className="messenger-empty">{messages.length===0?'Démarre la conversation en envoyant un message.':'Aucun message à afficher.'}</div>:visibleMessages.filter(m=>!hiddenIds.includes(m.id)).map(m=><div key={m.id} className={'messenger-message-row '+(m.sender===uid?'mine':'theirs')}><div className="messenger-bubble">{m.body||m.subject}</div><div className="messenger-meta"><time>{new Date(m.created_at).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}</time>{m.sender===uid&&<span>{m.is_read?'✓✓ Lu':'✓ Envoyé'}</span>}<button type="button" onClick={()=>setMenuFor(menuFor===m.id?'':m.id)} aria-label="Options du message">•••</button></div>{menuFor===m.id&&<div className="messenger-message-actions"><button onClick={()=>messageAction('save',m)}>♧ Sauvegarder</button><button onClick={()=>messageAction('pin',m)}>⌖ Épingler pour moi</button><button onClick={()=>messageAction('forward',m)}>↪ Transférer</button>{m.sender===uid&&<button onClick={()=>messageAction('edit',m)}>✎ Modifier</button>}<button onClick={()=>messageAction('hide',m)}>▣ Supprimer pour moi</button>{m.sender===uid?<button className="danger" onClick={()=>messageAction('delete',m)}>▤ Supprimer pour tous</button>:<button className="danger" onClick={()=>messageAction('report',m)}>⚑ Signaler</button>}</div>}</div>)}
    </div>
    {status&&<p className="messenger-status">{status}</p>}
