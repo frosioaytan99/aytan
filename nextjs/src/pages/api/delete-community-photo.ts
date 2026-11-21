@@ -43,10 +43,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (authError || !authData.user || authData.user.is_anonymous) return res.status(401).json({ error: 'invalid_session' })
     const requesterId = authData.user.id
     const admin = createClient(url, service, { auth: { persistSession: false, autoRefreshToken: false } })
-    const { data: roleRow, error: roleError } = await admin.from('user_roles').select('role').eq('user_id', requesterId).eq('role', 'admin').maybeSingle()
+    const { data: roleRow, error: roleError } = await admin.from('user_roles').select('role').eq('user_id', requesterId).in('role', ['admin','moderator']).maybeSingle()
     if (roleError) return res.status(500).json({ error: 'role_check_failed' })
-    const isAdmin = Boolean(roleRow)
-    if (ownerId !== requesterId && !isAdmin) return res.status(403).json({ error: 'not_photo_owner' })
+    const canModerate = Boolean(roleRow)
+    if (ownerId !== requesterId && !canModerate) return res.status(403).json({ error: 'not_photo_owner' })
 
     const [profileResult, postsResult] = await Promise.all([
       admin.from('profiles').select('id,gallery_urls,avatar_url').eq('id', ownerId).maybeSingle(),
