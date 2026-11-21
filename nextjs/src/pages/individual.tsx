@@ -11,6 +11,7 @@ type Post = { id:string; author_id:string; body:string; image_urls:string[]; cre
 
 export default function IndividualPage() {
   const [accepted,setAccepted]=useState(false)
+  const [ageAllowed,setAgeAllowed]=useState<boolean|null>(null)
   const [activeTab,setActiveTab]=useState<'fil'|'reglement'>('fil')
   const [posts,setPosts]=useState<Post[]>([])
   const [userId,setUserId]=useState('')
@@ -25,6 +26,10 @@ export default function IndividualPage() {
   async function loadFeed(){
     const {data:{user}}=await supabase.auth.getUser()
     if(!user){window.location.href='/auth';return}
+    const {data:myProfile}=await supabase.from('profiles').select('age').eq('id',user.id).maybeSingle()
+    const age=Number(myProfile?.age)
+    if(!Number.isInteger(age)||age<18){setAgeAllowed(false);setLoading(false);return}
+    setAgeAllowed(true)
     setUserId(user.id)
     const {data,error}=await supabase.from('individual_posts').select('*').order('created_at',{ascending:false}).limit(50)
     if(error){setStatus('Impossible de charger le fil : '+error.message);setLoading(false);return}
@@ -89,6 +94,10 @@ export default function IndividualPage() {
     setStatus(error?'Signalement impossible : '+error.message:'Signalement envoyé aux administrateurs. Merci.')
   }
 
+  if(ageAllowed===false)return (
+    <main className="app-shell" style={{maxWidth:700,margin:'0 auto',padding:'40px 18px'}}><section className="card" style={{padding:26}}><h1>🔞 Espace réservé aux 18 ans et plus</h1><p>Weshbien Individuel peut contenir des photos inhabituelles, matures, choquantes ou dérangeantes. Tu dois avoir au moins 18 ans et un âge renseigné sur ton profil pour y accéder.</p><p>Les contenus sexuels explicites, les images intimes sans consentement et tout contenu impliquant des mineurs restent strictement interdits.</p><Link href="/profile">Vérifier mon âge sur mon profil</Link><p><Link href="/feed">← Retour au fil classique</Link></p></section></main>
+  )
+
   if(!accepted)return (
     <>
       <Head><title>Weshbien Individuel — Avertissement</title><meta name="robots" content="noindex,nofollow"/></Head>
@@ -97,8 +106,8 @@ export default function IndividualPage() {
           <div style={{fontSize:42,marginBottom:12}} aria-hidden="true">⚠️</div>
           <p style={{fontWeight:800,letterSpacing:'.08em',fontSize:12,color:'#b45309'}}>ESPACE INDIVIDUEL</p>
           <h1 style={{fontSize:'clamp(26px,5vw,36px)',margin:'8px 0 14px'}}>Attention avant d’entrer</h1>
-          <p style={{fontSize:16,lineHeight:1.7}}>Cet espace peut contenir des images choquantes, inappropriées ou dérangeantes. Contrairement au fil classique, les images n’y sont pas vérifiées automatiquement par une intelligence artificielle.</p>
-          <p style={{fontSize:14,lineHeight:1.7}}>Les fichiers restent soumis aux contrôles techniques (formats et taille). Les contenus signalés peuvent être examinés par les administrateurs et retirés s’ils enfreignent les règles. Ne partage aucune information personnelle et ne republie pas de contenu inquiétant.</p>
+          <p style={{fontSize:16,lineHeight:1.7}}>Cet espace est réservé aux 18 ans et plus. Il sert à partager des photos inhabituelles, matures ou susceptibles de surprendre, choquer ou déranger. Contrairement au fil classique, les images n’y sont pas vérifiées automatiquement par une intelligence artificielle.</p>
+          <p style={{fontSize:14,lineHeight:1.7}}>Les contenus sexuels explicites, les images intimes sans consentement et tout contenu impliquant des mineurs sont strictement interdits. Les fichiers restent soumis aux contrôles techniques (formats et taille). Les contenus signalés peuvent être examinés par les administrateurs et retirés s’ils enfreignent les règles. Ne partage aucune information personnelle et ne republie pas de contenu inquiétant.</p>
           <button type="button" onClick={acceptWarning} style={{marginTop:18,width:'100%',padding:'14px 18px',border:0,borderRadius:14,background:'#b45309',color:'#fff',fontWeight:800,cursor:'pointer'}}>J’ai compris, entrer dans Individuel</button>
           <p style={{marginTop:20,fontSize:13}}><Link href="/feed">← Retour à Weshbien classique</Link></p>
         </section>
@@ -114,14 +123,14 @@ export default function IndividualPage() {
         <div className="app-layout">
           <aside className="side-card"><b>Ton espace</b><Link href="/feed">🏠 Weshbien classique</Link><Link href="/individual">⚠️ Individuel</Link><Link href="/profile">👤 Mon profil</Link><Link href="/inbox">✉️ Messages</Link></aside>
           <section className="feed-column">
-            <div className="page-intro"><small>ESPACE SÉPARÉ · IMAGES SANS VÉRIFICATION IA</small><h1>Weshbien Individuel ⚠️</h1><p>Un fil distinct du Weshbien classique. Prends garde aux images publiées ici.</p></div>
+            <div className="page-intro"><small>ESPACE 18+ · PHOTOS INHABITUELLES · SANS VÉRIFICATION IA</small><h1>Weshbien Individuel ⚠️</h1><p>Un espace réservé aux adultes pour les photos qui peuvent être bizarres, matures ou dérangeantes. Les contenus interdits restent interdits.</p></div>
             <div role="tablist" aria-label="Navigation Individuel" style={{display:'flex',gap:8,marginBottom:16}}>
               <button type="button" role="tab" aria-selected={activeTab==='fil'} onClick={()=>setActiveTab('fil')} style={{padding:'10px 16px',borderRadius:12,border:0,fontWeight:700,background:activeTab==='fil'?'#6d28d9':'var(--card,#fff)',color:activeTab==='fil'?'#fff':'inherit'}}>Publications</button>
               <button type="button" role="tab" aria-selected={activeTab==='reglement'} onClick={()=>setActiveTab('reglement')} style={{padding:'10px 16px',borderRadius:12,border:'1px solid rgba(245,158,11,.5)',fontWeight:700,background:activeTab==='reglement'?'#b45309':'var(--card,#fff)',color:activeTab==='reglement'?'#fff':'inherit'}}>📜 Règlement</button>
             </div>
             {activeTab==='reglement'?<section className="card" style={{padding:20,lineHeight:1.65}}>
               <h2>Règlement de l’espace Individuel</h2>
-              <p><b>Attention :</b> cet espace peut contenir des images choquantes, dérangeantes ou réservées à un public adulte. N’y accède pas si tu ne souhaites pas voir ce type de contenu.</p>
+              <p><b>Réservé aux 18 ans et plus :</b> cet espace sert aux photos inhabituelles, matures, choquantes ou dérangeantes. N’y accède pas si tu ne souhaites pas voir ce type de contenu.</p>
               <h3>Images et contenus +18</h3>
               <p>Les contenus explicitement sexuels ou pornographiques ne sont pas autorisés sur Weshbien. L’indication « +18 » sert à avertir qu’une image peut être mature, violente ou dérangeante ; elle ne rend pas autorisé un contenu interdit.</p>
               <h3>Contenus strictement interdits</h3>
@@ -130,7 +139,7 @@ export default function IndividualPage() {
               <ul><li>Publie uniquement des images que tu as le droit de partager.</li><li>Ne divulgue pas d’adresse, de numéro, de document ou d’information privée.</li><li>Préviens clairement si une image peut choquer et évite les contenus graphiques.</li><li>Ne contourne pas les signalements et respecte les autres membres.</li></ul>
               <h3>Modération et signalements</h3>
               <p>Les images de cet espace ne sont pas vérifiées automatiquement par IA. Les protections techniques restent actives. Les membres peuvent signaler un contenu ; les administrateurs peuvent l’examiner, le retirer et prendre des mesures sur le compte en cas d’abus.</p>
-              <p><b>Important :</b> l’absence de vérification IA ne signifie pas l’absence de règles ni une autorisation de publier n’importe quel contenu.</p>
+              <p><b>Important :</b> l’absence de vérification IA ne signifie pas l’absence de règles ni une autorisation de publier n’importe quel contenu. L’accès est réservé aux membres dont l’âge de profil est de 18 ans ou plus.</p>
               <button type="button" onClick={()=>setActiveTab('fil')} style={{padding:'11px 16px',border:0,borderRadius:12,background:'#6d28d9',color:'#fff',fontWeight:700}}>Retour aux publications</button>
             </section>:<>
 
