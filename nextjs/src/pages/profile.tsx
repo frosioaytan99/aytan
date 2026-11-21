@@ -36,6 +36,7 @@ export default function ProfilePage() {
  const [loading,setLoading]=useState(true)
  const [currentUser,setCurrentUser]=useState('')
  const [friendRequest,setFriendRequest]=useState<FriendRequest|null>(null)
+ const [friendCount,setFriendCount]=useState(0)
  const [friendBusy,setFriendBusy]=useState(false)
  const [coupleStatus,setCoupleStatus]=useState('')
  const [blocked,setBlocked]=useState(false)
@@ -59,6 +60,8 @@ export default function ProfilePage() {
    if(authError||!user){router.replace('/auth');return}
    const target=typeof router.query.id==='string'?router.query.id:user.id
    setUid(target);setCurrentUser(user.id);setMe(target===user.id)
+   const friendCountResult=await supabase.from('friend_requests').select('id',{count:'exact',head:true}).eq('status','accepted').or(`sender_id.eq.${target},recipient_id.eq.${target}`)
+   if(!cancelled)setFriendCount(friendCountResult.count||0)
    const {data:{session}}=await supabase.auth.getSession()
    if(session?.access_token){const roleResponse=await fetch('/api/member-role?user_id='+encodeURIComponent(target),{headers:{Authorization:'Bearer '+session.access_token},cache:'no-store'});const rolePayload=await roleResponse.json().catch(()=>null);setProfileRole(roleResponse.ok&&['admin','moderator'].includes(rolePayload?.role)?rolePayload.role:'member')}else setProfileRole('member')
    const {data,error}=await supabase.from('profiles').select('id,display_name,username,bio,interests,avatar_url,is_private,age,city,favorite_music,hobbies,gallery_urls,last_seen_at').eq('id',target).maybeSingle()
@@ -177,7 +180,7 @@ export default function ProfilePage() {
   setFriendBusy(true);setStatus('')
   const {data,error}=await supabase.from('friend_requests').update({status:answer,updated_at:new Date().toISOString()}).eq('id',friendRequest.id).eq('status','pending').select('id,sender_id,recipient_id,status').single()
   if(error)setStatus('Action impossible : '+error.message)
-  else setFriendRequest(data as FriendRequest)
+  else{setFriendRequest(data as FriendRequest);if(answer==='accepted')setFriendCount(v=>v+1)}
   setFriendBusy(false)
  }
  async function removeFriend(){
@@ -185,7 +188,7 @@ export default function ProfilePage() {
   if(!window.confirm('Retirer cette personne de tes amis ?'))return
   setFriendBusy(true);const {error}=await supabase.from('friend_requests').delete().eq('id',friendRequest.id)
   if(error)setStatus('Impossible de retirer cet ami : '+error.message)
-  else{setFriendRequest(null);setStatus('Cette personne a été retirée de tes amis.')}
+  else{setFriendRequest(null);setFriendCount(v=>Math.max(0,v-1));setStatus('Cette personne a été retirée de tes amis.')}
   setFriendBusy(false)
  }
  async function requestCouple(){
@@ -222,6 +225,7 @@ export default function ProfilePage() {
   <section className="profile-wrap"><small>ESPACE PERSONNEL</small><h1>{me?'Mon profil':'Profil membre'}</h1>{profileRole!=='member'&&<p style={{margin:'8px 0 14px'}}><span style={{display:'inline-flex',alignItems:'center',gap:6,padding:'5px 10px',borderRadius:999,background:profileRole==='admin'?'#fef3c7':'#dbeafe',color:profileRole==='admin'?'#92400e':'#1e40af',fontWeight:800,fontSize:13}}>{profileRole==='admin'?'🛡️ Administrateur':'🔧 Modérateur'}</span></p>}
    {loading?<div className="card empty" role="status">Chargement du profil…</div>:me?(
     <form className="card profile-form" onSubmit={save}>
+     <p className="profile-friend-count">♡ {friendCount} ami{friendCount>1?"s":""}</p>
      <div className="profile-photo-editor"><MemberAvatar userId={uid} name={name||username} avatarUrl={avatarUrl} className="avatar profile-avatar-preview"/><label className="photo-upload-button">📷 {photoBusy?'Envoi…':'Ajouter une photo'}<input type="file" accept="image/jpeg,image/png,image/webp,image/gif" disabled={photoBusy} onChange={e=>uploadAvatar(e.target.files?.[0])}/></label>{avatarUrl&&<button type="button" className="friend-secondary" disabled={photoBusy} onClick={removeAvatar}>🗑️ Supprimer ma photo</button>}<small>JPG, PNG, WEBP ou GIF · 8 Mo maximum</small></div>
      <label>Nom affiché<input maxLength={50} value={name} onChange={e=>setName(e.target.value)} placeholder="Ton nom affiché"/></label>
      <label>Pseudo<input required pattern="[a-zA-Z0-9_]{3,24}" value={username} onChange={e=>setUsername(e.target.value)} placeholder="pseudo (3 à 24 caractères)"/></label>
@@ -238,7 +242,7 @@ export default function ProfilePage() {
    ):profile?(
     <div className="card profile-form profile-public-card">
      <div className="profile-cover"></div>
-     <div className="profile-identity"><MemberAvatar userId={profile.id} name={profile.display_name||profile.username} avatarUrl={profile.avatar_url} className="avatar large profile-avatar-preview"/><div className="profile-identity-copy"><h2>{profile.display_name||profile.username||'Membre'}</h2><p>@{profile.username||'membre'}</p>{profileRole!=='member'&&<span style={{display:'inline-flex',alignItems:'center',gap:5,margin:'3px 0 7px',padding:'4px 9px',borderRadius:999,background:profileRole==='admin'?'#fef3c7':'#dbeafe',color:profileRole==='admin'?'#92400e':'#1e40af',fontWeight:800,fontSize:12}}>{profileRole==='admin'?'🛡️ Administrateur':'🔧 Modérateur'}</span>}<small>{followerCount} abonné{followerCount>1?'s':''}</small></div><div className="profile-identity-actions"><button type="button" className="profile-follow-button" disabled={friendBusy||blocked} onClick={toggleFollow}>{following?'✓ Abonné':'＋ Suivre'}</button>{!blocked&&friendRequest?.status==='accepted'?<Link className="profile-add-friend-button" href={'/conversation?with='+profile.id}>Message</Link>:!blocked&&friendRequest?.status==='pending'&&friendRequest.sender_id===currentUser?<button type="button" className="profile-add-friend-button" disabled>Demande envoyée ✓</button>:!blocked&&friendRequest?.status==='pending'?<div className="friend-actions profile-friend-actions"><button type="button" disabled={friendBusy} onClick={()=>answerFriendRequest('accepted')}>Accepter</button><button type="button" className="friend-secondary" disabled={friendBusy} onClick={()=>answerFriendRequest('declined')}>Refuser</button></div>:!blocked&&friendRequest?.status==='declined'?<span className="profile-friend-status">Demande refusée</span>:!blocked?<button type="button" className="profile-add-friend-button" disabled={friendBusy} onClick={sendFriendRequest}>＋ Ajouter en ami</button>:null}</div></div>
+     <div className="profile-identity"><MemberAvatar userId={profile.id} name={profile.display_name||profile.username} avatarUrl={profile.avatar_url} className="avatar large profile-avatar-preview"/><div className="profile-identity-copy"><h2>{profile.display_name||profile.username||'Membre'}</h2><p>@{profile.username||'membre'}</p>{profileRole!=='member'&&<span style={{display:'inline-flex',alignItems:'center',gap:5,margin:'3px 0 7px',padding:'4px 9px',borderRadius:999,background:profileRole==='admin'?'#fef3c7':'#dbeafe',color:profileRole==='admin'?'#92400e':'#1e40af',fontWeight:800,fontSize:12}}>{profileRole==='admin'?'🛡️ Administrateur':'🔧 Modérateur'}</span>}<small>{followerCount} abonné{followerCount>1?'s':''}</small><small>♡ {friendCount} ami{friendCount>1?"s":""}</small></div><div className="profile-identity-actions"><button type="button" className="profile-follow-button" disabled={friendBusy||blocked} onClick={toggleFollow}>{following?'✓ Abonné':'＋ Suivre'}</button>{!blocked&&friendRequest?.status==='accepted'?<Link className="profile-add-friend-button" href={'/conversation?with='+profile.id}>Message</Link>:!blocked&&friendRequest?.status==='pending'&&friendRequest.sender_id===currentUser?<button type="button" className="profile-add-friend-button" disabled>Demande envoyée ✓</button>:!blocked&&friendRequest?.status==='pending'?<div className="friend-actions profile-friend-actions"><button type="button" disabled={friendBusy} onClick={()=>answerFriendRequest('accepted')}>Accepter</button><button type="button" className="friend-secondary" disabled={friendBusy} onClick={()=>answerFriendRequest('declined')}>Refuser</button></div>:!blocked&&friendRequest?.status==='declined'?<span className="profile-friend-status">Demande refusée</span>:!blocked?<button type="button" className="profile-add-friend-button" disabled={friendBusy} onClick={sendFriendRequest}>＋ Ajouter en ami</button>:null}</div></div>
      {!blocked&&profile.age!==undefined&&profile.age!==null&&profile.age>=18&&<button type="button" className="profile-add-friend-button" disabled={friendBusy||coupleStatus==='pending'} onClick={requestCouple}>{coupleStatus==='pending'?'Demande envoyée 💞':'💞 Proposer d’être en couple'}</button>}
      <div className="profile-public-tabs" role="tablist" aria-label="Sections du profil"><button type="button" role="tab" aria-selected={activeProfileTab==='about'} className={activeProfileTab==='about'?'active':''} onClick={()=>setActiveProfileTab('about')}>À propos</button><button type="button" role="tab" aria-selected={activeProfileTab==='photos'} className={activeProfileTab==='photos'?'active':''} onClick={()=>setActiveProfileTab('photos')}>Photos ({profilePhotoUrls.length})</button></div>
      {activeProfileTab==='about'&&<section id="profile-about" className="profile-about-section"><h3>À propos</h3><p>{profile.bio||'Ce membre n’a pas encore ajouté de présentation.'}</p><div className="profile-details-grid">{profile.age&&<p><strong>Âge</strong><span>{profile.age} ans</span></p>}{profile.city&&<p><strong>Ville</strong><span>{profile.city}</span></p>}{profile.interests&&<p><strong>Centres d’intérêt</strong><span>{profile.interests}</span></p>}{profile.hobbies&&<p><strong>Loisirs et passions</strong><span>{profile.hobbies}</span></p>}{profile.favorite_music&&<p><strong>Musique préférée</strong><span>{profile.favorite_music}</span></p>}</div>{profile.last_seen_at&&<p className="profile-last-seen"><strong>Dernière connexion :</strong> {new Date(profile.last_seen_at).toLocaleString('fr-FR',{dateStyle:'medium',timeStyle:'short'})}</p>}</section>}
