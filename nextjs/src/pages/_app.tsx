@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
 import Link from 'next/link'
 import Head from 'next/head'
+import { Analytics } from '@vercel/analytics/next'
 import '../styles/globals.css'
 import type { AppProps } from 'next/app'
 import { supabase } from '../lib/supabaseClient'
@@ -170,6 +171,7 @@ export default function App({ Component, pageProps }: AppProps) {
   }
   return <>
     <Head><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" /></Head>
+    <Analytics />
     <AnimatedBackground />
     <div className="global-tools global-tools-top">
       {guestName && <span className="guest-name-label">{guestName} · Consultation seule</span>}
