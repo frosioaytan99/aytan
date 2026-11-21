@@ -50,14 +50,15 @@ export default function SettingsPage() {
   const [status, setStatus] = useState('')
   useEffect(() => {
     setTheme(document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light')
-    try { setWallpaper(localStorage.getItem('weshbien-wallpaper') || 'aurora') } catch {}
+    try { const saved = localStorage.getItem('weshbien-wallpaper') || 'aurora'; setWallpaper(saved); document.documentElement.dataset.wallpaper = saved; document.body.dataset.wallpaper = saved } catch {}
   }, [])
   function chooseWallpaper(id: string) {
     setWallpaper(id)
     try { localStorage.setItem('weshbien-wallpaper', id) } catch {}
     document.body.dataset.wallpaper = id
+    document.documentElement.dataset.wallpaper = id
     window.dispatchEvent(new Event('weshbien:wallpaper-change'))
-    setStatus('Fond animé appliqué sur cet appareil.')
+    setStatus('Thème complet appliqué sur cet appareil : interface, couleurs et fond vidéo.')
   }
   function changeTheme() {
     const next = theme === 'dark' ? 'light' : 'dark'
@@ -78,16 +79,16 @@ export default function SettingsPage() {
       <button type="button" onClick={changeTheme}>{theme === 'dark' ? '☀️ Passer en mode clair' : '🌙 Passer en mode sombre'}</button>
       <button type="button" className="friend-secondary" onClick={logout}>↪ Déconnexion</button>
     </div>
-    <div className="wallpaper-heading"><div><span>PERSONNALISATION</span><h2>Fonds d’écran animés</h2><p>39 ambiances à explorer : nature, espace, néon et effets abstraits.</p></div><b>39 ambiances</b></div>
+    <div className="wallpaper-heading"><div><span>PERSONNALISATION</span><h2>Thèmes complets & vidéos 4K</h2><p>Choisis une ambiance : le fond, les couleurs, les boutons, les cartes et les menus changent ensemble.</p></div><b>39 thèmes</b></div>
     <div className="wallpaper-grid">
       {wallpapers.map(item => <button type="button" key={item.id} onClick={() => chooseWallpaper(item.id)} className={'wallpaper-option' + (wallpaper === item.id ? ' selected' : '')} aria-pressed={wallpaper === item.id}>
-        <span className="wallpaper-preview" style={{ background: item.colors }}><i/><i/><i/></span>
+        <span className="wallpaper-preview" style={{ background: item.colors }}><i/><i/><i/><em>VIDÉO 4K</em></span>
         <span className="wallpaper-option-copy"><strong>{item.name}</strong><small>{item.group}</small></span>
         <span className="wallpaper-check">{wallpaper === item.id ? '✓' : '+'}</span>
       </button>)}
     </div>
-    <p className="wallpaper-status" role="status">{status || 'Ton choix est enregistré sur cet appareil.'}</p>
-    <div className="wallpaper-library-link"><strong>Encore plus de fonds à venir</strong><p>Cette galerie propose des ambiances animées légères. Les véritables vidéos 4K pourront être ajoutées dans une prochaine évolution.</p></div>
+    <p className="wallpaper-status" role="status">{status || 'Ton thème est enregistré sur cet appareil.'}</p>
+    <div className="wallpaper-library-link"><strong>Vidéos 4K en mouvement</strong><p>Les scènes vidéo sont diffusées en UHD 3840 × 2160 quand l’appareil le permet. Pour économiser les données ou préserver la batterie, les appareils compatibles avec l’économie de données utilisent le fond animé léger à la place.</p><small>Vidéos libres issues de Pexels : <a href="https://www.pexels.com/video/ocean-from-above-17098934/" target="_blank" rel="noreferrer">Océan</a> · <a href="https://www.pexels.com/video/stunning-forest-waterfall-aerial-view-31346765/" target="_blank" rel="noreferrer">Forêt & cascade</a> · <a href="https://www.pexels.com/video/aerial-view-of-a-forest-at-sunset-20583509/" target="_blank" rel="noreferrer">Coucher de soleil</a> · <a href="https://www.pexels.com/video/stunning-night-sky-time-lapse-in-forest-29628756/" target="_blank" rel="noreferrer">Ciel étoilé</a>.</small></div>
   </section>
   <style jsx global>{`
     .wallpaper-settings{max-width:1050px!important}
@@ -106,13 +107,14 @@ export default function SettingsPage() {
     .wallpaper-preview{position:relative;display:block;overflow:hidden;height:110px;border-radius:12px;background-size:200% 200%;animation:wallpaperPreviewMove 8s ease-in-out infinite alternate}
     .wallpaper-preview i{position:absolute;width:80px;height:80px;border-radius:50%;filter:blur(18px);background:#ffffff66;animation:wallpaperOrb 7s ease-in-out infinite alternate}
     .wallpaper-preview i:nth-child(1){left:8%;top:20%}.wallpaper-preview i:nth-child(2){right:10%;top:10%;animation-delay:-2s}.wallpaper-preview i:nth-child(3){left:45%;bottom:-30%;animation-delay:-4s}
+    .wallpaper-preview em{position:absolute;right:8px;bottom:8px;padding:5px 8px;border-radius:20px;background:#10101cbb;color:#fff;font-size:9px;font-style:normal;font-weight:900;letter-spacing:.7px;backdrop-filter:blur(8px)}
     @keyframes wallpaperPreviewMove{from{background-position:0% 50%;transform:scale(1)}to{background-position:100% 50%;transform:scale(1.04)}}
     @keyframes wallpaperOrb{from{transform:translate(-10px,-8px)}to{transform:translate(24px,14px)}}
     .wallpaper-option-copy{display:flex;flex-direction:column;gap:3px;padding:0 3px 2px}.wallpaper-option-copy strong{font-size:14px}.wallpaper-option-copy small{color:var(--muted,#777)}
     .wallpaper-check{position:absolute;right:15px;top:15px;width:25px;height:25px;display:grid;place-items:center;border-radius:50%;background:#fff;color:#6d28d9;font-weight:900;box-shadow:0 2px 8px #0003}
     .wallpaper-status{min-height:22px;color:var(--accent,#7c3aed);font-size:13px;font-weight:700}
     .wallpaper-library-link{margin:26px 0;padding:20px;border:1px solid var(--border,#e5e1ed);border-radius:18px;background:var(--card,#fff)}
-    .wallpaper-library-link p{color:var(--muted,#777);line-height:1.55}
+    .wallpaper-library-link p{color:var(--muted,#777);line-height:1.55}.wallpaper-library-link small{display:block;color:var(--muted,#777);line-height:1.8}.wallpaper-library-link a{color:var(--accent,#7c3aed);font-weight:800}
     .wallpaper-library-link a{color:var(--accent,#7c3aed);font-weight:800}
     @media(max-width:650px){.wallpaper-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.wallpaper-preview{height:90px}.wallpaper-option{padding:7px;border-radius:15px}.wallpaper-option-copy strong{font-size:13px}.wallpaper-heading{align-items:start;flex-direction:column}}
   `}</style>
