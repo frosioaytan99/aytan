@@ -118,8 +118,6 @@ export default function App({ Component, pageProps }: AppProps) {
       document.addEventListener('visibilitychange', updatePresence)
       const refreshUnreadMessages = () => supabase.from('messages').select('id', { count: 'exact', head: true }).eq('recipient', userId).eq('is_read', false)
         .then(({ count, error }) => { if (active && !error) setUnreadMessages(count || 0) })
-      const onMessagesRead = () => refreshUnreadMessages()
-      window.addEventListener('weshbien:messages-read', onMessagesRead)
       refreshUnreadMessages()
       supabase.from('notifications').select('id', { count: 'exact', head: true }).eq('user_id', userId).eq('is_read', false)
         .then(({ count }) => { if (active) setUnread(count || 0) })
@@ -150,7 +148,6 @@ export default function App({ Component, pageProps }: AppProps) {
     return () => {
       active = false
       window.removeEventListener('weshbien:notify', onNotice)
-      window.removeEventListener('weshbien:messages-read', onMessagesRead)
       if (presenceVisibilityHandler) document.removeEventListener('visibilitychange', presenceVisibilityHandler)
       subscription.unsubscribe()
       if (channel) supabase.removeChannel(channel)
