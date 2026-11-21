@@ -23,7 +23,7 @@ function NavIcon({name}:{name:string}) {
 }
 const menuItems: [string, string, string][] = [
   ['Accueil', '/feed', '⌂'], ['Weshbien IA', '/assistant', '✦'], ['Individuel', '/individual', '⚠'], ['Explorer', '/explore', '◉'], ['Recherche', '/search', '⌕'], ['Stories', '/stories', '◌'], ['En ligne', '/online', '●'],
-  ['Amis', '/friends', '♧'], ['MeetMe', '/explore', '♡'], ['Communautés', '/communities', '▤'], ['Photos', '/feed', '▧'],
+  ['Amis', '/friends', '♧'], ['MeetMe', '/explore', '♡'], ['Communautés', '/communities', '▤'], ['Photos', '/photos', '▧'],
   ['Forum', '/forums', '▤'], ['Blog', '/questions', '▣'], ['Notifications', '/notifications', '♧'],
   ['Messages', '/inbox', '✉'], ['Mon profil', '/profile', '♙'], ['Administration', '/admin', '♢'],
 ]
