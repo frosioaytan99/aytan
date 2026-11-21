@@ -832,8 +832,25 @@ html[data-theme="dark"] .messenger-search input,html[data-theme="dark"] .messeng
  .home-refresh{margin:9px 0 4px!important;padding:9px 13px!important;font-size:13px!important}
 }
 
-/* Conversation contact photo: match the compact round avatar shown in the reference */
+
+
+/* Force conversation avatar to be a small circle (wrapper, fallback and actual image) */
+.messenger-personbar .member-avatar-wrap:has(>.messenger-avatar){
+ width:56px!important;height:56px!important;min-width:56px!important;max-width:56px!important;
+ flex:0 0 56px!important;display:block!important;position:relative!important;overflow:visible!important;
+}
+.messenger-personbar .member-avatar-wrap>.messenger-avatar{
+ display:flex!important;align-items:center!important;justify-content:center!important;
+ width:56px!important;height:56px!important;min-width:56px!important;max-width:56px!important;
+ min-height:56px!important;max-height:56px!important;aspect-ratio:1/1!important;
+ border-radius:50%!important;overflow:hidden!important;box-sizing:border-box!important;
+}
+.messenger-personbar .member-avatar-wrap>.messenger-avatar img,
+.messenger-personbar .member-avatar-wrap>.messenger-avatar .community-image{
+ display:block!important;width:100%!important;height:100%!important;max-width:100%!important;
+ max-height:100%!important;object-fit:cover!important;border-radius:50%!important;
+}
 @media(max-width:600px){
- .messenger-personbar{gap:12px!important}
- .messenger-personbar .messenger-avatar{width:80px!important;height:80px!important;min-width:80px!important;max-width:80px!important;border-radius:50%!important;object-fit:cover!important;flex:0 0 80px!important}
+ .messenger-personbar .member-avatar-wrap:has(>.messenger-avatar){width:52px!important;height:52px!important;min-width:52px!important;max-width:52px!important;flex-basis:52px!important}
+ .messenger-personbar .member-avatar-wrap>.messenger-avatar{width:52px!important;height:52px!important;min-width:52px!important;max-width:52px!important;min-height:52px!important;max-height:52px!important}
 }
