@@ -1452,3 +1452,107 @@ html[data-theme="dark"] .mobile-bottom-nav a.selected::after,
 html[data-theme="dark"] .mobile-bottom-nav a.active::after {
   background: #9b6bff !important;
 }
+
+
+/* Complete selectable palettes: wallpaper selection now recolors the whole interface */
+html[data-wallpaper="aurora"]{--theme-accent:#9b5cff;--theme-accent-2:#ec4ed5;--theme-glow:rgba(155,92,255,.22);--theme-deep:#17102d;--theme-surface:#211936}
+html[data-wallpaper="ocean"],html[data-wallpaper="ice"],html[data-wallpaper="waterfall"],html[data-wallpaper="crystal"],html[data-wallpaper="sapphire"],html[data-wallpaper="electric"]{--theme-accent:#26a6d9;--theme-accent-2:#4169e1;--theme-glow:rgba(38,166,217,.2);--theme-deep:#071b2c;--theme-surface:#102b40}
+html[data-wallpaper="sunset"],html[data-wallpaper="fire"],html[data-wallpaper="volcano"],html[data-wallpaper="desert"],html[data-wallpaper="copper"]{--theme-accent:#f07855;--theme-accent-2:#d94683;--theme-glow:rgba(240,120,85,.2);--theme-deep:#2a121d;--theme-surface:#3b2028}
+html[data-wallpaper="forest"],html[data-wallpaper="jungle"],html[data-wallpaper="emerald"],html[data-wallpaper="matrix"],html[data-wallpaper="beach"]{--theme-accent:#25b887;--theme-accent-2:#8abf45;--theme-glow:rgba(37,184,135,.2);--theme-deep:#071f1b;--theme-surface:#12332a}
+html[data-wallpaper="pink"],html[data-wallpaper="cherry"],html[data-wallpaper="ruby"],html[data-wallpaper="clouds"]{--theme-accent:#ec65b5;--theme-accent-2:#a855f7;--theme-glow:rgba(236,101,181,.2);--theme-deep:#2a1028;--theme-surface:#3a1c39}
+html[data-wallpaper="gold"],html[data-wallpaper="silver"],html[data-wallpaper="mountain"]{--theme-accent:#d6a84f;--theme-accent-2:#a78bfa;--theme-glow:rgba(214,168,79,.18);--theme-deep:#211c18;--theme-surface:#332b22}
+html[data-wallpaper="space"],html[data-wallpaper="cosmos"],html[data-wallpaper="moon"],html[data-wallpaper="stars"],html[data-wallpaper="storm"],html[data-wallpaper="rain"]{--theme-accent:#8b83ff;--theme-accent-2:#42b7e8;--theme-glow:rgba(139,131,255,.2);--theme-deep:#090d23;--theme-surface:#171d39}
+html[data-wallpaper="neon"],html[data-wallpaper="cyber"],html[data-wallpaper="laser"],html[data-wallpaper="rainbow"],html[data-wallpaper="smoke"],html[data-wallpaper="dream"]{--theme-accent:#b45cff;--theme-accent-2:#ed45cf;--theme-glow:rgba(180,92,255,.22);--theme-deep:#160b29;--theme-surface:#27143c}
+html[data-wallpaper="minimal"]{--theme-accent:#a1a1aa;--theme-accent-2:#71717a;--theme-glow:rgba(161,161,170,.14);--theme-deep:#111113;--theme-surface:#242428}
+html[data-wallpaper="lavender"],html[data-wallpaper="marble"]{--theme-accent:#a78bfa;--theme-accent-2:#d8a4ff;--theme-glow:rgba(167,139,250,.22);--theme-deep:#17112c;--theme-surface:#261d42}
+html[data-wallpaper="aurora"],html[data-wallpaper="ocean"],html[data-wallpaper="ice"],html[data-wallpaper="waterfall"],html[data-wallpaper="crystal"],html[data-wallpaper="sapphire"],html[data-wallpaper="electric"],html[data-wallpaper="sunset"],html[data-wallpaper="fire"],html[data-wallpaper="volcano"],html[data-wallpaper="desert"],html[data-wallpaper="copper"],html[data-wallpaper="forest"],html[data-wallpaper="jungle"],html[data-wallpaper="emerald"],html[data-wallpaper="matrix"],html[data-wallpaper="beach"],html[data-wallpaper="pink"],html[data-wallpaper="cherry"],html[data-wallpaper="ruby"],html[data-wallpaper="clouds"],html[data-wallpaper="gold"],html[data-wallpaper="silver"],html[data-wallpaper="mountain"],html[data-wallpaper="space"],html[data-wallpaper="cosmos"],html[data-wallpaper="moon"],html[data-wallpaper="stars"],html[data-wallpaper="storm"],html[data-wallpaper="rain"],html[data-wallpaper="neon"],html[data-wallpaper="cyber"],html[data-wallpaper="laser"],html[data-wallpaper="rainbow"],html[data-wallpaper="smoke"],html[data-wallpaper="dream"],html[data-wallpaper="minimal"],html[data-wallpaper="lavender"],html[data-wallpaper="marble"]{
+ --purple:var(--theme-accent);--pink:var(--theme-accent-2);
+}
+html[data-wallpaper] .app-header nav a.active,
+html[data-wallpaper] .app-header nav a:hover,
+html[data-wallpaper] .brand span,
+html[data-wallpaper] .side-card a,
+html[data-wallpaper] .right-card a,
+html[data-wallpaper] .profile-wrap>small,
+html[data-wallpaper] .page-intro small,
+html[data-wallpaper] .directory>small{color:var(--theme-accent)!important}
+html[data-wallpaper] .primary-link,
+html[data-wallpaper] .member-primary,
+html[data-wallpaper] .composer button,
+html[data-wallpaper] .search-row button,
+html[data-wallpaper] .profile-form>button,
+html[data-wallpaper] .profile-follow-button,
+html[data-wallpaper] .profile-add-friend-button{background:linear-gradient(110deg,var(--theme-accent),var(--theme-accent-2))!important;color:#fff!important}
+html[data-wallpaper] .feature-icon,
+html[data-wallpaper] .home-kicker,
+html[data-wallpaper] .home-feed-tabs button.active{color:var(--theme-accent)!important}
+html[data-wallpaper][data-theme="dark"] body,
+html[data-wallpaper][data-theme="dark"] #__next,
+html[data-wallpaper][data-theme="dark"] .app-shell,
+html[data-wallpaper][data-theme="dark"] .member-shell{background:radial-gradient(ellipse at 8% 0%,var(--theme-glow),transparent 36%),var(--theme-deep)!important}
+html[data-wallpaper][data-theme="dark"] .topbar,
+html[data-wallpaper][data-theme="dark"] .app-header,
+html[data-wallpaper][data-theme="dark"] .mobile-community-header,
+html[data-wallpaper][data-theme="dark"] .mobile-bottom-nav{background:color-mix(in srgb,var(--theme-deep) 90%,transparent)!important;border-color:color-mix(in srgb,var(--theme-accent) 24%,transparent)!important}
+html[data-wallpaper][data-theme="dark"] .card,
+html[data-wallpaper][data-theme="dark"] .feature-card,
+html[data-wallpaper][data-theme="dark"] .right-card,
+html[data-wallpaper][data-theme="dark"] .side-card,
+html[data-wallpaper][data-theme="dark"] .member-card,
+html[data-wallpaper][data-theme="dark"] .post,
+html[data-wallpaper][data-theme="dark"] .composer,
+html[data-wallpaper][data-theme="dark"] .profile-form,
+html[data-wallpaper][data-theme="dark"] .member-panel,
+html[data-wallpaper][data-theme="dark"] .profile-gallery-view,
+html[data-wallpaper][data-theme="dark"] .profile-gallery-editor{background:linear-gradient(145deg,color-mix(in srgb,var(--theme-surface) 94%,#fff 6%),var(--theme-deep))!important;border-color:color-mix(in srgb,var(--theme-accent) 28%,transparent)!important;color:#f7f3ff!important}
+html[data-wallpaper][data-theme="dark"] .home-member-details,
+html[data-wallpaper][data-theme="dark"] .home-member-city{background:var(--theme-surface)!important;color:#f7f3ff!important;border-color:color-mix(in srgb,var(--theme-accent) 28%,transparent)!important}
+html[data-wallpaper][data-theme="dark"] .profile-cover{background:radial-gradient(circle at 18% 35%,var(--theme-accent-2),transparent 38%),linear-gradient(115deg,var(--theme-deep),var(--theme-surface),var(--theme-accent))!important}
+html[data-wallpaper][data-theme="dark"] .profile-public-card{background:var(--theme-deep)!important;border-color:color-mix(in srgb,var(--theme-accent) 30%,transparent)!important}
+html[data-wallpaper][data-theme="dark"] .profile-public-tabs button.active{background:linear-gradient(110deg,var(--theme-accent),var(--theme-accent-2))!important;color:#fff!important}
+html[data-wallpaper]:not([data-theme="dark"]) .primary-link,
+html[data-wallpaper]:not([data-theme="dark"]) .member-primary,
+html[data-wallpaper]:not([data-theme="dark"]) .composer button,
+html[data-wallpaper]:not([data-theme="dark"]) .search-row button,
+html[data-wallpaper]:not([data-theme="dark"]) .profile-form>button{background:linear-gradient(110deg,var(--theme-accent),var(--theme-accent-2))!important;color:#fff!important}
+
+/* Member profile refresh: cover banner, overlapping avatar, social profile layout */
+.profile-public-card{max-width:900px!important;padding:0!important;overflow:hidden;gap:0!important}
+.profile-public-card .profile-cover{height:210px;min-height:210px;border-radius:0!important;background:radial-gradient(circle at 20% 30%,#d946ef,transparent 38%),linear-gradient(115deg,#17102d,#442078 55%,#174e70);position:relative;overflow:hidden}
+.profile-public-card .profile-cover:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 45%,rgba(5,5,15,.35))}
+.profile-public-card .profile-identity{position:relative;display:flex;align-items:flex-end;gap:18px;padding:0 28px 20px;margin-top:-54px;z-index:1;flex-wrap:wrap}
+.profile-public-card .profile-avatar-preview{width:116px!important;height:116px!important;border-radius:50%!important;border:5px solid var(--surface,#fff);background:#24163e;box-shadow:0 8px 26px rgba(0,0,0,.24);flex:0 0 auto}
+.profile-public-card .profile-identity-copy{flex:1;min-width:160px;padding:0 0 8px}
+.profile-public-card .profile-identity-copy h2{font:850 clamp(23px,3vw,30px) Manrope;margin:0 0 4px;letter-spacing:-.8px}
+.profile-public-card .profile-identity-copy p{margin:0 0 5px;color:var(--muted);font-size:13px}
+.profile-public-card .profile-identity-copy small{color:var(--theme-accent,var(--purple));font-size:12px;font-weight:800}
+.profile-public-card .profile-identity-actions{display:flex;gap:9px;flex-wrap:wrap;margin-left:auto;padding-bottom:8px}
+.profile-public-card .profile-follow-button,.profile-public-card .profile-add-friend-button{border:0!important;border-radius:12px!important;padding:11px 16px!important;font-weight:800!important}
+.profile-public-card>.profile-add-friend-button{margin:0 28px 14px;align-self:flex-start}
+.profile-public-card .profile-public-tabs{display:flex;gap:8px;padding:15px 28px;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.profile-public-card .profile-public-tabs button{border:0;background:transparent;color:var(--muted);padding:10px 16px;border-radius:11px;font-weight:800}
+.profile-public-card .profile-public-tabs button.active{background:linear-gradient(110deg,#7652e8,#d45ac2);color:#fff}
+.profile-public-card .profile-about-section,.profile-public-card .profile-gallery-view{margin:0 20px 18px;padding:20px;border:1px solid var(--line);border-radius:17px;background:var(--surface,#fff)}
+.profile-public-card .profile-about-section h3{margin:0 0 10px;font:800 18px Manrope}
+.profile-public-card .profile-about-section>p{line-height:1.65;color:var(--muted)}
+.profile-public-card .profile-details-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.profile-public-card .profile-details-grid p{display:grid;gap:5px;margin:0;padding:13px;border:1px solid var(--line);border-radius:12px;background:color-mix(in srgb,var(--purple) 5%,var(--surface,#fff))}
+.profile-public-card .profile-details-grid strong{font-size:11px;color:var(--theme-accent,var(--purple))}
+.profile-public-card .profile-details-grid span{font-size:13px;font-weight:700}
+.profile-public-card .profile-likes-count,.profile-public-card>.profile-like-button,.profile-public-card>.friend-secondary,.profile-public-card>.danger-action,.profile-public-card>.notice,.profile-public-card>a:last-child{margin-left:28px;margin-right:28px}
+.profile-public-card .profile-like-button{width:calc(100% - 56px);margin-bottom:10px}
+.profile-public-card>.friend-secondary,.profile-public-card>.danger-action{align-self:flex-start;margin-bottom:8px}
+.profile-public-card .profile-empty-photos{color:var(--muted);text-align:center;padding:20px}
+@media(max-width:650px){
+ .profile-public-card .profile-cover{height:160px;min-height:160px}
+ .profile-public-card .profile-identity{padding:0 16px 16px;gap:12px;margin-top:-44px}
+ .profile-public-card .profile-avatar-preview{width:88px!important;height:88px!important;border-width:4px}
+ .profile-public-card .profile-identity-copy{min-width:120px}
+ .profile-public-card .profile-identity-actions{width:100%;margin:0;padding:0}
+ .profile-public-card .profile-identity-actions button,.profile-public-card .profile-identity-actions a{flex:1;text-align:center}
+ .profile-public-card .profile-public-tabs{padding:12px 16px}
+ .profile-public-card .profile-about-section,.profile-public-card .profile-gallery-view{margin:0 12px 14px;padding:15px}
+ .profile-public-card .profile-details-grid{grid-template-columns:1fr}
+ .profile-public-card .profile-likes-count,.profile-public-card>.profile-like-button,.profile-public-card>.friend-secondary,.profile-public-card>.danger-action,.profile-public-card>.notice,.profile-public-card>a:last-child{margin-left:16px;margin-right:16px}
+ .profile-public-card .profile-like-button{width:calc(100% - 32px)}
+}
