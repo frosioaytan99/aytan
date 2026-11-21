@@ -37,7 +37,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const mime = match[1]
   const bytes = Buffer.from(match[2], 'base64')
-  if (!bytes.length || bytes.length > 3 * 1024 * 1024) {
+  if (!bytes.length || bytes.length > 8 * 1024 * 1024) {
     return res.status(413).json({ error: 'image_too_large' })
   }
 
