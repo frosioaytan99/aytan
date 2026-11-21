@@ -41,7 +41,9 @@ export default function AnimatedBackground() {
     observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] })
 
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    setVideoEnabled(!reduced)
+    const smallScreen = window.matchMedia('(max-width: 768px)').matches
+    const saveData = Boolean((navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData)
+    setVideoEnabled(!reduced && !smallScreen && !saveData)
     return () => { window.removeEventListener('weshbien:wallpaper-change', apply); observer.disconnect() }
   }, [])
 
@@ -53,7 +55,7 @@ export default function AnimatedBackground() {
       {wallpaper === 'matrix' && <div className="wb-matrix-rain" aria-hidden="true">
         {['010101110010101101001011010101','101101001010110101101001010110','001011010110010101101011001010','110010101101001011010110101101','010110100101101101001010110101','101001011010110010101101001011','011010110101001011010110100101','100101101001011010110101001011'].map((code, index) => <span key={index}>{code}</span>)}
       </div>}
-      {videoSource && <video key={videoSource} className="wb-wallpaper-video" autoPlay muted loop playsInline preload="metadata" aria-hidden="true">
+      {videoSource && <video key={videoSource} className="wb-wallpaper-video" autoPlay muted loop playsInline preload="none" aria-hidden="true">
         <source src={videoSource} type="video/mp4" />
       </video>}
       <style jsx global>{`
@@ -131,6 +133,7 @@ export default function AnimatedBackground() {
         html[data-theme="dark"] body { background-color:#11101b !important; }
         html[data-theme="dark"] body::before { opacity:.42; }
         html[data-theme="dark"] body::after { opacity:.25; }
+        @media(max-width:768px){body::before{inset:-10%;filter:blur(20px) saturate(1.15);animation:none;will-change:auto}body::after{animation:none;opacity:.08;will-change:auto}.wb-wallpaper-video{display:none!important}}
         @media(prefers-reduced-motion:reduce){body::before,body::after{animation:none!important}.wb-wallpaper-video,.wb-matrix-rain span{display:none!important}}
       `}</style>
     </>
