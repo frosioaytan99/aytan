@@ -29,6 +29,7 @@ export default function App({ Component, pageProps }: AppProps) {
   const [notice, setNotice] = useState('')
   const [theme, setTheme] = useState<'light' | 'dark'>('light')
   const [unread, setUnread] = useState(0)
+  const [unreadMessages, setUnreadMessages] = useState(0)
   const [menuOpen, setMenuOpen] = useState(false)
   const [signedIn, setSignedIn] = useState(false)
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
@@ -114,9 +115,15 @@ export default function App({ Component, pageProps }: AppProps) {
       presenceTimer = setInterval(updatePresence, 60000)
       presenceVisibilityHandler = updatePresence
       document.addEventListener('visibilitychange', updatePresence)
+      const refreshUnreadMessages = () => supabase.from('messages').select('id', { count: 'exact', head: true }).eq('recipient', userId).eq('is_read', false)
+        .then(({ count }) => { if (active) setUnreadMessages(count || 0) })
+      refreshUnreadMessages()
       supabase.from('notifications').select('id', { count: 'exact', head: true }).eq('user_id', userId).eq('is_read', false)
         .then(({ count }) => { if (active) setUnread(count || 0) })
       channel = supabase.channel('app-notifications-' + userId)
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'messages', filter: 'recipient=eq.' + userId }, () => {
+          refreshUnreadMessages()
+        })
         .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications', filter: 'user_id=eq.' + userId }, payload => {
           const row: any = payload.new
           onNotice(new CustomEvent('weshbien:notify', { detail: [row?.title, row?.message || row?.body].filter(Boolean).join(' — ') || 'Nouvelle notification' }))
@@ -179,14 +186,14 @@ export default function App({ Component, pageProps }: AppProps) {
         <Link className={router.pathname === '/explore' ? 'selected' : ''} href="/explore"><span><NavIcon name="explore"/></span>Explorer</Link>
         <Link className={router.pathname === '/online' ? 'selected' : ''} href="/online"><span><NavIcon name="explore"/></span>En ligne</Link>
         <Link className={router.pathname === '/individual' ? 'selected' : ''} href="/individual"><span aria-hidden="true">⚠️</span>Individuel</Link>
-        <Link className={router.pathname === '/inbox' || router.pathname === '/conversation' ? 'selected' : ''} href="/inbox"><span><NavIcon name="chat"/>{unread > 0 && <i />}</span>Chat</Link>
+        <Link className={router.pathname === '/inbox' || router.pathname === '/conversation' ? 'selected' : ''} href="/inbox"><span><NavIcon name="chat"/>{unreadMessages > 0 && <b className="nav-count-badge">{unreadMessages > 99 ? '99+' : unreadMessages}</b>}</span>Chat</Link>
         <Link className={router.pathname === '/profile' ? 'selected' : ''} href="/profile"><span><NavIcon name="profile"/></span>Profil</Link>
       </nav>
       {menuOpen && <div className="mobile-drawer-backdrop" onClick={() => setMenuOpen(false)}>
         <aside className="mobile-drawer" onClick={event => event.stopPropagation()}>
           <div className="mobile-drawer-heading"><span className="brand"><span className="brand-mark">w</span>weshbien2.</span><button type="button" onClick={() => setMenuOpen(false)} aria-label="Fermer">×</button></div>
           <small>NAVIGATION</small>
-          {menuItems.map(([label, href, icon]) => <Link key={label} href={href} onClick={() => setMenuOpen(false)}><span>{icon}</span>{label}</Link>)}
+          {menuItems.map(([label, href, icon]) => <Link key={label} href={href} onClick={() => setMenuOpen(false)}><span>{icon}</span>{label}{label === 'Notifications' && unread > 0 && <b className="drawer-count-badge">{unread > 99 ? '99+' : unread}</b>}{label === 'Messages' && unreadMessages > 0 && <b className="drawer-count-badge">{unreadMessages > 99 ? '99+' : unreadMessages}</b>}</Link>)}
           <button className="drawer-theme" type="button" onClick={toggleTheme}>{theme === 'dark' ? '☀️ Mode clair' : '🌙 Mode sombre'}</button>
         </aside>
       </div>}
