@@ -10,12 +10,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(405).json({ error: 'Méthode non autorisée.' })
   }
 
-  const apiKey = process.env.OPENAI_API_KEY
+  const apiKey = process.env.GROQ_API_KEY
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
   if (!apiKey || !supabaseUrl || !anonKey || !serviceKey) {
-    return res.status(503).json({ error: "L'assistant IA n'est pas encore configuré." })
+    return res.status(503).json({ error: "Weshbien IA n'est pas encore entièrement configurée. Vérifie les variables sécurisées du site." })
   }
 
   const authorization = req.headers.authorization || ''
@@ -52,13 +52,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (settingsError || !settings) return res.status(503).json({ error: "Les réglages de Weshbien IA sont indisponibles." })
     if (!settings.enabled) return res.status(503).json({ error: "Weshbien IA est temporairement désactivée par l'équipe d'administration." })
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
       body: JSON.stringify({
-        model: settings.model || 'gpt-4o-mini',
+        model: 'openai/gpt-oss-120b',
         temperature: 0.6,
-        max_tokens: settings.max_tokens || 700,
+        max_tokens: Math.min(Number(settings.max_tokens) || 700, 1200),
         messages: [
           {
             role: 'system',
@@ -69,9 +69,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }),
     })
     if (!response.ok) {
-      if (response.status === 401) return res.status(502).json({ error: "La clé OpenAI du site n'est pas valide. Un administrateur doit la vérifier dans Vercel." })
-      if (response.status === 429) return res.status(502).json({ error: "Le quota ou la limite d'utilisation OpenAI est atteint. Vérifie la facturation OpenAI." })
-      return res.status(502).json({ error: "OpenAI n'a pas pu répondre. Réessaie dans un instant." })
+      if (response.status === 401) return res.status(502).json({ error: "La clé Groq du site n'est pas valide. Vérifie GROQ_API_KEY dans Netlify." })
+      if (response.status === 429) return res.status(502).json({ error: "La limite gratuite de Groq est atteinte. Réessaie plus tard." })
+      return res.status(502).json({ error: "Groq n'a pas pu répondre. Réessaie dans un instant." })
     }
     const result = await response.json()
     const answer = result?.choices?.[0]?.message?.content
