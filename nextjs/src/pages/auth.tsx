@@ -10,6 +10,7 @@ export default function AuthPage() {
   const [mode, setMode] = useState<Mode>('login')
   const [email, setEmail] = useState('')
   const [username, setUsername] = useState('')
+  const [age, setAge] = useState('')
   const [password, setPassword] = useState('')
   const [message, setMessage] = useState('')
   const [loading, setLoading] = useState(false)
@@ -60,7 +61,8 @@ export default function AuthPage() {
         setLoading(false)
         return
       }
-      const { data: usernameMatch } = await supabase.from('profiles').select('id').ilike('username', cleanUsername).maybeSingle()
+      const parsedAge = Number(age)
+      if (!Number.isInteger(parsedAge) || parsedAge < 13 || parsedAge > 26) { setMessage('Indique ton âge (de 13 à 26 ans).'); setLoading(false); return }\n      const { data: usernameMatch } = await supabase.from('profiles').select('id').ilike('username', cleanUsername).maybeSingle()
       if (usernameMatch) {
         setMessage("Cet identifiant est déjà utilisé. Choisis-en un autre.")
         setLoading(false)
@@ -71,7 +73,7 @@ export default function AuthPage() {
         password,
         options: {
           emailRedirectTo: `${window.location.origin}/auth`,
-          data: { username: cleanUsername, display_name: cleanUsername },
+          data: { username: cleanUsername, display_name: cleanUsername, age: parsedAge },
         },
       })
       if (error) {
@@ -80,7 +82,7 @@ export default function AuthPage() {
         await supabase.auth.signOut()
         setMessage("La confirmation par e-mail n'est pas activée sur le serveur. Active-la dans Supabase avant de valider les inscriptions.")
       } else if (data.session && data.user) {
-        const { error: profileError } = await supabase.from('profiles').upsert({ id: data.user.id, username: cleanUsername, display_name: cleanUsername }, { onConflict: 'id' })
+        const { error: profileError } = await supabase.from('profiles').upsert({ id: data.user.id, username: cleanUsername, display_name: cleanUsername, age: parsedAge }, { onConflict: 'id' })
         if (profileError) {
           await supabase.auth.signOut()
           setMessage(profileError.code === '23505' ? "Cet identifiant est déjà pris. Choisis-en un autre." : "Impossible d'enregistrer ton identifiant : " + profileError.message)
@@ -133,6 +135,7 @@ export default function AuthPage() {
             <input id="auth-username" type="text" required minLength={3} maxLength={20} pattern="[A-Za-z0-9_]{3,20}" value={username} onChange={e => setUsername(e.target.value)} placeholder="ex. aytan_22" autoComplete="username" />
             <small className="auth-help">Ton identifiant unique, affiché avec @. Lettres, chiffres et _ uniquement.</small>
           </>}
+          {mode === 'signup' && <><label className="auth-label" htmlFor="auth-age">Ton âge (obligatoire)</label><input id="auth-age" type="number" required min={13} max={26} value={age} onChange={e=>setAge(e.target.value)} placeholder="Ton âge"/><small className="auth-help">Ton âge sera visible sur ton profil public.</small></>}
           <label className="auth-label" htmlFor="auth-email">Adresse e-mail</label>
           <input id="auth-email" type="email" required value={email} onChange={e => setEmail(e.target.value)} placeholder="Ton adresse e-mail" autoComplete="email" />
           {mode !== 'forgot' && <>
