@@ -112,7 +112,8 @@ export default function ProfilePage() {
   else{setGalleryUrls(next);setStatus('Photo retirée de ta galerie.')}
  }
  async function save(e:any){
-  e.preventDefault();if(!uid)return
+  e.preventDefault()
+  if(!age.trim()||!Number.isInteger(Number(age))||Number(age)<13||Number(age)>26){setStatus('Ton âge est obligatoire (de 13 à 26 ans).');return};if(!uid)return
   setStatus('')
   const parsedAge=age.trim()===''?null:Number(age)
   if(parsedAge!==null&&(!Number.isInteger(parsedAge)||parsedAge<13||parsedAge>26)){setStatus('L’âge doit être compris entre 13 et 26 ans.');return}
@@ -209,7 +210,7 @@ export default function ProfilePage() {
      <div className="profile-photo-editor"><MemberAvatar userId={uid} name={name||username} avatarUrl={avatarUrl} className="avatar profile-avatar-preview"/><label className="photo-upload-button">📷 {photoBusy?'Envoi…':'Ajouter une photo'}<input type="file" accept="image/jpeg,image/png,image/webp,image/gif" disabled={photoBusy} onChange={e=>uploadAvatar(e.target.files?.[0])}/></label><small>JPG, PNG, WEBP ou GIF · 8 Mo maximum</small></div>
      <label>Nom affiché<input maxLength={50} value={name} onChange={e=>setName(e.target.value)} placeholder="Ton nom affiché"/></label>
      <label>Pseudo<input required pattern="[a-zA-Z0-9_]{3,24}" value={username} onChange={e=>setUsername(e.target.value)} placeholder="pseudo (3 à 24 caractères)"/></label>
-     <label>Âge (facultatif)<input type="number" min="13" max="26" value={age} onChange={e=>setAge(e.target.value)} placeholder="Ton âge"/></label>
+     <label>Âge (obligatoire)<input type="number" min="13" max="26" required value={age} onChange={e=>setAge(e.target.value)} placeholder="Ton âge"/></label>
      <label>Ville (facultatif)<input maxLength={80} value={city} onChange={e=>setCity(e.target.value)} placeholder="Ta ville"/></label>
      <label>À propos de toi<textarea maxLength={300} value={bio} onChange={e=>setBio(e.target.value)} placeholder="Présente-toi en quelques mots…"/></label>
      <label>Centres d’intérêt<input maxLength={180} value={interests} onChange={e=>setInterests(e.target.value)} placeholder="Musique, sport, jeux vidéo…"/></label>
