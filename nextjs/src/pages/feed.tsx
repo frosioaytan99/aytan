@@ -12,33 +12,48 @@ export default function FeedPage(){
  const [posts,setPosts]=useState<Post[]>([]),[newMembers,setNewMembers]=useState<any[]>([]),[newForums,setNewForums]=useState<any[]>([]),[newGroups,setNewGroups]=useState<any[]>([]),[publicGroupMessages,setPublicGroupMessages]=useState<any[]>([]),[newFriends,setNewFriends]=useState<any[]>([]),[activeTab,setActiveTab]=useState<'for-you'|'following'>('for-you'),[userId,setUserId]=useState(''),[body,setBody]=useState(''),[photoFiles,setPhotoFiles]=useState<File[]>([]),[photoPreviews,setPhotoPreviews]=useState<string[]>([]),[commentDrafts,setCommentDrafts]=useState<Record<string,string>>({}),[busy,setBusy]=useState(false),[status,setStatus]=useState('')
  async function load(){
   const {data:{user}}=await supabase.auth.getUser(); if(!user){location.href='/auth';return} setUserId(user.id)
-  const {data:members}=await supabase.from('profiles').select('id,username,display_name,avatar_url,bio,city,created_at').neq('id',user.id).eq('is_private',false).order('created_at',{ascending:false}).limit(12);setNewMembers(members||[])
+  const empty:any[]=[]
+  const membersPromise=supabase.from('profiles').select('id,username,display_name,avatar_url,bio,city,created_at').neq('id',user.id).eq('is_private',false).order('created_at',{ascending:false}).limit(12)
+  const forumsPromise=supabase.from('forum_topics').select('id,title,created_at').order('created_at',{ascending:false}).limit(5)
+  const groupsPromise=supabase.from('communities').select('id,name,description,created_at').eq('is_private',false).order('created_at',{ascending:false}).limit(5)
+  const friendsPromise=supabase.from('friend_requests').select('id,sender_id,recipient_id,updated_at').eq('status','accepted').or('sender_id.eq.'+user.id+',recipient_id.eq.'+user.id).order('updated_at',{ascending:false}).limit(6)
+  const followsPromise=activeTab==='following'?supabase.from('profile_follows').select('followed_id').eq('follower_id',user.id):Promise.resolve({data:empty})
+  const [membersResult,forumsResult,groupsResult,friendsResult,followsResult]=await Promise.all([membersPromise,forumsPromise,groupsPromise,friendsPromise,followsPromise])
+  setNewMembers(membersResult.data||[])
+  setNewForums(forumsResult.data||[])
+  setNewGroups(groupsResult.data||[])
+  const followed=(followsResult.data||[]).map((x:any)=>x.followed_id)
   let postQuery=supabase.from('posts').select('*').order('created_at',{ascending:false}).limit(50)
-  if(activeTab==='following'){const {data:follows}=await supabase.from('profile_follows').select('followed_id').eq('follower_id',user.id);const followed=(follows||[]).map((x:any)=>x.followed_id);postQuery=followed.length?postQuery.in('author_id',followed):postQuery.eq('author_id','00000000-0000-0000-0000-000000000000')}
+  if(activeTab==='following')postQuery=followed.length?postQuery.in('author_id',followed):postQuery.eq('author_id','00000000-0000-0000-0000-000000000000')
   const {data,error}=await postQuery
   if(error){setStatus('Impossible de charger le fil : '+error.message);return}
-  const rows=data||[], postIds=rows.map((p:any)=>p.id), authorIds=rows.map((p:any)=>p.author_id)
-  const {data:likes}=postIds.length?await supabase.from('post_likes').select('post_id,user_id').in('post_id',postIds):{data:[]}
-  const {data:comments}=postIds.length?await supabase.from('post_comments').select('id,post_id,author_id,body,created_at').in('post_id',postIds).order('created_at',{ascending:true}):{data:[]}
-  const allProfileIds=[...new Set([...authorIds,...(comments||[]).map((c:any)=>c.author_id)])]
-  const {data:profiles}=allProfileIds.length?await supabase.from('profiles').select('id,username,display_name,avatar_url,bio').in('id',allProfileIds):{data:[]}
-  setPosts(rows.map((p:any)=>({...p,profile:profiles?.find((x:any)=>x.id===p.author_id),likes:likes?.filter((x:any)=>x.post_id===p.id).length||0,liked:!!likes?.some((x:any)=>x.post_id===p.id&&x.user_id===user.id),comments:(comments||[]).filter((c:any)=>c.post_id===p.id).map((c:any)=>({...c,profile:profiles?.find((x:any)=>x.id===c.author_id)}))})))
-  const {data:forumRows}=await supabase.from('forum_topics').select('id,title,created_at').order('created_at',{ascending:false}).limit(5)
-  setNewForums(forumRows||[])
-  const {data:groupRows}=await supabase.from('communities').select('id,name,description,created_at').eq('is_private',false).order('created_at',{ascending:false}).limit(5)
-  setNewGroups(groupRows||[])
-  const {data:allPublicGroups}=await supabase.from('communities').select('id,name').eq('is_private',false).limit(500)
-  const publicIds=(allPublicGroups||[]).map((g:any)=>g.id)
-  const {data:groupMessages}=publicIds.length?await supabase.from('community_messages').select('id,community_id,user_id,body,created_at').in('community_id',publicIds).order('created_at',{ascending:false}).limit(8):{data:[] as any[]}
-  const messageAuthors=[...new Set((groupMessages||[]).map((m:any)=>m.user_id))]
-  const {data:messageProfiles}=messageAuthors.length?await supabase.from('profiles').select('id,username,display_name').in('id',messageAuthors):{data:[] as any[]}
-  setPublicGroupMessages((groupMessages||[]).map((m:any)=>({...m,groupName:allPublicGroups?.find((g:any)=>g.id===m.community_id)?.name,author:messageProfiles?.find((p:any)=>p.id===m.user_id)?.display_name||messageProfiles?.find((p:any)=>p.id===m.user_id)?.username||'Membre'})))
-  const {data:friendRows}=await supabase.from('friend_requests').select('id,sender_id,recipient_id,updated_at').eq('status','accepted').or('sender_id.eq.'+user.id+',recipient_id.eq.'+user.id).order('updated_at',{ascending:false}).limit(6)
-  const friendIds=(friendRows||[]).map((f:any)=>f.sender_id===user.id?f.recipient_id:f.sender_id)
-  const {data:friendProfiles}=friendIds.length?await supabase.from('profiles').select('id,username,display_name,avatar_url').in('id',friendIds):{data:[] as any[]}
-  setNewFriends(friendProfiles||[])
-
-
+  const rows=data||[],postIds=rows.map((p:any)=>p.id),authorIds=rows.map((p:any)=>p.author_id)
+  const [likesResult,commentsResult]=await Promise.all([
+   postIds.length?supabase.from('post_likes').select('post_id,user_id').in('post_id',postIds):Promise.resolve({data:empty}),
+   postIds.length?supabase.from('post_comments').select('id,post_id,author_id,body,created_at').in('post_id',postIds).order('created_at',{ascending:true}):Promise.resolve({data:empty})
+  ])
+  const likes=likesResult.data||[],comments=commentsResult.data||[]
+  const allProfileIds=[...new Set([...authorIds,...comments.map((c:any)=>c.author_id)])]
+  const [profilesResult,publicGroupsResult]=await Promise.all([
+   allProfileIds.length?supabase.from('profiles').select('id,username,display_name,avatar_url,bio').in('id',allProfileIds):Promise.resolve({data:empty}),
+   supabase.from('communities').select('id,name').eq('is_private',false).limit(500)
+  ])
+  const profiles=profilesResult.data||[]
+  setPosts(rows.map((p:any)=>({...p,profile:profiles.find((x:any)=>x.id===p.author_id),likes:likes.filter((x:any)=>x.post_id===p.id).length,liked:likes.some((x:any)=>x.post_id===p.id&&x.user_id===user.id),comments:comments.filter((c:any)=>c.post_id===p.id).map((c:any)=>({...c,profile:profiles.find((x:any)=>x.id===c.author_id)}))})))
+  const allPublicGroups=publicGroupsResult.data||[]
+  const publicIds=allPublicGroups.map((g:any)=>g.id)
+  const groupMessagesResult=publicIds.length?await supabase.from('community_messages').select('id,community_id,user_id,body,created_at').in('community_id',publicIds).order('created_at',{ascending:false}).limit(8):{data:empty}
+  const groupMessages=groupMessagesResult.data||[]
+  const messageAuthors=[...new Set(groupMessages.map((m:any)=>m.user_id))]
+  const friends=friendsResult.data||[]
+  const friendIds=friends.map((f:any)=>f.sender_id===user.id?f.recipient_id:f.sender_id)
+  const [messageProfilesResult,friendProfilesResult]=await Promise.all([
+   messageAuthors.length?supabase.from('profiles').select('id,username,display_name').in('id',messageAuthors):Promise.resolve({data:empty}),
+   friendIds.length?supabase.from('profiles').select('id,username,display_name,avatar_url').in('id',friendIds):Promise.resolve({data:empty})
+  ])
+  const messageProfiles=messageProfilesResult.data||[]
+  setPublicGroupMessages(groupMessages.map((m:any)=>{const author=messageProfiles.find((p:any)=>p.id===m.user_id);return {...m,groupName:allPublicGroups.find((g:any)=>g.id===m.community_id)?.name,author:author?.display_name||author?.username||'Membre'}}))
+  setNewFriends(friendProfilesResult.data||[])
  }
  useEffect(()=>{load()},[activeTab])
  async function publish(e:any){
