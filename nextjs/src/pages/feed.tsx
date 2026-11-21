@@ -27,11 +27,12 @@ export default function FeedPage(){
   setNewForums(forumRows||[])
   const {data:groupRows}=await supabase.from('communities').select('id,name,description,created_at').eq('is_private',false).order('created_at',{ascending:false}).limit(5)
   setNewGroups(groupRows||[])
-  const publicIds=(groupRows||[]).map((g:any)=>g.id)
+  const {data:allPublicGroups}=await supabase.from('communities').select('id,name').eq('is_private',false).limit(500)
+  const publicIds=(allPublicGroups||[]).map((g:any)=>g.id)
   const {data:groupMessages}=publicIds.length?await supabase.from('community_messages').select('id,community_id,user_id,body,created_at').in('community_id',publicIds).order('created_at',{ascending:false}).limit(8):{data:[] as any[]}
   const messageAuthors=[...new Set((groupMessages||[]).map((m:any)=>m.user_id))]
   const {data:messageProfiles}=messageAuthors.length?await supabase.from('profiles').select('id,username,display_name').in('id',messageAuthors):{data:[] as any[]}
-  setPublicGroupMessages((groupMessages||[]).map((m:any)=>({...m,groupName:groupRows?.find((g:any)=>g.id===m.community_id)?.name,author:messageProfiles?.find((p:any)=>p.id===m.user_id)?.display_name||messageProfiles?.find((p:any)=>p.id===m.user_id)?.username||'Membre'})))
+  setPublicGroupMessages((groupMessages||[]).map((m:any)=>({...m,groupName:allPublicGroups?.find((g:any)=>g.id===m.community_id)?.name,author:messageProfiles?.find((p:any)=>p.id===m.user_id)?.display_name||messageProfiles?.find((p:any)=>p.id===m.user_id)?.username||'Membre'})))
   const {data:friendRows}=await supabase.from('friend_requests').select('id,sender_id,recipient_id,updated_at').eq('status','accepted').or('sender_id.eq.'+user.id+',recipient_id.eq.'+user.id).order('updated_at',{ascending:false}).limit(6)
   const friendIds=(friendRows||[]).map((f:any)=>f.sender_id===user.id?f.recipient_id:f.sender_id)
   const {data:friendProfiles}=friendIds.length?await supabase.from('profiles').select('id,username,display_name,avatar_url').in('id',friendIds):{data:[] as any[]}
