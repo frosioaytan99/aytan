@@ -5,8 +5,8 @@ import { supabase } from '../lib/supabaseClient'
 import MemberAvatar from '../components/MemberAvatar'
 type Msg={id:string;sender:string;recipient:string;subject:string|null;body:string|null;created_at:string;is_read:boolean}
 export default function ConversationPage(){
- const historyRef=useRef<HTMLDivElement|null>(null),hasInitialScroll=useRef(false)
- const router=useRouter(),[uid,setUid]=useState(''),[other,setOther]=useState(''),[person,setPerson]=useState<any>(null),[presenceLastSeen,setPresenceLastSeen]=useState<string|null>(null),[messages,setMessages]=useState<Msg[]>([]),[body,setBody]=useState(''),[busy,setBusy]=useState(false),[status,setStatus]=useState(''),[search,setSearch]=useState(''),[menuFor,setMenuFor]=useState(''),[hiddenIds,setHiddenIds]=useState<string[]>([])
+ const historyRef=useRef<HTMLDivElement|null>(null),hasInitialScroll=useRef(false),replyTarget=useRef<Msg|null>(null)
+ const router=useRouter(),[uid,setUid]=useState(''),[other,setOther]=useState(''),[person,setPerson]=useState<any>(null),[presenceLastSeen,setPresenceLastSeen]=useState<string|null>(null),[messages,setMessages]=useState<Msg[]>([]),[body,setBody]=useState(''),[replyTo,setReplyTo]=useState<Msg|null>(null),[busy,setBusy]=useState(false),[status,setStatus]=useState(''),[search,setSearch]=useState(''),[menuFor,setMenuFor]=useState(''),[hiddenIds,setHiddenIds]=useState<string[]>([])
  async function load(a:string,b:string){
   const {data,error}=await supabase.from('messages').select('id,sender,recipient,subject,body,created_at,is_read').or('and(sender.eq.'+a+',recipient.eq.'+b+'),and(sender.eq.'+b+',recipient.eq.'+a+')').order('created_at',{ascending:true})
   if(error){setStatus('Impossible de charger cette conversation.');return}
@@ -65,6 +65,7 @@ export default function ConversationPage(){
    const next=ids.includes(m.id)?ids.filter(x=>x!==m.id):[...ids,m.id]
    localStorage.setItem(key,JSON.stringify(next));setStatus(action==='save'?'Message sauvegardé sur cet appareil.':'Message épinglé sur cet appareil.');return
   }
+  if(action==='reply'){setReplyTo(m);setBody('');setMenuFor('');setStatus('');return}
   if(action==='forward'){
    const {error}=await supabase.from('messages').insert({sender:uid,recipient:other,subject:'Message transféré',body:'↪ Message transféré : '+(m.body||m.subject||'')})
    setStatus(error?'Transfert impossible.':'Message transféré dans cette conversation.');if(!error)await load(uid,other);return
@@ -91,10 +92,10 @@ export default function ConversationPage(){
  }
  async function send(e:any){
   e.preventDefault();if(!body.trim()||!uid||!other||busy)return
-  setBusy(true);const {error}=await supabase.from('messages').insert({sender:uid,recipient:other,subject:'Message',body:body.trim()})
+  setBusy(true);const quoted=replyTo?'↪ Réponse à '+(replyTo.sender===uid?'ton message':'son message')+' : « '+(replyTo.body||replyTo.subject||'').replace(/\s+/g,' ').slice(0,240)+' »\n\n':'';const {error}=await supabase.from('messages').insert({sender:uid,recipient:other,subject:'Message',body:quoted+body.trim()})
   setBusy(false)
   if(error){setStatus(error.code==='42501'?'Vous devez être amis pour envoyer un message.':'Envoi impossible.');return}
-  setBody('');setStatus('');await load(uid,other)
+  setBody('');setReplyTo(null);setStatus('');await load(uid,other)
  }
  return <main className="messenger-shell">
   <header className="messenger-topbar"><Link href="/inbox" className="messenger-close" aria-label="Retour à la messagerie">×</Link><div className="messenger-brand"><b>🔒 weshbien.com</b><span>Messenger</span></div><Link href={'/profile?id='+other} className="messenger-profile-shortcut" aria-label="Voir le profil">◎</Link></header>
@@ -102,10 +103,10 @@ export default function ConversationPage(){
    <div className="messenger-personbar"><Link href="/inbox" className="messenger-back" aria-label="Retour">←</Link><MemberAvatar userId={other} name={person?.display_name||person?.username} avatarUrl={person?.avatar_url} className="messenger-avatar" imageSize={56}/><div className="messenger-person-copy"><strong>{person?.display_name||person?.username||'Conversation'}</strong><span>@{person?.username||'membre'} · {presenceLabel()}</span></div><Link href={'/profile?id='+other} className="messenger-more" aria-label="Options du profil">•••</Link></div>
    <div className="messenger-search"><span>⌕</span><input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Rechercher dans cette conversation…" aria-label="Rechercher dans cette conversation"/></div>
    <div ref={historyRef} className="messenger-history" aria-live="polite">
-    {visibleMessages.filter(m=>!hiddenIds.includes(m.id)).length===0?<div className="messenger-empty">{messages.length===0?'Démarre la conversation en envoyant un message.':'Aucun message à afficher.'}</div>:visibleMessages.filter(m=>!hiddenIds.includes(m.id)).map(m=><div key={m.id} className={'messenger-message-row '+(m.sender===uid?'mine':'theirs')}><div className="messenger-bubble">{m.body||m.subject}</div><div className="messenger-meta"><time>{new Date(m.created_at).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}</time>{m.sender===uid&&<span>{m.is_read?'✓✓ Lu':'✓ Envoyé'}</span>}<button type="button" onClick={()=>setMenuFor(menuFor===m.id?'':m.id)} aria-label="Options du message">•••</button></div>{menuFor===m.id&&<div className="messenger-message-actions"><button onClick={()=>messageAction('save',m)}>♧ Sauvegarder</button><button onClick={()=>messageAction('pin',m)}>⌖ Épingler pour moi</button><button onClick={()=>messageAction('forward',m)}>↪ Transférer</button>{m.sender===uid&&<button onClick={()=>messageAction('edit',m)}>✎ Modifier</button>}<button onClick={()=>messageAction('hide',m)}>▣ Supprimer pour moi</button>{m.sender===uid?<button className="danger" onClick={()=>messageAction('delete',m)}>▤ Supprimer pour tous</button>:<button className="danger" onClick={()=>messageAction('report',m)}>⚑ Signaler</button>}</div>}</div>)}
+    {visibleMessages.filter(m=>!hiddenIds.includes(m.id)).length===0?<div className="messenger-empty">{messages.length===0?'Démarre la conversation en envoyant un message.':'Aucun message à afficher.'}</div>:visibleMessages.filter(m=>!hiddenIds.includes(m.id)).map(m=><div key={m.id} className={'messenger-message-row '+(m.sender===uid?'mine':'theirs')}><div className="messenger-bubble">{m.body||m.subject}</div><div className="messenger-meta"><time>{new Date(m.created_at).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}</time>{m.sender===uid&&<span>{m.is_read?'✓✓ Lu':'✓ Envoyé'}</span>}<button type="button" onClick={()=>setMenuFor(menuFor===m.id?'':m.id)} aria-label="Options du message">•••</button></div>{menuFor===m.id&&<div className="messenger-message-actions"><button onClick={()=>messageAction('save',m)}>♧ Sauvegarder</button><button onClick={()=>messageAction('pin',m)}>⌖ Épingler pour moi</button><button onClick={()=>messageAction('reply',m)}>↩ Répondre</button><button onClick={()=>messageAction('forward',m)}>↪ Transférer</button>{m.sender===uid&&<button onClick={()=>messageAction('edit',m)}>✎ Modifier</button>}<button onClick={()=>messageAction('hide',m)}>▣ Supprimer pour moi</button>{m.sender===uid?<button className="danger" onClick={()=>messageAction('delete',m)}>▤ Supprimer pour tous</button>:<button className="danger" onClick={()=>messageAction('report',m)}>⚑ Signaler</button>}</div>}</div>)}
    </div>
    {status&&<p className="messenger-status">{status}</p>}
-   <form className="messenger-compose" onSubmit={send}><textarea value={body} onChange={e=>setBody(e.target.value)} maxLength={3000} placeholder="Écris ton message…" aria-label="Écris ton message" required/><button disabled={busy||!body.trim()} aria-label="Envoyer le message">{busy?'…':'➤'}</button></form>
+   <form className="messenger-compose" onSubmit={send}>{replyTo&&<div className="messenger-reply-preview"><span>Réponse à : {(replyTo.body||replyTo.subject||'Message').slice(0,100)}</span><button type="button" onClick={()=>setReplyTo(null)} aria-label="Annuler la réponse">×</button></div>}<textarea value={body} onChange={e=>setBody(e.target.value)} maxLength={3000} placeholder="Écris ton message…" aria-label="Écris ton message" required/><button disabled={busy||!body.trim()} aria-label="Envoyer le message">{busy?'…':'➤'}</button></form>
   </section>
  </main>
 }
