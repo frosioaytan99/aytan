@@ -22,10 +22,6 @@ export default function IndividualPage() {
   const [status,setStatus]=useState('')
   const [loading,setLoading]=useState(true)
 
-  useEffect(()=>{
-    try { setAccepted(window.localStorage.getItem('weshbien-individual-warning-v1')==='accepted') } catch {}
-  },[])
-
   async function loadFeed(){
     const {data:{user}}=await supabase.auth.getUser()
     if(!user){window.location.href='/auth';return}
@@ -44,7 +40,6 @@ export default function IndividualPage() {
   useEffect(()=>{if(accepted)void loadFeed()},[accepted])
 
   function acceptWarning(){
-    try { window.localStorage.setItem('weshbien-individual-warning-v1','accepted') } catch {}
     setAccepted(true)
   }
 
