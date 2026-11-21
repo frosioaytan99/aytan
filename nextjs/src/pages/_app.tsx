@@ -119,8 +119,11 @@ export default function App({ Component, pageProps }: AppProps) {
       const refreshUnreadMessages = () => supabase.from('messages').select('id', { count: 'exact', head: true }).eq('recipient', userId).eq('is_read', false)
         .then(({ count, error }) => { if (active && !error) setUnreadMessages(count || 0) })
       refreshUnreadMessages()
-      supabase.from('notifications').select('id', { count: 'exact', head: true }).eq('user_id', userId).eq('is_read', false)
-        .then(({ count }) => { if (active) setUnread(count || 0) })
+      const refreshUnreadNotifications = () => supabase.from('notifications').select('id', { count: 'exact', head: true }).eq('user_id', userId).eq('is_read', false)
+        .then(({ count, error }) => { if (active && !error) setUnread(count || 0) })
+      const onNotificationsRead = () => refreshUnreadNotifications()
+      window.addEventListener('weshbien:notifications-read', onNotificationsRead)
+      refreshUnreadNotifications()
       channel = supabase.channel('app-notifications-' + userId)
         .on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, payload => {
           const row: any = payload.new || payload.old
@@ -129,11 +132,10 @@ export default function App({ Component, pageProps }: AppProps) {
         .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications', filter: 'user_id=eq.' + userId }, payload => {
           const row: any = payload.new
           onNotice(new CustomEvent('weshbien:notify', { detail: [row?.title, row?.message || row?.body].filter(Boolean).join(' — ') || 'Nouvelle notification' }))
-          setUnread(value => value + 1)
+          refreshUnreadNotifications()
         })
-        .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'notifications', filter: 'user_id=eq.' + userId }, () => {
-          supabase.from('notifications').select('id', { count: 'exact', head: true }).eq('user_id', userId).eq('is_read', false)
-            .then(({ count }) => { if (active) setUnread(count || 0) })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'notifications', filter: 'user_id=eq.' + userId }, () => {
+          refreshUnreadNotifications()
         }).subscribe()
     }
     supabase.auth.getUser().then(({ data }) => {
@@ -148,6 +150,7 @@ export default function App({ Component, pageProps }: AppProps) {
     return () => {
       active = false
       window.removeEventListener('weshbien:notify', onNotice)
+      window.removeEventListener('weshbien:notifications-read', onNotificationsRead)
       if (presenceVisibilityHandler) document.removeEventListener('visibilitychange', presenceVisibilityHandler)
       subscription.unsubscribe()
       if (channel) supabase.removeChannel(channel)
