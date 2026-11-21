@@ -108,10 +108,6 @@ export default function AuthPage() {
           const profileData: any = { id: user.id }
           const savedAge = Number(user.user_metadata?.age)
           if (Number.isInteger(savedAge) && savedAge >= 13 && savedAge <= 26) profileData.age = savedAge
-          const savedAge = Number(user.user_metadata?.age)
-          if (Number.isInteger(savedAge) && savedAge >= 13 && savedAge <= 26) profileData.age = savedAge
-          const savedAge = Number(user.user_metadata?.age)
-          if (Number.isInteger(savedAge) && savedAge >= 13 && savedAge <= 26) profileData.age = savedAge
           if (/^[a-z0-9_]{3,20}$/.test(savedUsername)) {
             profileData.username = savedUsername
             profileData.display_name = String(user.user_metadata?.display_name || savedUsername)
