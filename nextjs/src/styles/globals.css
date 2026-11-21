@@ -977,3 +977,13 @@ html[data-theme="dark"] .messenger-search input,html[data-theme="dark"] .messeng
 html[data-theme="dark"] .messenger-compose{
   background:rgba(31,28,47,.98)!important;
 }
+
+
+/* Use the shared bottom navigation throughout the authenticated app.
+   Remove page-specific top navigation bars so they cannot reappear on subpages. */
+.app-header,
+.member-topbar,
+.app-header nav,
+.member-nav {
+  display: none !important;
+}
