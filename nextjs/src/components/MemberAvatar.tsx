@@ -7,6 +7,7 @@ type AvatarStatus = { online:boolean; unread:boolean; expiresAt:number }
 const statusCache = new Map<string, AvatarStatus>()
 const pendingStatus = new Map<string, Promise<AvatarStatus>>()
 let currentUserPromise: ReturnType<typeof supabase.auth.getUser> | null = null
+supabase.auth.onAuthStateChange(() => { currentUserPromise = null; statusCache.clear() })
 
 async function getAvatarStatus(userId:string):Promise<AvatarStatus>{
  const cached=statusCache.get(userId)
