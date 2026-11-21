@@ -31,7 +31,7 @@ export default function FeedPage(){
   if(invalid){setStatus('Chaque image doit être au format JPG, PNG, WEBP ou GIF et peser 8 Mo maximum.');return}
   setBusy(true)
   let image_urls:string[]=[]
-  try { image_urls=await Promise.all(photoFiles.map(uploadModeratedCommunityImage)) }
+  try { for (const file of photoFiles) image_urls.push(await uploadModeratedCommunityImage(file)) }
   catch(error:any){setBusy(false);setStatus(error?.message||'Une photo a été refusée ou n’a pas pu être envoyée.');return}
   const {error}=await supabase.from('posts').insert({author_id:userId,body:body.trim(),image_url:image_urls[0]||null,image_urls})
   setBusy(false)
