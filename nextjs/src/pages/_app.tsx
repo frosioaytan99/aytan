@@ -117,13 +117,16 @@ export default function App({ Component, pageProps }: AppProps) {
       presenceVisibilityHandler = updatePresence
       document.addEventListener('visibilitychange', updatePresence)
       const refreshUnreadMessages = () => supabase.from('messages').select('id', { count: 'exact', head: true }).eq('recipient', userId).eq('is_read', false)
-        .then(({ count }) => { if (active) setUnreadMessages(count || 0) })
+        .then(({ count, error }) => { if (active && !error) setUnreadMessages(count || 0) })
+      const onMessagesRead = () => refreshUnreadMessages()
+      window.addEventListener('weshbien:messages-read', onMessagesRead)
       refreshUnreadMessages()
       supabase.from('notifications').select('id', { count: 'exact', head: true }).eq('user_id', userId).eq('is_read', false)
         .then(({ count }) => { if (active) setUnread(count || 0) })
       channel = supabase.channel('app-notifications-' + userId)
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'messages', filter: 'recipient=eq.' + userId }, () => {
-          refreshUnreadMessages()
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, payload => {
+          const row: any = payload.new || payload.old
+          if (row?.recipient === userId || row?.sender === userId) refreshUnreadMessages()
         })
         .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications', filter: 'user_id=eq.' + userId }, payload => {
           const row: any = payload.new
@@ -147,6 +150,7 @@ export default function App({ Component, pageProps }: AppProps) {
     return () => {
       active = false
       window.removeEventListener('weshbien:notify', onNotice)
+      window.removeEventListener('weshbien:messages-read', onMessagesRead)
       if (presenceVisibilityHandler) document.removeEventListener('visibilitychange', presenceVisibilityHandler)
       subscription.unsubscribe()
       if (channel) supabase.removeChannel(channel)
