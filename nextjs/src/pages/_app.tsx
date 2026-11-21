@@ -88,7 +88,7 @@ export default function App({ Component, pageProps }: AppProps) {
       if (typeof message !== 'string' || !message) return
       setNotice(message)
       if (timer) clearTimeout(timer)
-      timer = setTimeout(() => setNotice(''), 5000)
+      timer = setTimeout(() => setNotice(''), 10000)
     }
     window.addEventListener('weshbien:notify', onNotice)
 
@@ -129,7 +129,25 @@ export default function App({ Component, pageProps }: AppProps) {
       const onNotificationsRead = () => refreshUnreadNotifications()
       window.addEventListener('weshbien:notifications-read', onNotificationsRead)
       refreshUnreadNotifications()
+      let moderatorRoleChecked = false
+      let isModerator = false
+      const checkModeratorRole = async () => {
+        if (moderatorRoleChecked) return isModerator
+        const { data } = await supabase.from('user_roles').select('role').eq('user_id', userId).maybeSingle()
+        isModerator = data?.role === 'moderator' || data?.role === 'admin'
+        moderatorRoleChecked = true
+        return isModerator
+      }
       channel = supabase.channel('app-notifications-' + userId)
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'reports' }, async payload => {
+          const report: any = payload.new
+          if (!report?.id || !(await checkModeratorRole())) return
+          const title = 'Nouveau signalement'
+          const kind = report.content_type === 'photo' ? 'une photo' : report.content_type === 'profile' ? 'un profil' : report.content_type === 'post' ? 'une publication' : 'un contenu'
+          const body = 'Un membre a signalé ' + kind + '. Motif : ' + String(report.reason || 'Non précisé').slice(0, 220)
+          const { error } = await supabase.from('notifications').insert({ user_id: userId, actor_id: report.reporter_id || null, type: 'report', title, body, link: '/admin' })
+          if (error) console.warn('Notification de signalement non enregistrée', error.message)
+        })
         .on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, payload => {
           const row: any = payload.new || payload.old
           if (row?.recipient === userId || row?.sender === userId) refreshUnreadMessages()
