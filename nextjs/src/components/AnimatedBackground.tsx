@@ -9,7 +9,7 @@ const videoByTheme: Record<string, string> = {
   dream: 'stars', minimal: 'stars', marble: 'stars', crystal: 'ocean',
   copper: 'sunset', silver: 'stars', emerald: 'forest', ruby: 'sunset',
   sapphire: 'ocean', cosmos: 'stars', moon: 'stars', stars: 'stars',
-  matrix: 'forest', cyber: 'stars', laser: 'stars', rainbow: 'sunset', electric: 'ocean',
+  matrix: 'matrix', cyber: 'stars', laser: 'stars', rainbow: 'sunset', electric: 'ocean',
 }
 
 const videoSources: Record<string, string> = {
@@ -42,10 +42,13 @@ export default function AnimatedBackground() {
   }, [])
 
   const videoGroup = videoByTheme[wallpaper] || 'stars'
-  const videoSource = videoEnabled ? videoSources[videoGroup] : ''
+  const videoSource = videoEnabled && wallpaper !== 'matrix' ? videoSources[videoGroup] : ''
 
   return (
     <>
+      {wallpaper === 'matrix' && <div className="wb-matrix-rain" aria-hidden="true">
+        {['010101110010101101001011010101','101101001010110101101001010110','001011010110010101101011001010','110010101101001011010110101101','010110100101101101001010110101','101001011010110010101101001011','011010110101001011010110100101','100101101001011010110101001011'].map((code, index) => <span key={index}>{code}</span>)}
+      </div>}
       {videoSource && <video key={videoSource} className="wb-wallpaper-video" autoPlay muted loop playsInline preload="metadata" aria-hidden="true">
         <source src={videoSource} type="video/mp4" />
       </video>}
@@ -91,6 +94,28 @@ export default function AnimatedBackground() {
         body[data-wallpaper="lavender"]::before,body[data-wallpaper="dream"]::before,body[data-wallpaper="marble"]::before,body[data-wallpaper="smoke"]::before { background:radial-gradient(ellipse at 22% 28%,#e9d5ffbb,transparent 43%),radial-gradient(ellipse at 78% 72%,#8b5cf6aa,transparent 48%),linear-gradient(135deg,#312e81,#8b5cf6,#e9d5ff); }
         body[data-wallpaper="rain"]::before,body[data-wallpaper="storm"]::before,body[data-wallpaper="clouds"]::before { background:radial-gradient(ellipse at 22% 28%,#38bdf8bb,transparent 43%),radial-gradient(ellipse at 78% 72%,#334155aa,transparent 48%),linear-gradient(135deg,#0f172a,#334155,#38bdf8); }
         #__next { position: relative; z-index: 1; background: transparent !important; }
+        body[data-wallpaper="matrix"]::before {
+          opacity:.8!important;filter:blur(12px) saturate(1.3);
+          background:radial-gradient(ellipse at 50% 40%,#064e3b88,transparent 65%),linear-gradient(180deg,#020b07,#031a0d 55%,#010805)!important;
+        }
+        body[data-wallpaper="matrix"]::after {
+          opacity:.12!important;background-image:linear-gradient(90deg,transparent 49%,#22c55e 50%,transparent 51%);
+          background-size:48px 100%;
+        }
+        .wb-matrix-rain {
+          position:fixed;inset:0;z-index:-1;display:flex;justify-content:space-around;
+          overflow:hidden;pointer-events:none;opacity:.32;color:#4ade80;
+          text-shadow:0 0 8px #22c55e,0 0 18px #16a34a;
+          mask-image:linear-gradient(to bottom,transparent,#000 12%,#000 88%,transparent);
+        }
+        .wb-matrix-rain span {
+          writing-mode:vertical-rl;text-orientation:upright;white-space:nowrap;
+          font:700 14px/1.8 monospace;letter-spacing:5px;
+          animation:wbMatrixFall 9s linear infinite;
+        }
+        .wb-matrix-rain span:nth-child(2n){animation-duration:13s;animation-delay:-5s;opacity:.65}
+        .wb-matrix-rain span:nth-child(3n){animation-duration:11s;animation-delay:-8s;opacity:.8}
+        @keyframes wbMatrixFall {from{transform:translateY(-110%)}to{transform:translateY(110vh)}}
         .wb-wallpaper-video { position:fixed;inset:0;width:100vw;height:100vh;height:100dvh;object-fit:cover;z-index:-2;pointer-events:none;filter:brightness(.52) saturate(1.12); }
         body[data-wallpaper]::before { opacity:.34; }
         @keyframes wbFloat { 0%{transform:translate3d(-3%,-2%,0) rotate(-5deg) scale(1)} 50%{transform:translate3d(3%,2%,0) rotate(4deg) scale(1.08)} 100%{transform:translate3d(-1%,4%,0) rotate(-2deg) scale(1.04)} }
@@ -98,7 +123,7 @@ export default function AnimatedBackground() {
         html[data-theme="dark"] body { background-color:#11101b !important; }
         html[data-theme="dark"] body::before { opacity:.42; }
         html[data-theme="dark"] body::after { opacity:.25; }
-        @media(prefers-reduced-motion:reduce){body::before,body::after{animation:none!important}.wb-wallpaper-video{display:none!important}}
+        @media(prefers-reduced-motion:reduce){body::before,body::after{animation:none!important}.wb-wallpaper-video,.wb-matrix-rain span{display:none!important}}
       `}</style>
     </>
   )
