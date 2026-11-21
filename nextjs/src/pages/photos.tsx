@@ -65,7 +65,7 @@ export default function PhotosPage(){
   setBusy(item.key);setStatus('')
   const {data:{session}}=await supabase.auth.getSession()
   if(!session?.access_token){setStatus('Reconnecte-toi pour supprimer cette photo.');setBusy('');return}
-  const response=await fetch('/api/delete-community-photo',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+session.access_token},body:JSON.stringify({photo_url:item.url})})
+  const response=await fetch('/api/delete-community-photo',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+session.access_token},body:JSON.stringify({photo_url:item.url,owner_id:item.ownerId})})
   const result=await response.json().catch(()=>null)
   if(!response.ok){setStatus(result?.message||'Suppression impossible : '+(result?.error||'erreur serveur'));setBusy('');return}
   setItems(current=>current.filter(photo=>photo.url!==item.url))
