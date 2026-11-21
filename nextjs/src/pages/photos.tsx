@@ -3,6 +3,8 @@ import Link from 'next/link'
 import { supabase } from '../lib/supabaseClient'
 import MemberAvatar from '../components/MemberAvatar'
 import CommunityImage from '../components/CommunityImage'
+import { isAllowedCommunityImage } from '../lib/communityMedia'
+import { uploadModeratedCommunityImage } from '../lib/uploadModeratedCommunityImage'
 
 type PhotoComment = { id:string; photo_url:string; owner_id:string; author_id:string; body:string; created_at:string; profile?:any }
 type PhotoItem = { key:string; url:string; ownerId:string; ownerName:string; avatar:string|null; createdAt:string; source:'post'|'gallery'|'avatar'; postId?:string; caption?:string; comments:PhotoComment[] }
@@ -13,6 +15,7 @@ export default function PhotosPage(){
  const [loading,setLoading]=useState(true)
  const [busy,setBusy]=useState('')
  const [commentBusy,setCommentBusy]=useState(false)
+ const [uploadBusy,setUploadBusy]=useState(false)
  const [draft,setDraft]=useState('')
  const [status,setStatus]=useState('')
  const [selected,setSelected]=useState<PhotoItem|null>(null)
@@ -60,6 +63,23 @@ export default function PhotosPage(){
   setLoading(false)
  },[])
  useEffect(()=>{load()},[load])
+ async function addPhoto(file?:File){
+  if(!file||!userId||uploadBusy)return
+  if(!isAllowedCommunityImage(file)){setStatus('Choisis une image JPG, PNG, WEBP ou GIF de 8 Mo maximum.');return}
+  setUploadBusy(true);setStatus('')
+  try{
+   const {data:profile,error:profileError}=await supabase.from('profiles').select('gallery_urls').eq('id',userId).maybeSingle()
+   if(profileError)throw profileError
+   const current=Array.isArray(profile?.gallery_urls)?profile.gallery_urls:[]
+   if(current.length>=12)throw new Error('Ta galerie est pleine : 12 photos maximum.')
+   const url=await uploadModeratedCommunityImage(file)
+   const {error}=await supabase.from('profiles').update({gallery_urls:[...current,url]}).eq('id',userId)
+   if(error)throw error
+   setStatus('Photo ajoutée à ta galerie !')
+   await load()
+  }catch(error:any){setStatus(error?.message||'Impossible d’ajouter cette photo.')}
+  finally{setUploadBusy(false)}
+ }
  async function remove(item:PhotoItem){
   if((item.ownerId!==userId&&!isAdmin)||busy)return
   if(!window.confirm('Effacer définitivement cette photo des serveurs ?'))return
@@ -93,14 +113,14 @@ export default function PhotosPage(){
   setSelected(current=>current?{...current,comments:current.comments.filter(c=>c.id!==comment.id)}:null)
  }
  return <main className="app-shell"><header className="app-header"><Link className="brand" href="/feed">weshbien2<span>.</span></Link><nav><Link href="/feed">Fil</Link><Link href="/explore">Découvrir</Link><Link className="active" href="/photos">Photos</Link><Link href="/online">En ligne</Link></nav></header>
- <section className="directory"><small>GALERIE DE LA COMMUNAUTÉ</small><h1>📸 Photos</h1><p>Retrouve les photos partagées par les membres. Appuie sur une photo pour l’agrandir et laisser un commentaire.</p>
+ <section className="directory"><small>GALERIE DE LA COMMUNAUTÉ</small><h1>📸 Photos</h1><p>Retrouve les photos partagées par les membres. Appuie sur une photo pour l’agrandir et laisser un commentaire.</p><label className="photo-add-button">{uploadBusy?'Ajout en cours…':'＋ Ajouter une photo'}<input type="file" accept="image/jpeg,image/png,image/webp,image/gif" disabled={uploadBusy} onChange={e=>{const file=e.currentTarget.files?.[0];e.currentTarget.value='';void addPhoto(file)}}/></label>
  {status&&<p className="notice" role="status">{status}</p>}
  {loading?<div className="card empty">Chargement des photos…</div>:items.length===0?<div className="card empty"><h3>Pas encore de photos</h3><p>Les photos publiées et les galeries des membres apparaîtront ici.</p><Link href="/feed">Partager une photo →</Link></div>:
  <div className="photo-wall">{items.map(item=><article className="photo-tile" key={item.key}><button type="button" className="photo-open" onClick={()=>{setSelected(item);setDraft('')}} aria-label="Agrandir la photo"><CommunityImage src={item.url} alt={'Photo partagée par '+item.ownerName} className="photo-thumb-image"/><span className="photo-zoom">⌕</span></button><div className="photo-meta"><Link href={'/profile?id='+item.ownerId}><MemberAvatar userId={item.ownerId} name={item.ownerName} avatarUrl={item.avatar} className="avatar photo-owner-avatar"/><span>{item.ownerName}</span></Link><span className="photo-comment-count">💬 {item.comments.length}</span>{(item.ownerId===userId||isAdmin)&&<button type="button" className="photo-delete" disabled={busy===item.key} onClick={()=>remove(item)}>{busy===item.key?'…':item.ownerId===userId?'🗑 Supprimer':'🛡️ Modérer'}</button>}</div></article>)}</div>}
  </section>
  {selected&&<div className="photo-lightbox" role="dialog" aria-modal="true" aria-label="Photo agrandie" onClick={()=>setSelected(null)}><button type="button" className="photo-close" onClick={()=>setSelected(null)} aria-label="Fermer">×</button><div className="photo-lightbox-content" onClick={e=>e.stopPropagation()}><CommunityImage src={selected.url} alt={'Photo partagée par '+selected.ownerName} className="photo-large-image"/><div className="photo-lightbox-footer"><span>{selected.ownerName}{selected.caption?' · '+selected.caption:''}</span>{(selected.ownerId===userId||isAdmin)&&<button type="button" className="photo-delete" disabled={!!busy} onClick={()=>remove(selected)}>{selected.ownerId===userId?'🗑 Supprimer ma photo':'🛡️ Supprimer cette photo'}</button>}</div><section className="photo-comments"><h3>💬 Commentaires ({selected.comments.length})</h3><div className="photo-comment-list">{selected.comments.map(comment=><article className="photo-comment" key={comment.id}><div><b>{comment.profile?.display_name||comment.profile?.username||'Membre'}</b><small>{new Date(comment.created_at).toLocaleString('fr-FR')}</small><p>{comment.body}</p></div>{comment.author_id===userId&&<button type="button" onClick={()=>deleteComment(comment)} aria-label="Supprimer mon commentaire">🗑</button>}</article>)}{selected.comments.length===0&&<p className="photo-no-comments">Pas encore de commentaire. Lance la discussion !</p>}</div><form className="photo-comment-form" onSubmit={sendComment}><input value={draft} onChange={e=>setDraft(e.target.value)} maxLength={500} placeholder="Écrire un commentaire…" aria-label="Écrire un commentaire"/><button type="submit" disabled={!draft.trim()||commentBusy}>{commentBusy?'Envoi…':'Envoyer'}</button></form></section></div></div>}
  <style jsx>{`
- .photo-wall{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px;margin-top:24px}
+ .photo-add-button{display:inline-flex;align-items:center;justify-content:center;margin:10px 0 6px;padding:11px 17px;border:0;border-radius:12px;background:#6d4aff;color:#fff;font-weight:800;cursor:pointer}.photo-add-button input{display:none}.photo-add-button:has(input:disabled){opacity:.65;cursor:wait}\n .photo-wall{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px;margin-top:24px}
  .photo-tile{min-width:0;overflow:hidden;border:1px solid var(--border,#ddd);border-radius:18px;background:var(--card,#fff);box-shadow:0 8px 24px #0000000d}
  .photo-open{position:relative;display:block;width:100%;height:210px;padding:0;border:0;background:#111;cursor:zoom-in;overflow:hidden}
  .photo-open :global(.photo-thumb-image){width:100%;height:100%;object-fit:cover;display:block;transition:transform .25s ease}.photo-open:hover :global(.photo-thumb-image){transform:scale(1.04)}
