@@ -90,6 +90,21 @@ export default function ConversationPage(){
   const {error}=await supabase.from('reports').insert({reporter_id:uid,content_type:'message',content_id:messageId,reason:reason.trim().slice(0,1000),status:'pending'})
   setStatus(error?'Signalement impossible : '+error.message:'Message signalé. Merci.')
  }
+ async function sendAttachment(file:File,type:'image'|'audio'){
+  if(!uid||!other||uploading)return
+  const allowed=type==='image'?['image/jpeg','image/png','image/webp','image/gif']:['audio/mpeg','audio/mp4','audio/aac','audio/ogg','audio/wav','audio/webm','audio/x-m4a']
+  const max=type==='image'?8*1024*1024:15*1024*1024
+  if(!allowed.includes(file.type)){setStatus(type==='image'?'Format photo non accepté.':'Format audio non accepté.');return}
+  if(file.size>max){setStatus(type==='image'?'Photo trop volumineuse (8 Mo maximum).':'Musique trop volumineuse (15 Mo maximum).');return}
+  setUploading(true);setStatus('Envoi du fichier…')
+  const ext=file.name.split('.').pop()?.toLowerCase()||(type==='image'?'jpg':'mp3')
+  const path=uid+'/'+other+'/'+Date.now()+'-'+Math.random().toString(36).slice(2)+'.'+ext
+  const {error:uploadError}=await supabase.storage.from('chat-attachments').upload(path,file,{contentType:file.type,upsert:false})
+  if(uploadError){setUploading(false);setStatus("Envoi impossible : "+uploadError.message);return}
+  const {error}=await supabase.from('messages').insert({sender:uid,recipient:other,subject:type==='image'?'Photo':'Musique',body:null,attachment_path:path,attachment_type:type})
+  if(error){await supabase.storage.from('chat-attachments').remove([path]);setUploading(false);setStatus("Envoi impossible : "+error.message);return}
+  setUploading(false);setStatus('');await load(uid,other)
+ }
  async function send(e:any){
   e.preventDefault();if(!body.trim()||!uid||!other||busy)return
   setBusy(true);const quoted=replyTo?'↪ Réponse à '+(replyTo.sender===uid?'ton message':'son message')+' : « '+(replyTo.body||replyTo.subject||'').replace(/\s+/g,' ').slice(0,240)+' »\n\n':'';const {error}=await supabase.from('messages').insert({sender:uid,recipient:other,subject:'Message',body:quoted+body.trim()})
