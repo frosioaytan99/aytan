@@ -19,7 +19,7 @@ export default function FeedPage(){
   const membersPromise=supabase.from('profiles').select('id,username,display_name,avatar_url,bio,city,created_at').neq('id',user.id).eq('is_private',false).order('created_at',{ascending:false}).limit(12)
   const forumsPromise=supabase.from('forum_topics').select('id,title,created_at').order('created_at',{ascending:false}).limit(5)
   const groupsPromise=supabase.from('communities').select('id,name,description,created_at').eq('is_private',false).order('created_at',{ascending:false}).limit(5)
-  const friendsPromise=supabase.from('friend_requests').select('id,sender_id,recipient_id,updated_at').eq('status','accepted').order('updated_at',{ascending:false}).limit(12)
+  const friendsPromise=supabase.rpc('get_public_friendship_activity')
   const followsPromise=activeTab==='following'?supabase.from('profile_follows').select('followed_id').eq('follower_id',user.id):Promise.resolve({data:empty})
   const [membersResult,forumsResult,groupsResult,friendsResult,followsResult]=await Promise.all([membersPromise,forumsPromise,groupsPromise,friendsPromise,followsPromise])
   setNewMembers(membersResult.data||[])
