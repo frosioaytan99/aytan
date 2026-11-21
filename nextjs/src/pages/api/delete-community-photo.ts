@@ -50,7 +50,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const [profileResult, postsResult] = await Promise.all([
       admin.from('profiles').select('id,gallery_urls,avatar_url').eq('id', ownerId).maybeSingle(),
-      admin.from('posts').select('id,image_url,image_urls').eq('author_id', ownerId),
+      admin.from('posts').select('id,body,image_url,image_urls').eq('author_id', ownerId),
     ])
     if (profileResult.error || postsResult.error) return res.status(500).json({ error: 'ownership_check_failed' })
     const profile = profileResult.data
@@ -70,8 +70,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
     for (const post of matchingPosts) {
       const remaining = (post.image_urls || (post.image_url ? [post.image_url] : [])).filter((item: string) => item !== photoUrl)
-      const { error } = await admin.from('posts').update({ image_urls: remaining, image_url: remaining[0] || null }).eq('id', post.id).eq('author_id', ownerId)
-      if (error) return res.status(500).json({ error: 'post_update_failed', details: error.message, code: error.code || null })
+      // The posts_body_check constraint requires text or at least one image.
+      // Remove an image-only post if its final image is deleted.
+      if (remaining.length === 0 && !String(post.body || '').trim()) {
+        const { error } = await admin.from('posts').delete().eq('id', post.id).eq('author_id', ownerId)
+        if (error) return res.status(500).json({ error: 'empty_post_delete_failed', details: error.message, code: error.code || null })
+      } else {
+        const { error } = await admin.from('posts').update({ image_urls: remaining, image_url: remaining[0] || null }).eq('id', post.id).eq('author_id', ownerId)
+        if (error) return res.status(500).json({ error: 'post_update_failed', details: error.message, code: error.code || null })
+      }
     }
     const { error: commentError } = await admin.from('photo_comments').delete().eq('photo_url', photoUrl).eq('owner_id', ownerId)
     if (commentError) return res.status(500).json({ error: 'comments_cleanup_failed' })
