@@ -53,7 +53,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       if (error) return res.status(500).json({ error: 'gallery_update_failed' })
     }
     if (isAvatar) {
-      const { error } = await admin.from('profiles').update({ avatar_url: null }).eq('id', userId)
+      const { error } = await admin.from('profiles').update({ avatar_url: null }).eq('id', ownerId)
       if (error) return res.status(500).json({ error: 'avatar_update_failed' })
     }
     for (const post of matchingPosts) {
