@@ -73,6 +73,7 @@ export default function App({ Component, pageProps }: AppProps) {
     let presenceTimer: ReturnType<typeof setInterval> | undefined
     let suspensionTimer: ReturnType<typeof setInterval> | undefined
     let presenceVisibilityHandler: (() => void) | null = null
+    let messagesReadHandler: (() => void) | null = null
     let channel: ReturnType<typeof supabase.channel> | null = null
     let active = true
     try {
@@ -102,7 +103,8 @@ export default function App({ Component, pageProps }: AppProps) {
       if (presenceTimer) { clearInterval(presenceTimer); presenceTimer = undefined }
       if (suspensionTimer) { clearInterval(suspensionTimer); suspensionTimer = undefined }
       if (presenceVisibilityHandler) { document.removeEventListener('visibilitychange', presenceVisibilityHandler); presenceVisibilityHandler = null }
-      if (!userId) { setUnread(0); setAvatarUrl(null); setCurrentUserId(''); return }
+      if (messagesReadHandler) { window.removeEventListener('weshbien:messages-read', messagesReadHandler); messagesReadHandler = null }
+      if (!userId) { setUnread(0); setUnreadMessages(0); setAvatarUrl(null); setCurrentUserId(''); return }
       setCurrentUserId(userId)
       checkSuspension(userId)
       suspensionTimer = setInterval(() => checkSuspension(userId), 4000)
@@ -119,6 +121,8 @@ export default function App({ Component, pageProps }: AppProps) {
       const refreshUnreadMessages = () => supabase.from('messages').select('id', { count: 'exact', head: true }).eq('recipient', userId).eq('is_read', false)
         .then(({ count, error }) => { if (active && !error) setUnreadMessages(count || 0) })
       refreshUnreadMessages()
+      messagesReadHandler = () => refreshUnreadMessages()
+      window.addEventListener('weshbien:messages-read', messagesReadHandler)
       const refreshUnreadNotifications = () => supabase.from('notifications').select('id', { count: 'exact', head: true }).eq('user_id', userId).eq('is_read', false)
         .then(({ count, error }) => { if (active && !error) setUnread(count || 0) })
       const onNotificationsRead = () => refreshUnreadNotifications()
@@ -151,6 +155,7 @@ export default function App({ Component, pageProps }: AppProps) {
       active = false
       window.removeEventListener('weshbien:notify', onNotice)
       if (presenceVisibilityHandler) document.removeEventListener('visibilitychange', presenceVisibilityHandler)
+      if (messagesReadHandler) window.removeEventListener('weshbien:messages-read', messagesReadHandler)
       subscription.unsubscribe()
       if (channel) supabase.removeChannel(channel)
       if (timer) clearTimeout(timer)
