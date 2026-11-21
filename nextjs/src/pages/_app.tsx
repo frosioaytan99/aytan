@@ -150,7 +150,6 @@ export default function App({ Component, pageProps }: AppProps) {
     return () => {
       active = false
       window.removeEventListener('weshbien:notify', onNotice)
-      window.removeEventListener('weshbien:notifications-read', onNotificationsRead)
       if (presenceVisibilityHandler) document.removeEventListener('visibilitychange', presenceVisibilityHandler)
       subscription.unsubscribe()
       if (channel) supabase.removeChannel(channel)
