@@ -6,7 +6,6 @@ import MemberAvatar from '../components/MemberAvatar'
 import CommunityImage from '../components/CommunityImage'
 import { isAllowedCommunityImage } from '../lib/communityMedia'
 import { uploadModeratedCommunityImage } from '../lib/uploadModeratedCommunityImage'
-import { moderateForumContent } from '../lib/moderateForumContent'
 
 type ProfileData = { id:string; display_name:string|null; username:string|null; bio:string|null; interests:string|null; avatar_url?:string|null; is_private:boolean|null; age?:number|null; city?:string|null; favorite_music?:string|null; hobbies?:string|null; gallery_urls?:string[]|null; last_seen_at?:string|null }
 type FriendRequest = { id:string; sender_id:string; recipient_id:string; status:'pending'|'accepted'|'declined' }
@@ -44,9 +43,6 @@ export default function ProfilePage() {
  const [following,setFollowing]=useState(false)
  const [followerCount,setFollowerCount]=useState(0)
  const [activeProfileTab,setActiveProfileTab]=useState<'about'|'photos'>('about')
- const [questionOpen,setQuestionOpen]=useState(false)
- const [questionText,setQuestionText]=useState('')
- const [questionBusy,setQuestionBusy]=useState(false)
 
  async function loadFriendState(userId:string,targetId:string){
   const {data,error}=await supabase.from('friend_requests').select('id,sender_id,recipient_id,status').or(`and(sender_id.eq.${userId},recipient_id.eq.${targetId}),and(sender_id.eq.${targetId},recipient_id.eq.${userId})`).maybeSingle()
@@ -204,21 +200,6 @@ export default function ProfilePage() {
   setStatus(response.ok?'Demande envoyée ! La personne recevra une notification pour accepter ou refuser.':result.error==='adults_only'?'Cette fonction est réservée aux membres majeurs (18 ans et plus).':result.error==='request_exists'?'Une demande est déjà en attente.':result.error==='already_couple'?'Vous êtes déjà en couple.':'Impossible d’envoyer la demande.')
   setCoupleStatus(response.ok?'pending':coupleStatus);setFriendBusy(false)
  }
- async function sendProfileQuestion(e:any){
-  e.preventDefault()
-  const question=questionText.trim()
-  if(!question||!currentUser||!uid||questionBusy||blocked)return
-  if(question.length<3){setStatus('Ta question doit contenir au moins 3 caractères.');return}
-  setQuestionBusy(true);setStatus('')
-  const moderation=await moderateForumContent(question)
-  if(!moderation.allowed){setStatus(moderation.message||'Cette question ne peut pas être envoyée.');setQuestionBusy(false);return}
-  const {data:{session}}=await supabase.auth.getSession()
-  const response=await fetch('/api/profile-question',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+(session?.access_token||'')},body:JSON.stringify({recipient_id:uid,question})})
-  const result=await response.json().catch(()=>({}))
-  if(response.ok){setQuestionText('');setQuestionOpen(false);setStatus('Ta question a été envoyée !')}
-  else setStatus(result.error==='blocked'?'Vous ne pouvez pas vous envoyer de question.':result.error==='invalid_question'?'Ta question doit contenir entre 3 et 500 caractères.':result.error==='profile_not_found'?'Ce profil est indisponible.':'Impossible d’envoyer la question. Réessaie.')
-  setQuestionBusy(false)
- }
  async function toggleBlock(){
   if(!currentUser||!uid||friendBusy)return
   const action=blocked?'débloquer':'bloquer'
@@ -263,13 +244,7 @@ export default function ProfilePage() {
      <div className="profile-cover"></div>
      <div className="profile-identity"><MemberAvatar userId={profile.id} name={profile.display_name||profile.username} avatarUrl={profile.avatar_url} className="avatar large profile-avatar-preview"/><div className="profile-identity-copy"><h2>{profile.display_name||profile.username||'Membre'}</h2><p>@{profile.username||'membre'}</p>{profileRole!=='member'&&<span style={{display:'inline-flex',alignItems:'center',gap:5,margin:'3px 0 7px',padding:'4px 9px',borderRadius:999,background:profileRole==='admin'?'#fef3c7':'#dbeafe',color:profileRole==='admin'?'#92400e':'#1e40af',fontWeight:800,fontSize:12}}>{profileRole==='admin'?'🛡️ Administrateur':'🔧 Modérateur'}</span>}<small>{followerCount} abonné{followerCount>1?'s':''}</small><small>♡ {friendCount} ami{friendCount>1?"s":""}</small></div><div className="profile-identity-actions"><button type="button" className="profile-follow-button" disabled={friendBusy||blocked} onClick={toggleFollow}>{following?'✓ Abonné':'＋ Suivre'}</button>{!blocked&&friendRequest?.status==='accepted'?<Link className="profile-add-friend-button" href={'/conversation?with='+profile.id}>Message</Link>:!blocked&&friendRequest?.status==='pending'&&friendRequest.sender_id===currentUser?<button type="button" className="profile-add-friend-button" disabled>Demande envoyée ✓</button>:!blocked&&friendRequest?.status==='pending'?<div className="friend-actions profile-friend-actions"><button type="button" disabled={friendBusy} onClick={()=>answerFriendRequest('accepted')}>Accepter</button><button type="button" className="friend-secondary" disabled={friendBusy} onClick={()=>answerFriendRequest('declined')}>Refuser</button></div>:!blocked&&friendRequest?.status==='declined'?<span className="profile-friend-status">Demande refusée</span>:!blocked?<button type="button" className="profile-add-friend-button" disabled={friendBusy} onClick={sendFriendRequest}>＋ Ajouter en ami</button>:null}</div></div>
      {!blocked&&profile.age!==undefined&&profile.age!==null&&profile.age>=18&&<button type="button" className="profile-add-friend-button" disabled={friendBusy||coupleStatus==='pending'} onClick={requestCouple}>{coupleStatus==='pending'?'Demande envoyée 💞':'💞 Proposer d’être en couple'}</button>}
-     {!blocked&&<button type="button" className="profile-add-friend-button" onClick={()=>setQuestionOpen(true)}>❓ Poser une question</button>}
-     {questionOpen&&<form className="card" onSubmit={sendProfileQuestion} style={{margin:'14px 0',padding:16,display:'grid',gap:10}}>
-      <h3 style={{margin:0}}>Poser une question à {profile.display_name||profile.username||'ce membre'}</h3>
-      <textarea value={questionText} onChange={e=>setQuestionText(e.target.value)} maxLength={500} minLength={3} required placeholder="Écris ta question ici…" rows={4}/>
-      <small>{questionText.length}/500 caractères · Ta question sera envoyée en privé sous forme de notification.</small>
-      <div className="friend-actions"><button type="submit" disabled={questionBusy||questionText.trim().length<3}>{questionBusy?'Envoi…':'Envoyer la question'}</button><button type="button" className="friend-secondary" disabled={questionBusy} onClick={()=>{setQuestionOpen(false);setQuestionText('')}}>Annuler</button></div>
-     </form>}
+     {!blocked&&<Link className="profile-add-friend-button" href={'/ask-question?to='+encodeURIComponent(profile.id)}>❓ Poser une question</Link>}
      <div className="profile-public-tabs" role="tablist" aria-label="Sections du profil"><button type="button" role="tab" aria-selected={activeProfileTab==='about'} className={activeProfileTab==='about'?'active':''} onClick={()=>setActiveProfileTab('about')}>À propos</button><button type="button" role="tab" aria-selected={activeProfileTab==='photos'} className={activeProfileTab==='photos'?'active':''} onClick={()=>setActiveProfileTab('photos')}>Photos ({profilePhotoUrls.length})</button></div>
      {activeProfileTab==='about'&&<section id="profile-about" className="profile-about-section"><h3>À propos</h3><p>{profile.bio||'Ce membre n’a pas encore ajouté de présentation.'}</p><div className="profile-details-grid">{profile.age&&<p><strong>Âge</strong><span>{profile.age} ans</span></p>}{profile.city&&<p><strong>Ville</strong><span>{profile.city}</span></p>}{profile.interests&&<p><strong>Centres d’intérêt</strong><span>{profile.interests}</span></p>}{profile.hobbies&&<p><strong>Loisirs et passions</strong><span>{profile.hobbies}</span></p>}{profile.favorite_music&&<p><strong>Musique préférée</strong><span>{profile.favorite_music}</span></p>}</div>{profile.last_seen_at&&<p className="profile-last-seen"><strong>Dernière connexion :</strong> {new Date(profile.last_seen_at).toLocaleString('fr-FR',{dateStyle:'medium',timeStyle:'short'})}</p>}</section>}
      {activeProfileTab==='photos'&&<section id="profile-photos" className="profile-gallery-view"><h3>Ses photos</h3>{profilePhotoUrls.length>0?<div className="profile-gallery-grid">{profilePhotoUrls.map(url=><CommunityImage key={url} src={url} alt="Photo du membre"/>)}</div>:<p className="profile-empty-photos">Ce membre n’a pas encore ajouté de photos.</p>}</section>}<p className="profile-likes-count">♡ {likeCount} {likeCount===1?'like':'likes'}</p>
