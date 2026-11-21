@@ -5,7 +5,7 @@ import { supabase } from '../lib/supabaseClient'
 import MemberAvatar from '../components/MemberAvatar'
 type Msg={id:string;sender:string;recipient:string;subject:string|null;body:string|null;created_at:string;is_read:boolean}
 export default function ConversationPage(){
- const router=useRouter(),[uid,setUid]=useState(''),[other,setOther]=useState(''),[person,setPerson]=useState<any>(null),[messages,setMessages]=useState<Msg[]>([]),[body,setBody]=useState(''),[busy,setBusy]=useState(false),[status,setStatus]=useState(''),[search,setSearch]=useState(''),[menuFor,setMenuFor]=useState(''),[hiddenIds,setHiddenIds]=useState<string[]>([])
+ const router=useRouter(),[uid,setUid]=useState(''),[other,setOther]=useState(''),[person,setPerson]=useState<any>(null),[presenceLastSeen,setPresenceLastSeen]=useState<string|null>(null),[messages,setMessages]=useState<Msg[]>([]),[body,setBody]=useState(''),[busy,setBusy]=useState(false),[status,setStatus]=useState(''),[search,setSearch]=useState(''),[menuFor,setMenuFor]=useState(''),[hiddenIds,setHiddenIds]=useState<string[]>([])
  async function load(a:string,b:string){
   const {data,error}=await supabase.from('messages').select('id,sender,recipient,subject,body,created_at,is_read').or('and(sender.eq.'+a+',recipient.eq.'+b+'),and(sender.eq.'+b+',recipient.eq.'+a+')').order('created_at',{ascending:true})
   if(error){setStatus('Impossible de charger cette conversation.');return}
@@ -22,14 +22,22 @@ export default function ConversationPage(){
    if(!user){await router.replace('/auth');return}
    const otherId=router.query.with as string
    if(otherId===user.id){setStatus('Conversation invalide.');return}
-   const {data:p}=await supabase.from('profiles').select('id,username,display_name,avatar_url').eq('id',otherId).maybeSingle()
+   const {data:p}=await supabase.from('profiles').select('id,username,display_name,avatar_url,last_seen_at').eq('id',otherId).maybeSingle()
    if(!active)return
    if(!p){setStatus('Ce profil est introuvable ou inaccessible.');return}
-   setUid(user.id);setOther(otherId);setPerson(p);try{setHiddenIds(JSON.parse(localStorage.getItem('weshbien-hidden-messages-'+user.id)||'[]'))}catch{};await load(user.id,otherId)
+   setUid(user.id);setOther(otherId);setPerson(p);setPresenceLastSeen(p.last_seen_at||null);try{setHiddenIds(JSON.parse(localStorage.getItem('weshbien-hidden-messages-'+user.id)||'[]'))}catch{};await load(user.id,otherId)
   }
   init()
   return()=>{active=false}
  },[router.isReady,router.query.with])
+ useEffect(()=>{
+  if(!other)return
+  let active=true
+  const refreshPresence=async()=>{const {data}=await supabase.from('profiles').select('last_seen_at').eq('id',other).maybeSingle();if(active&&data)setPresenceLastSeen(data.last_seen_at||null)}
+  const timer=setInterval(refreshPresence,30000)
+  return()=>{active=false;clearInterval(timer)}
+ },[other])
+ const presenceLabel=()=>{if(!presenceLastSeen)return 'Hors ligne';const elapsed=Date.now()-new Date(presenceLastSeen).getTime();if(!Number.isFinite(elapsed)||elapsed<0)return 'Hors ligne';if(elapsed<=120000)return '● En ligne';const minutes=Math.floor(elapsed/60000);if(minutes<60)return 'Actif il y a '+minutes+' min';const hours=Math.floor(minutes/60);if(hours<24)return 'Actif il y a '+hours+' h';return 'Vu le '+new Date(presenceLastSeen).toLocaleDateString('fr-FR')}
  useEffect(()=>{
   if(!uid||!other)return
   const channel=supabase.channel('conversation-read-'+uid+'-'+other).on('postgres_changes',{event:'*',schema:'public',table:'messages'},payload=>{
@@ -81,7 +89,7 @@ export default function ConversationPage(){
  return <main className="messenger-shell">
   <header className="messenger-topbar"><Link href="/inbox" className="messenger-close" aria-label="Retour à la messagerie">×</Link><div className="messenger-brand"><b>🔒 weshbien.com</b><span>Messenger</span></div><Link href={'/profile?id='+other} className="messenger-profile-shortcut" aria-label="Voir le profil">◎</Link></header>
   <section className="messenger-window">
-   <div className="messenger-personbar"><Link href="/inbox" className="messenger-back" aria-label="Retour">←</Link><MemberAvatar userId={other} name={person?.display_name||person?.username} avatarUrl={person?.avatar_url} className="messenger-avatar" imageSize={56}/><div className="messenger-person-copy"><strong>{person?.display_name||person?.username||'Conversation'}</strong><span>@{person?.username||'membre'}</span></div><Link href={'/profile?id='+other} className="messenger-more" aria-label="Options du profil">•••</Link></div>
+   <div className="messenger-personbar"><Link href="/inbox" className="messenger-back" aria-label="Retour">←</Link><MemberAvatar userId={other} name={person?.display_name||person?.username} avatarUrl={person?.avatar_url} className="messenger-avatar" imageSize={56}/><div className="messenger-person-copy"><strong>{person?.display_name||person?.username||'Conversation'}</strong><span>@{person?.username||'membre'} · {presenceLabel()}</span></div><Link href={'/profile?id='+other} className="messenger-more" aria-label="Options du profil">•••</Link></div>
    <div className="messenger-search"><span>⌕</span><input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Rechercher dans cette conversation…" aria-label="Rechercher dans cette conversation"/></div>
    <div className="messenger-history" aria-live="polite">
     {visibleMessages.filter(m=>!hiddenIds.includes(m.id)).length===0?<div className="messenger-empty">{messages.length===0?'Démarre la conversation en envoyant un message.':'Aucun message à afficher.'}</div>:visibleMessages.filter(m=>!hiddenIds.includes(m.id)).map(m=><div key={m.id} className={'messenger-message-row '+(m.sender===uid?'mine':'theirs')}><div className="messenger-bubble">{m.body||m.subject}</div><div className="messenger-meta"><time>{new Date(m.created_at).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}</time>{m.sender===uid&&<span>{m.is_read?'✓✓ Lu':'✓ Envoyé'}</span>}<button type="button" onClick={()=>setMenuFor(menuFor===m.id?'':m.id)} aria-label="Options du message">•••</button></div>{menuFor===m.id&&<div className="messenger-message-actions"><button onClick={()=>messageAction('save',m)}>♧ Sauvegarder</button><button onClick={()=>messageAction('pin',m)}>⌖ Épingler pour moi</button><button onClick={()=>messageAction('forward',m)}>↪ Transférer</button>{m.sender===uid&&<button onClick={()=>messageAction('edit',m)}>✎ Modifier</button>}<button onClick={()=>messageAction('hide',m)}>▣ Supprimer pour moi</button>{m.sender===uid?<button className="danger" onClick={()=>messageAction('delete',m)}>▤ Supprimer pour tous</button>:<button className="danger" onClick={()=>messageAction('report',m)}>⚑ Signaler</button>}</div>}</div>)}
