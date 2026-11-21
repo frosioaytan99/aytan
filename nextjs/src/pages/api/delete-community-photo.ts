@@ -71,7 +71,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     for (const post of matchingPosts) {
       const remaining = (post.image_urls || (post.image_url ? [post.image_url] : [])).filter((item: string) => item !== photoUrl)
       const { error } = await admin.from('posts').update({ image_urls: remaining, image_url: remaining[0] || null }).eq('id', post.id).eq('author_id', ownerId)
-      if (error) return res.status(500).json({ error: 'post_update_failed' })
+      if (error) return res.status(500).json({ error: 'post_update_failed', details: error.message, code: error.code || null })
     }
     const { error: commentError } = await admin.from('photo_comments').delete().eq('photo_url', photoUrl).eq('owner_id', ownerId)
     if (commentError) return res.status(500).json({ error: 'comments_cleanup_failed' })
