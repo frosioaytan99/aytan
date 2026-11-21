@@ -23,7 +23,7 @@ export default function AuthPage() {
     setMessage('')
     const guestUsername = (window.prompt('Choisis ton pseudo (3 à 20 caractères) :') || '').trim().replace(/^@+/, '').toLowerCase()
     const guestAge = Number(window.prompt('Quel âge as-tu ? (13 à 26 ans) :'))
-    if (!/^[a-z0-9_]{3,20}$/.test(guestUsername) || !Number.isInteger(guestAge) || guestAge < 13 || guestAge > 26) { setMessage('Pour continuer en invité, indique un pseudo valide et ton âge (13 à 26 ans).'); return }
+    if (!/^[a-z0-9_]{3,20}$/.test(guestUsername) || !Number.isInteger(guestAge) || guestAge < 13 || guestAge > 26) { setMessage('Pour continuer en invité, indique un pseudo valide et ton âge (13 à 26 ans).'); setGuestLoading(false); return }
     const { data, error } = await supabase.auth.signInAnonymously()
     if (error || !data.session) {
       setMessage("Le mode invité n'est pas encore activé dans Supabase. Il faut activer les connexions anonymes dans les paramètres d'authentification.")
@@ -32,7 +32,8 @@ export default function AuthPage() {
     }
     const response = await fetch('/api/guest-name', {
       method: 'POST',
-      headers: { Authorization: 'Bearer ' + data.session.access_token },
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + data.session.access_token },
+      body: JSON.stringify({ username: guestUsername, age: guestAge }),
     })
     const result = await response.json().catch(() => null)
     if (!response.ok || !result?.display_name) {
@@ -65,7 +66,8 @@ export default function AuthPage() {
         return
       }
       const parsedAge = Number(age)
-      if (!Number.isInteger(parsedAge) || parsedAge < 13 || parsedAge > 26) { setMessage('Indique ton âge (de 13 à 26 ans).'); setLoading(false); return }\n      const { data: usernameMatch } = await supabase.from('profiles').select('id').ilike('username', cleanUsername).maybeSingle()
+      if (!Number.isInteger(parsedAge) || parsedAge < 13 || parsedAge > 26) { setMessage('Indique ton âge (de 13 à 26 ans).'); setLoading(false); return }
+      const { data: usernameMatch } = await supabase.from('profiles').select('id').ilike('username', cleanUsername).maybeSingle()
       if (usernameMatch) {
         setMessage("Cet identifiant est déjà utilisé. Choisis-en un autre.")
         setLoading(false)
@@ -104,6 +106,8 @@ export default function AuthPage() {
         if (user) {
           const savedUsername = String(user.user_metadata?.username || '').trim().toLowerCase()
           const profileData: any = { id: user.id }
+          const savedAge = Number(user.user_metadata?.age)
+          if (Number.isInteger(savedAge) && savedAge >= 13 && savedAge <= 26) profileData.age = savedAge
           const savedAge = Number(user.user_metadata?.age)
           if (Number.isInteger(savedAge) && savedAge >= 13 && savedAge <= 26) profileData.age = savedAge
           if (/^[a-z0-9_]{3,20}$/.test(savedUsername)) {
