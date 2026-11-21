@@ -11,6 +11,7 @@ type Post = { id:string; author_id:string; body:string; image_urls:string[]; cre
 
 export default function IndividualPage() {
   const [accepted,setAccepted]=useState(false)
+  const [activeTab,setActiveTab]=useState<'fil'|'reglement'>('fil')
   const [posts,setPosts]=useState<Post[]>([])
   const [userId,setUserId]=useState('')
   const [body,setBody]=useState('')
@@ -119,6 +120,25 @@ export default function IndividualPage() {
           <aside className="side-card"><b>Ton espace</b><Link href="/feed">🏠 Weshbien classique</Link><Link href="/individual">⚠️ Individuel</Link><Link href="/profile">👤 Mon profil</Link><Link href="/inbox">✉️ Messages</Link></aside>
           <section className="feed-column">
             <div className="page-intro"><small>ESPACE SÉPARÉ · IMAGES SANS VÉRIFICATION IA</small><h1>Weshbien Individuel ⚠️</h1><p>Un fil distinct du Weshbien classique. Prends garde aux images publiées ici.</p></div>
+            <div role="tablist" aria-label="Navigation Individuel" style={{display:'flex',gap:8,marginBottom:16}}>
+              <button type="button" role="tab" aria-selected={activeTab==='fil'} onClick={()=>setActiveTab('fil')} style={{padding:'10px 16px',borderRadius:12,border:0,fontWeight:700,background:activeTab==='fil'?'#6d28d9':'var(--card,#fff)',color:activeTab==='fil'?'#fff':'inherit'}}>Publications</button>
+              <button type="button" role="tab" aria-selected={activeTab==='reglement'} onClick={()=>setActiveTab('reglement')} style={{padding:'10px 16px',borderRadius:12,border:'1px solid rgba(245,158,11,.5)',fontWeight:700,background:activeTab==='reglement'?'#b45309':'var(--card,#fff)',color:activeTab==='reglement'?'#fff':'inherit'}}>📜 Règlement</button>
+            </div>
+            {activeTab==='reglement'?<section className="card" style={{padding:20,lineHeight:1.65}}>
+              <h2>Règlement de l’espace Individuel</h2>
+              <p><b>Attention :</b> cet espace peut contenir des images choquantes, dérangeantes ou réservées à un public adulte. N’y accède pas si tu ne souhaites pas voir ce type de contenu.</p>
+              <h3>Images et contenus +18</h3>
+              <p>Les contenus explicitement sexuels ou pornographiques ne sont pas autorisés sur Weshbien. L’indication « +18 » sert à avertir qu’une image peut être mature, violente ou dérangeante ; elle ne rend pas autorisé un contenu interdit.</p>
+              <h3>Contenus strictement interdits</h3>
+              <ul><li>Toute représentation sexuelle impliquant un mineur, réelle ou fictive.</li><li>Exploitation, coercition, violence sexuelle ou partage intime sans consentement.</li><li>Menaces, harcèlement, haine, incitation à la violence ou activités illégales.</li><li>Images intimes d’une personne publiées sans son accord.</li></ul>
+              <h3>Avant de publier</h3>
+              <ul><li>Publie uniquement des images que tu as le droit de partager.</li><li>Ne divulgue pas d’adresse, de numéro, de document ou d’information privée.</li><li>Préviens clairement si une image peut choquer et évite les contenus graphiques.</li><li>Ne contourne pas les signalements et respecte les autres membres.</li></ul>
+              <h3>Modération et signalements</h3>
+              <p>Les images de cet espace ne sont pas vérifiées automatiquement par IA. Les protections techniques restent actives. Les membres peuvent signaler un contenu ; les administrateurs peuvent l’examiner, le retirer et prendre des mesures sur le compte en cas d’abus.</p>
+              <p><b>Important :</b> l’absence de vérification IA ne signifie pas l’absence de règles ni une autorisation de publier n’importe quel contenu.</p>
+              <button type="button" onClick={()=>setActiveTab('fil')} style={{padding:'11px 16px',border:0,borderRadius:12,background:'#6d28d9',color:'#fff',fontWeight:700}}>Retour aux publications</button>
+            </section>:<>
+
             <div className="card" style={{padding:14,marginBottom:16,border:'1px solid rgba(245,158,11,.4)'}}><b>Rappel sécurité</b><p style={{margin:'6px 0 0',fontSize:13}}>Les images ne sont pas analysées par IA dans cet espace. Les signalements restent actifs et les contenus interdits peuvent être supprimés.</p></div>
             <form className="composer card" onSubmit={publish}>
               <label htmlFor="individual-post-body">Publier dans Individuel</label>
@@ -137,6 +157,7 @@ export default function IndividualPage() {
               <section className="comments"><div className="comments-list">{p.comments.map(c=><div className="comment" key={c.id}><Link href={'/profile?id='+c.author_id} className="comment-profile-link"><MemberAvatar userId={c.author_id} name={c.profile?.display_name||c.profile?.username} avatarUrl={c.profile?.avatar_url} className="avatar comment-author-avatar"/><b>{c.profile?.display_name||c.profile?.username||'Membre'}</b></Link><p>{c.body}</p><small>{new Date(c.created_at).toLocaleString('fr-FR')}</small></div>)}</div><form className="comment-form" onSubmit={e=>addComment(e,p.id)}><input aria-label="Écrire un commentaire" maxLength={500} value={drafts[p.id]||''} onChange={e=>setDrafts(v=>({...v,[p.id]:e.target.value}))} placeholder="Écrire un commentaire…"/><button type="submit" disabled={!(drafts[p.id]||'').trim()}>Envoyer</button></form></section>
             </article>)}
           </section>
+            </>}
           <aside className="right-card"><b>Un espace à part</b><p>Les publications et images ici sont stockées séparément du fil Weshbien classique. Utilise le bouton Signaler en cas de problème.</p><Link href="/feed">Retour au fil classique →</Link></aside>
         </div>
       </main>
