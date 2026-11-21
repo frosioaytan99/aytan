@@ -5,7 +5,7 @@ import MemberAvatar from '../components/MemberAvatar'
 import CommunityImage from '../components/CommunityImage'
 
 type PhotoComment = { id:string; photo_url:string; owner_id:string; author_id:string; body:string; created_at:string; profile?:any }
-type PhotoItem = { key:string; url:string; ownerId:string; ownerName:string; avatar:string|null; createdAt:string; source:'post'|'gallery'; postId?:string; caption?:string; comments:PhotoComment[] }
+type PhotoItem = { key:string; url:string; ownerId:string; ownerName:string; avatar:string|null; createdAt:string; source:'post'|'gallery'|'avatar'; postId?:string; caption?:string; comments:PhotoComment[] }
 export default function PhotosPage(){
  const [items,setItems]=useState<PhotoItem[]>([])
  const [userId,setUserId]=useState('')
@@ -32,6 +32,7 @@ export default function PhotosPage(){
   const byId=new Map(profiles.map((p:any)=>[p.id,p]))
   const photos:PhotoItem[]=[]
   for(const p of profiles as any[]){
+   if(typeof p.avatar_url==='string'&&p.avatar_url)photos.push({key:'avatar-'+p.id+'-'+p.avatar_url,url:p.avatar_url,ownerId:p.id,ownerName:p.display_name||p.username||'Membre',avatar:p.avatar_url,createdAt:p.created_at||new Date().toISOString(),source:'avatar',comments:[]})
    for(const [index,url] of (p.gallery_urls||[]).entries()){
     if(typeof url==='string'&&url)photos.push({key:'gallery-'+p.id+'-'+index+'-'+url,url,ownerId:p.id,ownerName:p.display_name||p.username||'Membre',avatar:p.avatar_url,createdAt:p.created_at||new Date().toISOString(),source:'gallery',comments:[]})
    }
