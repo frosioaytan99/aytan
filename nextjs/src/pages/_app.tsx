@@ -25,7 +25,7 @@ const menuItems: [string, string, string][] = [
   ['Accueil', '/feed', '⌂'], ['Weshbien IA', '/assistant', '✦'], ['18+', '/individual', '⚠'], ['Explorer', '/explore', '◉'], ['Recherche', '/search', '⌕'], ['Stories', '/stories', '◌'], ['En ligne', '/online', '●'],
   ['Amis', '/friends', '♧'], ['MeetMe', '/explore', '♡'], ['Communautés', '/communities', '▤'], ['Photos', '/photos', '▧'],
   ['Forum', '/forums', '▤'], ['Blog', '/questions', '▣'], ['Notifications', '/notifications', '♧'],
-  ['Messages', '/inbox', '✉'], ['Mon profil', '/profile', '♙'], ['Administration', '/admin', '♢'],
+  ['Messages', '/inbox', '✉'], ['Équipe de modération', '/moderators', '🛡️'], ['Mon profil', '/profile', '♙'], ['Administration', '/admin', '♢'],
 ]
 export default function App({ Component, pageProps }: AppProps) {
   const [notice, setNotice] = useState('')
