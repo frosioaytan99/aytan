@@ -790,3 +790,23 @@ html[data-theme="dark"] .messenger-search input,html[data-theme="dark"] .messeng
 .home-refresh{margin:18px 0 8px;padding:13px 20px;border:1px solid #e1e1ea;border-radius:18px;background:#fff;color:#657184;font-size:16px}.home-feed-column .page-intro{display:none}
 .individual-post-image{width:100%!important;max-width:280px!important;height:180px!important;max-height:180px!important;object-fit:contain!important}
 @media(max-width:650px){.home-discovery{padding:16px 0 8px}.home-member-card{flex-basis:78vw}.home-member-cover{height:180px}.home-feed-tabs button{padding:12px 16px;font-size:15px}.home-discovery>h2{font-size:29px}.individual-post-image{max-width:220px!important;height:150px!important;max-height:150px!important}}
+
+/* Mobile: header avatar compact + accueil at real device width */
+@media(max-width:650px){
+ html,body,#__next{width:100%;min-width:0;max-width:100%;overflow-x:hidden}
+ .mobile-community-header{width:100%;min-width:0}
+ .mobile-community-header .mobile-user-dot{width:28px!important;height:28px!important;min-width:28px!important;min-height:28px!important;border-width:1.5px!important;flex:0 0 28px}
+ .mobile-community-header .account-menu-wrap,.mobile-community-header .member-avatar-wrap{width:28px;height:28px;min-width:28px;min-height:28px}
+ .mobile-community-header .account-avatar-image{width:28px!important;height:28px!important;border-radius:50%;overflow:hidden}
+ .mobile-community-header .account-avatar-image img{width:100%;height:100%;object-fit:cover}
+ .app-shell{width:100%;max-width:100%;min-width:0;margin:0;padding:0 0 88px;overflow-x:hidden}
+ .app-layout{display:block!important;width:100%!important;max-width:100%!important;min-width:0!important;margin:0!important;padding:12px 14px 90px!important}
+ .feed-column,.home-feed-column{display:grid;width:100%!important;max-width:100%!important;min-width:0!important;gap:14px}
+ .home-discovery{width:100%;max-width:100%;min-width:0;padding:16px 0 8px}
+ .home-newcomers{width:100%;max-width:100%;min-width:0}
+ .home-member-card{flex:0 0 min(84vw,360px);min-width:0}
+ .composer,.post,.empty{width:100%;max-width:100%;min-width:0;margin-left:0;margin-right:0;padding:16px}
+ .post img,.post-image{max-width:100%;height:auto}
+ .home-discovery>h1{font-size:clamp(25px,7vw,34px)}
+ .home-discovery>h2{font-size:clamp(26px,7vw,32px)}
+}
