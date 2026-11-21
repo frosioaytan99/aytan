@@ -98,7 +98,7 @@ export default function IndividualPage() {
           <p style={{fontWeight:800,letterSpacing:'.08em',fontSize:12,color:'#b45309'}}>ESPACE INDIVIDUEL</p>
           <h1 style={{fontSize:'clamp(26px,5vw,36px)',margin:'8px 0 14px'}}>Conditions d’utilisation avant d’entrer</h1>
           <p style={{fontSize:16,lineHeight:1.7}}>Cet espace est ouvert à tous les membres après lecture et acceptation des conditions. Il sert à partager des photos inhabituelles ou susceptibles de surprendre, choquer ou déranger. Contrairement au fil classique, les images n’y sont pas vérifiées automatiquement par une intelligence artificielle.</p>
-          <p style={{fontSize:14,lineHeight:1.7}}>Les contenus sexuels explicites, les images intimes sans consentement et tout contenu impliquant des mineurs sont strictement interdits. Les fichiers restent soumis aux contrôles techniques (formats et taille). Les contenus signalés peuvent être examinés par les administrateurs et retirés s’ils enfreignent les règles. Ne partage aucune information personnelle et ne republie pas de contenu inquiétant.</p>
+          <p style={{fontSize:14,lineHeight:1.7}}>Espace réservé aux adultes. Les photos de mineurs n’y sont pas autorisées. Les contenus signalés peuvent être examinés et retirés par les administrateurs.</p>
           <button type="button" onClick={acceptWarning} style={{marginTop:18,width:'100%',padding:'14px 18px',border:0,borderRadius:14,background:'#b45309',color:'#fff',fontWeight:800,cursor:'pointer'}}>J’ai lu et j’accepte les conditions</button>
           <p style={{marginTop:20,fontSize:13}}><Link href="/feed">← Retour à Weshbien classique</Link></p>
         </section>
@@ -123,7 +123,7 @@ export default function IndividualPage() {
               <h2>Règlement de l’espace Individuel</h2>
               <p><b>Accès :</b> cet espace est ouvert à tous les membres après lecture et acceptation des conditions. Il peut contenir des photos inhabituelles, choquantes ou dérangeantes. N’y accède pas si tu ne souhaites pas voir ce type de contenu.</p>
               <h3>Images et contenus +18</h3>
-              <p>Les contenus explicitement sexuels ou pornographiques ne sont pas autorisés sur Weshbien. L’indication « +18 » sert à avertir qu’une image peut être mature, violente ou dérangeante ; elle ne rend pas autorisé un contenu interdit.</p>
+              <p>Cet espace est réservé aux adultes. Les photos de mineurs et les contenus sexuels impliquant des mineurs y sont interdits.</p>
               <h3>Contenus strictement interdits</h3>
               <ul><li>Toute représentation sexuelle impliquant un mineur, réelle ou fictive.</li><li>Exploitation, coercition, violence sexuelle ou partage intime sans consentement.</li><li>Menaces, harcèlement, haine, incitation à la violence ou activités illégales.</li><li>Images intimes d’une personne publiées sans son accord.</li></ul>
               <h3>Avant de publier</h3>
