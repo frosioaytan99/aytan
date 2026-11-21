@@ -882,3 +882,17 @@ html[data-theme="dark"] .messenger-search input,html[data-theme="dark"] .messeng
   min-height:44px!important;max-height:44px!important;flex-basis:44px!important;
  }
 }
+
+/* Numeric unread badges for chat and notification navigation */
+.mobile-bottom-nav a>span{position:relative}
+.mobile-bottom-nav .nav-count-badge{
+ position:absolute;top:-5px;right:-11px;min-width:17px;height:17px;padding:0 4px;
+ display:flex;align-items:center;justify-content:center;border-radius:999px;
+ background:#d52be5;color:#fff;border:2px solid #fff;font-size:9px;line-height:1;font-weight:800;
+}
+.mobile-drawer a{position:relative}
+.drawer-count-badge{
+ margin-left:auto;min-width:20px;height:20px;padding:0 5px;display:inline-flex;
+ align-items:center;justify-content:center;border-radius:999px;background:#d52be5;
+ color:#fff;font-size:10px;font-weight:800;line-height:1;
+}
