@@ -41,8 +41,6 @@ export default function AnimatedBackground() {
     observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] })
 
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    const saveData = Boolean((navigator as any).connection?.saveData)
-    const memory = (navigator as any).deviceMemory
     setVideoEnabled(!reduced)
     return () => { window.removeEventListener('weshbien:wallpaper-change', apply); observer.disconnect() }
   }, [])
