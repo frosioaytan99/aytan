@@ -12,7 +12,7 @@ export default function ConversationPage(){
   const rows=(data||[]) as Msg[]
   setMessages(rows)
   const unreadIds=rows.filter(m=>m.recipient===a&&!m.is_read).map(m=>m.id)
-  if(unreadIds.length){const {error:readError}=await supabase.from('messages').update({is_read:true}).in('id',unreadIds).eq('recipient',a);if(!readError)setMessages(current=>current.map(m=>unreadIds.includes(m.id)?{...m,is_read:true}:m))}
+  if(unreadIds.length){const {data:updated,error:readError}=await supabase.from('messages').update({is_read:true}).in('id',unreadIds).eq('recipient',a).select('id');if(!readError){setMessages(current=>current.map(m=>unreadIds.includes(m.id)?{...m,is_read:true}:m));if(typeof window!=='undefined')window.dispatchEvent(new Event('weshbien:messages-read'))}else{setStatus('Impossible de marquer les messages comme lus. Réessaie.')}}
  }
  useEffect(()=>{
   if(!router.isReady||typeof router.query.with!=='string')return
