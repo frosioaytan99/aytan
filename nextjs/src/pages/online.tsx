@@ -7,18 +7,26 @@ type Member = { id:string; username:string|null; display_name:string|null; avata
 export default function OnlinePage() {
   const [members,setMembers] = useState<Member[]>([])
   const [loading,setLoading] = useState(true)
+  const [refreshing,setRefreshing] = useState(false)
   const [error,setError] = useState('')
   const load = useCallback(async () => {
-    const { data:{user} } = await supabase.auth.getUser()
-    if (!user) { window.location.href='/auth'; return }
-    const cutoff = new Date(Date.now()-5*60*1000).toISOString()
-    const { data,error } = await supabase.from('profiles')
-      .select('id,username,display_name,avatar_url,bio,last_seen_at')
-      .neq('id',user.id).eq('is_private',false).gte('last_seen_at',cutoff)
-      .order('last_seen_at',{ascending:false}).limit(100)
-    if (error) setError("Impossible de charger les membres en ligne : "+error.message)
-    else { setMembers(data||[]); setError('') }
-    setLoading(false)
+    setRefreshing(true)
+    try {
+      const { data:{user} } = await supabase.auth.getUser()
+      if (!user) { window.location.href='/auth'; return }
+      const cutoff = new Date(Date.now()-5*60*1000).toISOString()
+      const { data,error } = await supabase.from('profiles')
+        .select('id,username,display_name,avatar_url,bio,last_seen_at')
+        .neq('id',user.id).eq('is_private',false).gte('last_seen_at',cutoff)
+        .order('last_seen_at',{ascending:false}).limit(100)
+      if (error) setError("Impossible de charger les membres en ligne : "+error.message)
+      else { setMembers(data||[]); setError('') }
+    } catch {
+      setError("Une erreur est survenue pendant l’actualisation.")
+    } finally {
+      setLoading(false)
+      setRefreshing(false)
+    }
   },[])
   useEffect(()=>{
     load()
@@ -39,7 +47,11 @@ export default function OnlinePage() {
         <p>{member.bio||'Membre de la communauté.'}</p>
         <Link href={'/profile?id='+member.id}>Voir le profil →</Link>
       </article>)}</div>}
-      <button type="button" onClick={load} style={{marginTop:18}}>Actualiser</button>
+      <button type="button" onClick={load} disabled={refreshing} aria-live="polite" style={{marginTop:22,display:'inline-flex',alignItems:'center',justifyContent:'center',gap:9,minHeight:46,padding:'0 20px',border:0,borderRadius:999,background:'linear-gradient(135deg,#7c3aed,#4f46e5)',color:'#fff',fontWeight:700,fontSize:14,letterSpacing:'.01em',boxShadow:'0 8px 22px #5b21b633',cursor:refreshing?'wait':'pointer',opacity:refreshing?.75:1,transition:'transform .18s ease,box-shadow .18s ease,opacity .18s ease'}}>
+        <span aria-hidden="true" style={{display:'inline-block',fontSize:18,lineHeight:1,animation:refreshing?'spin .8s linear infinite':undefined}}>↻</span>
+        {refreshing?'Actualisation…':'Actualiser'}
+      </button>
+      <style jsx>{`@keyframes spin { to { transform: rotate(360deg); } } button:disabled { cursor: wait; }`}</style>
     </section>
   </main>
 }
