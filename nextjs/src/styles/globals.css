@@ -1247,3 +1247,54 @@ html[data-wallpaper] .community-activity-post{border-color:var(--wb-border)}
 html[data-wallpaper] .wallpaper-status{color:var(--wb-accent)}
 html[data-wallpaper] .wb-wallpaper-video{opacity:.96}
 @media(prefers-reduced-motion:reduce){html[data-wallpaper] .wb-wallpaper-video{display:none!important}}
+
+
+/* Desktop layout repair: keep the feed and side panels in separate grid columns. */
+@media (min-width: 1101px) {
+  .app-layout {
+    display: grid !important;
+    width: 100%;
+    max-width: 1480px;
+    grid-template-columns: minmax(190px, 230px) minmax(0, 1fr) minmax(220px, 260px) !important;
+    align-items: start;
+    gap: 26px;
+  }
+  .app-layout > .side-card,
+  .app-layout > .right-card {
+    display: grid !important;
+    position: static !important;
+    float: none !important;
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    height: auto !important;
+    min-height: 0;
+    align-self: start;
+    grid-row: 1;
+  }
+  .app-layout > .side-card { grid-column: 1; }
+  .app-layout > .feed-column { grid-column: 2; min-width: 0; width: 100%; }
+  .app-layout > .right-card { grid-column: 3; }
+  .app-layout .home-discovery,
+  .app-layout .community-activity-feed,
+  .app-layout .composer,
+  .app-layout .post {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+  }
+}
+@media (min-width: 901px) and (max-width: 1100px) {
+  .app-layout {
+    display: grid !important;
+    grid-template-columns: minmax(170px, 190px) minmax(0, 1fr) !important;
+    align-items: start;
+  }
+  .app-layout > .side-card { display: grid !important; grid-column: 1; }
+  .app-layout > .feed-column { grid-column: 2; min-width: 0; }
+  .app-layout > .right-card { display: none !important; }
+}
+.app-layout > .right-card {
+  box-sizing: border-box;
+  overflow-wrap: anywhere;
+}
