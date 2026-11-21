@@ -21,6 +21,9 @@ export default function AuthPage() {
     if (guestLoading || loading) return
     setGuestLoading(true)
     setMessage('')
+    const guestUsername = (window.prompt('Choisis ton pseudo (3 à 20 caractères) :') || '').trim().replace(/^@+/, '').toLowerCase()
+    const guestAge = Number(window.prompt('Quel âge as-tu ? (13 à 26 ans) :'))
+    if (!/^[a-z0-9_]{3,20}$/.test(guestUsername) || !Number.isInteger(guestAge) || guestAge < 13 || guestAge > 26) { setMessage('Pour continuer en invité, indique un pseudo valide et ton âge (13 à 26 ans).'); return }
     const { data, error } = await supabase.auth.signInAnonymously()
     if (error || !data.session) {
       setMessage("Le mode invité n'est pas encore activé dans Supabase. Il faut activer les connexions anonymes dans les paramètres d'authentification.")
@@ -101,6 +104,8 @@ export default function AuthPage() {
         if (user) {
           const savedUsername = String(user.user_metadata?.username || '').trim().toLowerCase()
           const profileData: any = { id: user.id }
+          const savedAge = Number(user.user_metadata?.age)
+          if (Number.isInteger(savedAge) && savedAge >= 13 && savedAge <= 26) profileData.age = savedAge
           if (/^[a-z0-9_]{3,20}$/.test(savedUsername)) {
             profileData.username = savedUsername
             profileData.display_name = String(user.user_metadata?.display_name || savedUsername)
