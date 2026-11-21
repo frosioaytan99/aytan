@@ -34,10 +34,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if(req.method==='GET'){
       const [{data:settings,error:settingsError},{data:logs,error:logsError}]=await Promise.all([
         db.from('ai_moderation_settings').select('*').eq('id',true).single(),
-        db.from('ai_moderation_logs').select('id,user_id,content,allowed,flagged,categories,category_scores,decision,reviewed_by,reviewed_at,created_at').order('created_at',{ascending:false}).limit(100)
+        db.from('ai_moderation_logs').select('id,user_id,content,image_path,allowed,flagged,categories,category_scores,decision,reviewed_by,reviewed_at,created_at').order('created_at',{ascending:false}).limit(100)
       ])
       if(settingsError||logsError)return res.status(503).json({error:'moderation_data_read_failed'})
-      const all=logs||[]
+      const all=await Promise.all((logs||[]).map(async log=>{
+        if(!log.image_path)return {...log,image_url:null}
+        const {data}=await db.storage.from('community-private').createSignedUrl(log.image_path,900)
+        return {...log,image_url:data?.signedUrl||null}
+      }))
       return res.status(200).json({
         settings,
         logs:all,
