@@ -95,10 +95,10 @@ export default function IndividualPage() {
       <main className="app-shell" style={{maxWidth:760,margin:'0 auto',padding:'32px 18px 120px'}}>
         <section className="card" style={{padding:'clamp(22px,5vw,38px)',border:'1px solid rgba(245,158,11,.45)'}}>
           <div style={{fontSize:42,marginBottom:12}} aria-hidden="true">⚠️</div>
-          <p style={{fontWeight:800,letterSpacing:'.08em',fontSize:12,color:'#b45309'}}>ESPACE INDIVIDUEL</p>
+          <p style={{fontWeight:800,letterSpacing:'.08em',fontSize:12,color:'#b45309'}}>18+</p>
           <h1 style={{fontSize:'clamp(26px,5vw,36px)',margin:'8px 0 14px'}}>Conditions d’utilisation avant d’entrer</h1>
           <p style={{fontSize:16,lineHeight:1.7}}>Cet espace est ouvert à tous les membres après lecture et acceptation des conditions. Il sert à partager des photos inhabituelles ou susceptibles de surprendre, choquer ou déranger. Contrairement au fil classique, les images n’y sont pas vérifiées automatiquement par une intelligence artificielle.</p>
-          <p style={{fontSize:14,lineHeight:1.7}}>Espace réservé aux adultes. Les photos de mineurs n’y sont pas autorisées. Les contenus signalés peuvent être examinés et retirés par les administrateurs.</p>
+          <p style={{fontSize:14,lineHeight:1.7}}>Les contenus signalés peuvent être examinés et retirés par les administrateurs.</p>
           <button type="button" onClick={acceptWarning} style={{marginTop:18,width:'100%',padding:'14px 18px',border:0,borderRadius:14,background:'#b45309',color:'#fff',fontWeight:800,cursor:'pointer'}}>J’ai lu et j’accepte les conditions</button>
           <p style={{marginTop:20,fontSize:13}}><Link href="/feed">← Retour à Weshbien classique</Link></p>
         </section>
