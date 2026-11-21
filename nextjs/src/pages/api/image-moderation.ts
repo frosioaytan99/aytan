@@ -51,7 +51,29 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const { data: settings, error: settingsError } = await adminDb
       .from('ai_moderation_settings').select('enabled').eq('id', true).single()
     if (settingsError || !settings) return res.status(503).json({ error: 'moderation_settings_unavailable' })
-    if (!settings.enabled) return res.status(503).json({ error: 'photo_moderation_paused' })
+
+    // Accept uploads while AI moderation is paused, store them privately, and log them for moderator review.
+    if (!settings.enabled) {
+      const ext = MIME_EXTENSIONS[mime]
+      const path = `${authData.user.id}/image-${Date.now()}-${Math.random().toString(36).slice(2, 9)}.${ext}`
+      const { error: uploadError } = await adminDb.storage.from('community-private').upload(path, bytes, { contentType: mime, upsert: false })
+      if (uploadError) return res.status(500).json({ error: 'image_evidence_storage_failed' })
+      const { error: logError } = await adminDb.from('ai_moderation_logs').insert({
+        user_id: authData.user.id,
+        content: '[Photo envoyée pendant la pause de l’IA]',
+        image_path: path,
+        allowed: true,
+        flagged: false,
+        categories: {},
+        category_scores: {},
+        decision: 'automatic',
+      })
+      if (logError) {
+        await adminDb.storage.from('community-private').remove([path])
+        return res.status(500).json({ error: 'moderation_log_save_failed' })
+      }
+      return res.status(200).json({ image_url: 'private-media:' + path })
+    }
 
     if (!openaiKey) return res.status(503).json({ error: 'image_moderation_not_configured' })
 
