@@ -25,7 +25,7 @@ export default function ConversationPage(){
    const {data:p}=await supabase.from('profiles').select('id,username,display_name,avatar_url').eq('id',otherId).maybeSingle()
    if(!active)return
    if(!p){setStatus('Ce profil est introuvable ou inaccessible.');return}
-   setUid(user.id);setOther(otherId);setPerson(p);await load(user.id,otherId)
+   setUid(user.id);setOther(otherId);setPerson(p);try{setHiddenIds(JSON.parse(localStorage.getItem('weshbien-hidden-messages-'+user.id)||'[]'))}catch{};await load(user.id,otherId)
   }
   init()
   return()=>{active=false}
@@ -39,6 +39,32 @@ export default function ConversationPage(){
   return()=>{supabase.removeChannel(channel)}
  },[uid,other])
  const visibleMessages=useMemo(()=>{const q=search.trim().toLocaleLowerCase('fr-FR');return q?messages.filter(m=>(m.body||m.subject||'').toLocaleLowerCase('fr-FR').includes(q)):messages},[messages,search])
+ async function messageAction(action:string,m:Msg){
+  setMenuFor('')
+  if(action==='save'||action==='pin'){
+   const key='weshbien-message-'+action+'-'+uid
+   let ids:string[]=[];try{ids=JSON.parse(localStorage.getItem(key)||'[]')}catch{}
+   const next=ids.includes(m.id)?ids.filter(x=>x!==m.id):[...ids,m.id]
+   localStorage.setItem(key,JSON.stringify(next));setStatus(action==='save'?'Message sauvegardé sur cet appareil.':'Message épinglé sur cet appareil.');return
+  }
+  if(action==='forward'){
+   const {error}=await supabase.from('messages').insert({sender:uid,recipient:other,subject:'Message transféré',body:'↪ Message transféré : '+(m.body||m.subject||'')})
+   setStatus(error?'Transfert impossible.':'Message transféré dans cette conversation.');if(!error)await load(uid,other);return
+  }
+  if(action==='edit'&&m.sender===uid){
+   const value=window.prompt('Modifier le message',m.body||'');if(value===null||!value.trim())return
+   const {error}=await supabase.from('messages').update({body:value.trim().slice(0,3000),updated_at:new Date().toISOString()}).eq('id',m.id).eq('sender',uid)
+   setStatus(error?'Modification impossible.':'Message modifié.');if(!error)await load(uid,other);return
+  }
+  if(action==='hide'){
+   const next=[...hiddenIds,m.id];setHiddenIds(next);try{localStorage.setItem('weshbien-hidden-messages-'+uid,JSON.stringify(next))}catch{};return
+  }
+  if(action==='delete'&&m.sender===uid&&window.confirm('Supprimer ce message pour tous les participants ?')){
+   const {error}=await supabase.from('messages').delete().eq('id',m.id).eq('sender',uid)
+   setStatus(error?'Suppression impossible.':'Message supprimé pour tous.');if(!error)await load(uid,other);return
+  }
+  if(action==='report'&&m.sender!==uid)await reportMessage(m.id)
+ }
  async function reportMessage(messageId:string){
   const reason=window.prompt('Pourquoi souhaites-tu signaler ce message ?')
   if(!reason||reason.trim().length<3)return
@@ -58,7 +84,7 @@ export default function ConversationPage(){
    <div className="messenger-personbar"><Link href="/inbox" className="messenger-back" aria-label="Retour">←</Link><MemberAvatar userId={other} name={person?.display_name||person?.username} avatarUrl={person?.avatar_url} className="messenger-avatar" imageSize={56}/><div className="messenger-person-copy"><strong>{person?.display_name||person?.username||'Conversation'}</strong><span>@{person?.username||'membre'}</span></div><Link href={'/profile?id='+other} className="messenger-more" aria-label="Options du profil">•••</Link></div>
    <div className="messenger-search"><span>⌕</span><input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Rechercher dans cette conversation…" aria-label="Rechercher dans cette conversation"/></div>
    <div className="messenger-history" aria-live="polite">
-    {visibleMessages.length===0?<div className="messenger-empty">{messages.length===0?'Démarre la conversation en envoyant un message.':'Aucun message ne correspond à ta recherche.'}</div>:visibleMessages.map(m=><div key={m.id} className={'messenger-message-row '+(m.sender===uid?'mine':'theirs')}><div className="messenger-bubble">{m.body||m.subject}</div><div className="messenger-meta"><time>{new Date(m.created_at).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}</time>{m.sender===uid&&<span>{m.is_read?'✓✓ Lu':'✓ Envoyé'}</span>}{m.sender!==uid&&<button type="button" onClick={()=>reportMessage(m.id)}>Signaler</button>}</div></div>)}
+    {visibleMessages.filter(m=>!hiddenIds.includes(m.id)).length===0?<div className="messenger-empty">{messages.length===0?'Démarre la conversation en envoyant un message.':'Aucun message à afficher.'}</div>:visibleMessages.filter(m=>!hiddenIds.includes(m.id)).map(m=><div key={m.id} className={'messenger-message-row '+(m.sender===uid?'mine':'theirs')}><div className="messenger-bubble">{m.body||m.subject}</div><div className="messenger-meta"><time>{new Date(m.created_at).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}</time>{m.sender===uid&&<span>{m.is_read?'✓✓ Lu':'✓ Envoyé'}</span>}<button type="button" onClick={()=>setMenuFor(menuFor===m.id?'':m.id)} aria-label="Options du message">•••</button></div>{menuFor===m.id&&<div className="messenger-message-actions"><button onClick={()=>messageAction('save',m)}>♧ Sauvegarder</button><button onClick={()=>messageAction('pin',m)}>⌖ Épingler pour moi</button><button onClick={()=>messageAction('forward',m)}>↪ Transférer</button>{m.sender===uid&&<button onClick={()=>messageAction('edit',m)}>✎ Modifier</button>}<button onClick={()=>messageAction('hide',m)}>▣ Supprimer pour moi</button>{m.sender===uid?<button className="danger" onClick={()=>messageAction('delete',m)}>▤ Supprimer pour tous</button>:<button className="danger" onClick={()=>messageAction('report',m)}>⚑ Signaler</button>}</div>}</div>)}
    </div>
    {status&&<p className="messenger-status">{status}</p>}
    <form className="messenger-compose" onSubmit={send}><textarea value={body} onChange={e=>setBody(e.target.value)} maxLength={3000} placeholder="Écris ton message…" aria-label="Écris ton message" required/><button disabled={busy||!body.trim()} aria-label="Envoyer le message">{busy?'…':'➤'}</button></form>
