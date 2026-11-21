@@ -24,7 +24,7 @@ export default function PhotosPage(){
   const {data:adminRole}=await supabase.from('user_roles').select('role').eq('user_id',user.id).eq('role','admin').maybeSingle()
   setIsAdmin(Boolean(adminRole))
   const [profilesResult,postsResult]=await Promise.all([
-   supabase.from('profiles').select('id,username,display_name,avatar_url,gallery_urls,created_at,is_private').or('is_private.eq.false,id.eq.'+user.id).limit(500),
+   (adminRole?supabase.from('profiles').select('id,username,display_name,avatar_url,gallery_urls,created_at,is_private').limit(500):supabase.from('profiles').select('id,username,display_name,avatar_url,gallery_urls,created_at,is_private').or('is_private.eq.false,id.eq.'+user.id).limit(500)),
    supabase.from('posts').select('id,author_id,body,image_url,image_urls,created_at').order('created_at',{ascending:false}).limit(150)
   ])
   if(profilesResult.error||postsResult.error){setStatus('Impossible de charger toutes les photos. '+(profilesResult.error?.message||postsResult.error?.message||''));setLoading(false);return}
