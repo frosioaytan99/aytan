@@ -23,7 +23,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
   const service = process.env.SUPABASE_SERVICE_ROLE_KEY
   const openaiKey = process.env.OPENAI_API_KEY
-  if (!url || !anon || !service || !openaiKey) {
+  if (!url || !anon || !service) {
     return res.status(503).json({ error: 'image_moderation_not_configured' })
   }
 
@@ -52,6 +52,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       .from('ai_moderation_settings').select('enabled').eq('id', true).single()
     if (settingsError || !settings) return res.status(503).json({ error: 'moderation_settings_unavailable' })
     if (!settings.enabled) return res.status(503).json({ error: 'photo_moderation_paused' })
+
+    if (!openaiKey) return res.status(503).json({ error: 'image_moderation_not_configured' })
 
     const moderationResponse = await fetch('https://api.openai.com/v1/moderations', {
       method: 'POST',
