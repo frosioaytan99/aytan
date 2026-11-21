@@ -1,0 +1,22 @@
+import {useEffect,useState} from 'react'
+import Link from 'next/link'
+import {supabase} from '../lib/supabaseClient'
+import MemberAvatar from '../components/MemberAvatar'
+type FriendRow={id:string;sender_id:string;recipient_id:string;status:string;created_at:string;person?:any}
+export default function FriendsPage(){
+ const [uid,setUid]=useState(''),[friends,setFriends]=useState<FriendRow[]>([]),[incoming,setIncoming]=useState<FriendRow[]>([]),[outgoing,setOutgoing]=useState<FriendRow[]>([]),[busy,setBusy]=useState(''),[status,setStatus]=useState(''),[loading,setLoading]=useState(true)
+ async function load(){
+  const {data:{user}}=await supabase.auth.getUser();if(!user){location.href='/auth';return}setUid(user.id)
+  const {data,error}=await supabase.from('friend_requests').select('id,sender_id,recipient_id,status,created_at').or('sender_id.eq.'+user.id+',recipient_id.eq.'+user.id).order('updated_at',{ascending:false})
+  if(error){setStatus('Impossible de charger tes amis : '+error.message);setLoading(false);return}
+  const rows=(data||[]) as FriendRow[],ids=[...new Set(rows.map(r=>r.sender_id===user.id?r.recipient_id:r.sender_id))]
+  const {data:profiles}=ids.length?await supabase.from('profiles').select('id,username,display_name,avatar_url,bio').in('id',ids):{data:[] as any[]}
+  const decorated=rows.map(r=>({...r,person:profiles?.find(p=>p.id===(r.sender_id===user.id?r.recipient_id:r.sender_id))}))
+  setFriends(decorated.filter(r=>r.status==='accepted'));setIncoming(decorated.filter(r=>r.status==='pending'&&r.recipient_id===user.id));setOutgoing(decorated.filter(r=>r.status==='pending'&&r.sender_id===user.id));setLoading(false)
+ }
+ useEffect(()=>{load()},[])
+ async function answer(id:string,answer:'accepted'|'declined'){setBusy(id);const {error}=await supabase.from('friend_requests').update({status:answer,updated_at:new Date().toISOString()}).eq('id',id).eq('recipient_id',uid);if(error)setStatus('Action impossible : '+error.message);else await load();setBusy('')}
+ async function remove(id:string){if(!window.confirm('Retirer cette personne de tes amis ?'))return;setBusy(id);const {error}=await supabase.from('friend_requests').delete().eq('id',id);if(error)setStatus('Impossible de retirer cet ami : '+error.message);else await load();setBusy('')}
+ function render(rows:FriendRow[],kind:'friend'|'incoming'|'outgoing'){return <div className="member-grid">{rows.map(r=>{const p=r.person;return <article className="card member-card" key={r.id}><MemberAvatar userId={p?.id} name={p?.display_name||p?.username} avatarUrl={p?.avatar_url} className="avatar large"/><h3>{p?.display_name||p?.username||'Membre'}</h3><small>@{p?.username||'membre'}</small><p>{p?.bio||'Membre de la communauté.'}</p><Link href={'/profile?id='+p?.id}>Voir le profil →</Link>{kind==='incoming'&&<div className="friend-actions"><button disabled={busy===r.id} onClick={()=>answer(r.id,'accepted')}>Accepter</button><button className="friend-secondary" disabled={busy===r.id} onClick={()=>answer(r.id,'declined')}>Refuser</button></div>}{kind==='outgoing'&&<p>Demande envoyée</p>}{kind==='friend'&&<button className="friend-secondary" disabled={busy===r.id} onClick={()=>remove(r.id)}>Retirer des amis</button>}</article>})}</div>}
+ return <main className="app-shell"><header className="app-header"><Link className="brand" href="/feed">weshbien2<span>.</span></Link><nav><Link href="/feed">Accueil</Link><Link href="/explore">Explorer</Link><Link href="/friends" className="active">Amis</Link><Link href="/inbox">Messages</Link></nav></header><section className="directory"><small>TON CERCLE</small><h1>Mes amis</h1><p>Retrouve tes amis et gère les demandes reçues ou envoyées.</p>{status&&<p className="notice">{status}</p>}{loading?<div className="card empty">Chargement…</div>:<><h2>Demandes reçues ({incoming.length})</h2>{render(incoming,'incoming')}{incoming.length===0&&<p className="card empty">Aucune demande reçue.</p>}<h2>Demandes envoyées ({outgoing.length})</h2>{render(outgoing,'outgoing')}{outgoing.length===0&&<p className="card empty">Aucune demande en attente.</p>}<h2>Mes amis ({friends.length})</h2>{render(friends,'friend')}{friends.length===0&&<p className="card empty">Tu n’as pas encore d’amis. Découvre les membres pour faire connaissance.</p>}</>}</section></main>
+}
