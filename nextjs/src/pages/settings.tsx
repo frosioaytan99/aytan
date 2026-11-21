@@ -12,6 +12,36 @@ const wallpapers = [
   { id: 'gold', name: 'Or lumineux', group: 'Abstrait', colors: 'linear-gradient(135deg,#241407,#713f12,#29200b)' },
   { id: 'ice', name: 'Glace', group: 'Abstrait', colors: 'linear-gradient(135deg,#0c2340,#164e63,#172554)' },
   { id: 'pink', name: 'Rêve rose', group: 'Abstrait', colors: 'linear-gradient(135deg,#3b123b,#831843,#4c1d95)' },
+  { id: 'mountain', name: 'Montagnes', group: 'Nature', colors: 'linear-gradient(135deg,#10243b,#64748b,#cbd5e1)' },
+  { id: 'beach', name: 'Plage tropicale', group: 'Nature', colors: 'linear-gradient(135deg,#064e3b,#0e7490,#facc15)' },
+  { id: 'waterfall', name: 'Cascade', group: 'Nature', colors: 'linear-gradient(135deg,#082f49,#0e7490,#67e8f9)' },
+  { id: 'desert', name: 'Désert', group: 'Nature', colors: 'linear-gradient(135deg,#78350f,#d97706,#fde68a)' },
+  { id: 'volcano', name: 'Volcan', group: 'Nature', colors: 'linear-gradient(135deg,#1c1917,#b91c1c,#f97316)' },
+  { id: 'jungle', name: 'Jungle', group: 'Nature', colors: 'linear-gradient(135deg,#052e16,#15803d,#a3e635)' },
+  { id: 'lavender', name: 'Lavande', group: 'Nature', colors: 'linear-gradient(135deg,#312e81,#8b5cf6,#e9d5ff)' },
+  { id: 'cherry', name: 'Fleurs de cerisier', group: 'Nature', colors: 'linear-gradient(135deg,#831843,#ec4899,#fbcfe8)' },
+  { id: 'rain', name: 'Pluie nocturne', group: 'Ambiance', colors: 'linear-gradient(135deg,#0f172a,#334155,#38bdf8)' },
+  { id: 'storm', name: 'Orage électrique', group: 'Ambiance', colors: 'linear-gradient(135deg,#111827,#4c1d95,#a78bfa)' },
+  { id: 'fire', name: 'Flammes', group: 'Ambiance', colors: 'linear-gradient(135deg,#431407,#c2410c,#facc15)' },
+  { id: 'smoke', name: 'Fumée colorée', group: 'Ambiance', colors: 'linear-gradient(135deg,#18181b,#6d28d9,#db2777)' },
+  { id: 'clouds', name: 'Nuages pastel', group: 'Ambiance', colors: 'linear-gradient(135deg,#64748b,#c4b5fd,#fbcfe8)' },
+  { id: 'dream', name: 'Rêve holographique', group: 'Ambiance', colors: 'linear-gradient(135deg,#312e81,#0891b2,#f0abfc)' },
+  { id: 'minimal', name: 'Minimal sombre', group: 'Abstrait', colors: 'linear-gradient(135deg,#09090b,#27272a,#52525b)' },
+  { id: 'marble', name: 'Marbre violet', group: 'Abstrait', colors: 'linear-gradient(135deg,#18112b,#6d5ba6,#c4b5fd)' },
+  { id: 'crystal', name: 'Cristal', group: 'Abstrait', colors: 'linear-gradient(135deg,#164e63,#0e7490,#a5f3fc)' },
+  { id: 'copper', name: 'Cuivre', group: 'Abstrait', colors: 'linear-gradient(135deg,#431407,#9a3412,#fdba74)' },
+  { id: 'silver', name: 'Argent', group: 'Abstrait', colors: 'linear-gradient(135deg,#1f2937,#64748b,#e2e8f0)' },
+  { id: 'emerald', name: 'Émeraude', group: 'Abstrait', colors: 'linear-gradient(135deg,#022c22,#047857,#6ee7b7)' },
+  { id: 'ruby', name: 'Rubis', group: 'Abstrait', colors: 'linear-gradient(135deg,#450a0a,#be123c,#fda4af)' },
+  { id: 'sapphire', name: 'Saphir', group: 'Abstrait', colors: 'linear-gradient(135deg,#172554,#1d4ed8,#93c5fd)' },
+  { id: 'cosmos', name: 'Cosmos', group: 'Espace', colors: 'linear-gradient(135deg,#020617,#312e81,#c084fc)' },
+  { id: 'moon', name: 'Clair de lune', group: 'Espace', colors: 'linear-gradient(135deg,#0f172a,#475569,#e2e8f0)' },
+  { id: 'stars', name: 'Pluie d’étoiles', group: 'Espace', colors: 'linear-gradient(135deg,#020617,#1e1b4b,#818cf8)' },
+  { id: 'matrix', name: 'Code numérique', group: 'Néon', colors: 'linear-gradient(135deg,#052e16,#15803d,#4ade80)' },
+  { id: 'cyber', name: 'Cyberpunk', group: 'Néon', colors: 'linear-gradient(135deg,#2e1065,#be185d,#22d3ee)' },
+  { id: 'laser', name: 'Laser', group: 'Néon', colors: 'linear-gradient(135deg,#1e1b4b,#7c3aed,#f0abfc)' },
+  { id: 'rainbow', name: 'Arc-en-ciel', group: 'Néon', colors: 'linear-gradient(135deg,#7f1d1d,#2563eb,#facc15)' },
+  { id: 'electric', name: 'Électricité', group: 'Néon', colors: 'linear-gradient(135deg,#172554,#1d4ed8,#67e8f9)' },
 ]
 
 export default function SettingsPage() {
@@ -48,7 +78,7 @@ export default function SettingsPage() {
       <button type="button" onClick={changeTheme}>{theme === 'dark' ? '☀️ Passer en mode clair' : '🌙 Passer en mode sombre'}</button>
       <button type="button" className="friend-secondary" onClick={logout}>↪ Déconnexion</button>
     </div>
-    <div className="wallpaper-heading"><div><span>PERSONNALISATION</span><h2>Fonds d’écran animés</h2><p>Choisis une ambiance et change-la quand tu veux.</p></div><b>9 ambiances</b></div>
+    <div className="wallpaper-heading"><div><span>PERSONNALISATION</span><h2>Fonds d’écran animés</h2><p>39 ambiances à explorer : nature, espace, néon et effets abstraits.</p></div><b>39 ambiances</b></div>
     <div className="wallpaper-grid">
       {wallpapers.map(item => <button type="button" key={item.id} onClick={() => chooseWallpaper(item.id)} className={'wallpaper-option' + (wallpaper === item.id ? ' selected' : '')} aria-pressed={wallpaper === item.id}>
         <span className="wallpaper-preview" style={{ background: item.colors }}><i/><i/><i/></span>
@@ -57,7 +87,7 @@ export default function SettingsPage() {
       </button>)}
     </div>
     <p className="wallpaper-status" role="status">{status || 'Ton choix est enregistré sur cet appareil.'}</p>
-    <div className="wallpaper-library-link"><strong>Tu veux encore plus de vidéos 4K ?</strong><p>La bibliothèque externe propose des boucles vidéo 4K à découvrir. Les vidéos 4K sont volumineuses : elles seront chargées uniquement après ton choix pour préserver la fluidité du site.</p><a href="https://movietools.info/free-video-loops/" target="_blank" rel="noreferrer">Découvrir la bibliothèque de fonds vidéo 4K ↗</a></div>
+    <div className="wallpaper-library-link"><strong>Encore plus de fonds à venir</strong><p>Cette galerie propose des ambiances animées légères. Les véritables vidéos 4K pourront être ajoutées dans une prochaine évolution.</p></div>
   </section>
   <style jsx global>{`
     .wallpaper-settings{max-width:1050px!important}
