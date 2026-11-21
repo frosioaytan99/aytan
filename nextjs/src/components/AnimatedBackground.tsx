@@ -43,12 +43,12 @@ export default function AnimatedBackground() {
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
     const saveData = Boolean((navigator as any).connection?.saveData)
     const memory = (navigator as any).deviceMemory
-    setVideoEnabled(!reduced && !saveData && (window.innerWidth >= 768 || !memory || memory >= 4))
+    setVideoEnabled(!reduced)
     return () => { window.removeEventListener('weshbien:wallpaper-change', apply); observer.disconnect() }
   }, [])
 
   const videoGroup = videoByTheme[wallpaper] || 'stars'
-  const videoSource = videoEnabled && wallpaper !== 'matrix' ? videoSources[videoGroup] : ''
+  const videoSource = videoEnabled ? videoSources[videoGroup] : ''
 
   return (
     <>
