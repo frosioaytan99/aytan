@@ -987,3 +987,5 @@ html[data-theme="dark"] .messenger-compose{
 .member-nav {
   display: none !important;
 }
+
+.messenger-reply-preview{display:flex;align-items:center;justify-content:space-between;gap:10px;flex:0 0 100%;min-width:0;padding:8px 12px;border-left:3px solid #8b5cf6;border-radius:10px;background:rgba(139,92,246,.09);color:var(--text,#303344);font-size:12px}.messenger-reply-preview span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.messenger-reply-preview button{flex:0 0 28px;width:28px;height:28px;border:0;border-radius:8px;background:transparent;color:inherit;font-size:20px}
