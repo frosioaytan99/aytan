@@ -108,7 +108,7 @@ export default function App({ Component, pageProps }: AppProps) {
       if (!userId) { setUnread(0); setUnreadMessages(0); setAvatarUrl(null); setCurrentUserId(''); return }
       setCurrentUserId(userId)
       checkSuspension(userId)
-      suspensionTimer = setInterval(() => checkSuspension(userId), 4000)
+      suspensionTimer = setInterval(() => { if (document.visibilityState === 'visible') checkSuspension(userId) }, 60000)
       supabase.from('profiles').select('avatar_url').eq('id', userId).maybeSingle().then(({ data }) => { if (active) setAvatarUrl(data?.avatar_url || null) })
       const updatePresence = () => {
         if (document.visibilityState === 'visible') {
