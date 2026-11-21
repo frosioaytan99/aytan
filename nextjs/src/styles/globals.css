@@ -950,3 +950,30 @@ html[data-theme="dark"] .messenger-search input,html[data-theme="dark"] .messeng
   .messenger-history{min-height:0}
   .messenger-compose{position:sticky;bottom:0;margin-bottom:0;padding-bottom:12px}
 }
+
+
+/* Keep the message input always visible above the mobile navigation. */
+@media(max-width:650px){
+  .messenger-compose{
+    position:fixed!important;
+    left:50%!important;
+    right:auto!important;
+    bottom:calc(76px + env(safe-area-inset-bottom))!important;
+    transform:translateX(-50%);
+    width:min(100%,820px)!important;
+    box-sizing:border-box!important;
+    z-index:39!important;
+    padding:10px 12px max(10px,env(safe-area-inset-bottom))!important;
+    background:rgba(255,255,255,.98)!important;
+    box-shadow:0 -8px 24px rgba(30,25,55,.10);
+  }
+  .messenger-history{
+    padding-bottom:118px!important;
+  }
+  .messenger-window{
+    padding-bottom:0!important;
+  }
+}
+html[data-theme="dark"] .messenger-compose{
+  background:rgba(31,28,47,.98)!important;
+}
