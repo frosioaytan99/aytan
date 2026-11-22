@@ -37,6 +37,7 @@ export default function App({ Component, pageProps }: AppProps) {
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
   const [currentUserId, setCurrentUserId] = useState('')
   const [isAdmin, setIsAdmin] = useState(false)
+  const [siteStats, setSiteStats] = useState({visits:0,active:0})
   const [guestName, setGuestName] = useState('')
   const [authChecked, setAuthChecked] = useState(false)
   const [accountMenuOpen, setAccountMenuOpen] = useState(false)
@@ -107,15 +108,17 @@ export default function App({ Component, pageProps }: AppProps) {
       if (suspensionTimer) { clearInterval(suspensionTimer); suspensionTimer = undefined }
       if (presenceVisibilityHandler) { document.removeEventListener('visibilitychange', presenceVisibilityHandler); presenceVisibilityHandler = null }
       if (messagesReadHandler) { window.removeEventListener('weshbien:messages-read', messagesReadHandler); messagesReadHandler = null }
-      if (!userId) { setUnread(0); setUnreadMessages(0); setAvatarUrl(null); setCurrentUserId(''); setIsAdmin(false); return }
+      if (!userId) { setUnread(0); setUnreadMessages(0); setAvatarUrl(null); setCurrentUserId(''); setIsAdmin(false); setSiteStats({visits:0,active:0}); return }
       setCurrentUserId(userId)
       supabase.from('user_roles').select('role').eq('user_id',userId).maybeSingle().then(({data})=>{if(active)setIsAdmin(data?.role==='admin')})
       checkSuspension(userId)
       suspensionTimer = setInterval(() => { if (document.visibilityState === 'visible') checkSuspension(userId) }, 60000)
       supabase.from('profiles').select('avatar_url').eq('id', userId).maybeSingle().then(({ data }) => { if (active) setAvatarUrl(data?.avatar_url || null) })
+      const refreshSiteStats = () => supabase.rpc('get_site_stats').then(({data,error}) => { if(!active||error)return; const row=Array.isArray(data)?data[0]:data; setSiteStats({visits:Number(row?.total_member_visits)||0,active:Number(row?.active_members)||0}) })
+      supabase.rpc('record_site_visit').then(()=>refreshSiteStats())
       const updatePresence = () => {
         if (document.visibilityState === 'visible') {
-          supabase.from('profiles').update({ last_seen_at: new Date().toISOString() }).eq('id', userId).then(() => {})
+          supabase.from('profiles').update({ last_seen_at: new Date().toISOString() }).eq('id', userId).then(() => refreshSiteStats())
         }
       }
       updatePresence()
@@ -244,7 +247,7 @@ export default function App({ Component, pageProps }: AppProps) {
       </div>}
     </>}
     {(!memberPage || authChecked) ? <Component {...pageProps} /> : <main className="auth-shell"><section className="auth-card"><p>Vérification de ta connexion…</p></section></main>}
-    <footer className="global-footer"><span>© Weshbien2</span><Link href="/guide">Mode d’emploi complet</Link><Link href="/moderators">Équipe de modération</Link><Link href="/profile">Mon profil</Link></footer>
+    <footer className="global-footer"><span>© Weshbien2</span><span>👁 {siteStats.visits.toLocaleString("fr-FR")} visites membres</span><span>🟢 {siteStats.active} membre{siteStats.active>1?"s":""} en ligne</span><Link href="/guide">Mode d’emploi complet</Link><Link href="/moderators">Équipe de modération</Link><Link href="/profile">Mon profil</Link></footer>
     {notice && <button type="button" className="app-toast" role="status" aria-live="polite" onClick={() => { setNotice(''); router.push('/notifications') }}><span className="toast-icon">✓</span><span>{notice}<small>Appuie pour ouvrir tes notifications</small></span></button>}
   </>
 }
