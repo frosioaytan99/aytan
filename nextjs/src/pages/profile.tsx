@@ -115,7 +115,6 @@ export default function ProfilePage() {
  async function uploadGalleryPhoto(file?:File){
   if(!file||!uid)return
   if(!isAllowedCommunityImage(file)){setStatus('Choisis une image JPG, PNG, WEBP ou GIF de 8 Mo maximum.');return}
-  if(galleryUrls.length>=12){setStatus('Tu peux ajouter jusqu’à 12 photos dans ta galerie.');return}
   setGalleryBusy(true);setStatus('')
   let url:string
   try { url=await uploadModeratedCommunityImage(file) }
@@ -239,7 +238,7 @@ export default function ProfilePage() {
      <label>Centres d’intérêt<input maxLength={180} value={interests} onChange={e=>setInterests(e.target.value)} placeholder="Musique, sport, jeux vidéo…"/></label>
      <label>Loisirs et passions<input maxLength={180} value={hobbies} onChange={e=>setHobbies(e.target.value)} placeholder="Danse, dessin, football…"/></label>
      <label>Musique préférée<input maxLength={120} value={favoriteMusic} onChange={e=>setFavoriteMusic(e.target.value)} placeholder="Tes artistes ou styles préférés…"/></label>
-     <section className="profile-gallery-editor"><h3>Ma galerie photo ({galleryUrls.length}/12)</h3><label className="photo-upload-button">🖼️ {galleryBusy?'Envoi…':'Ajouter une photo à la galerie'}<input type="file" accept="image/jpeg,image/png,image/webp,image/gif" disabled={galleryBusy||galleryUrls.length>=12} onChange={e=>{uploadGalleryPhoto(e.target.files?.[0]);e.currentTarget.value=''}}/></label><div className="profile-gallery-grid">{galleryUrls.map(url=><div className="profile-gallery-thumb" key={url}><CommunityImage src={url} alt="Photo de ma galerie"/><button type="button" onClick={()=>removeGalleryPhoto(url)}>🗑️ Supprimer</button></div>)}</div><small>Jusqu’à 12 photos · 8 Mo maximum chacune</small></section>
+     <section className="profile-gallery-editor"><h3>Ma galerie photo ({galleryUrls.length})</h3><label className="photo-upload-button">🖼️ {galleryBusy?'Envoi…':'Ajouter une photo à la galerie'}<input type="file" accept="image/jpeg,image/png,image/webp,image/gif" disabled={galleryBusy} onChange={e=>{uploadGalleryPhoto(e.target.files?.[0]);e.currentTarget.value=''}}/></label><div className="profile-gallery-grid">{galleryUrls.map(url=><div className="profile-gallery-thumb" key={url}><CommunityImage src={url} alt="Photo de ma galerie"/><button type="button" onClick={()=>removeGalleryPhoto(url)}>🗑️ Supprimer</button></div>)}</div><small>Ajoute tes photos · 8 Mo maximum chacune</small></section>
      <label className="checkline"><input type="checkbox" checked={privateProfile} onChange={e=>setPrivateProfile(e.target.checked)}/>Rendre mon profil privé</label>
      <button type="submit">Enregistrer mon profil</button>{status&&<p className="notice" role="status">{status}</p>}
     </form>
