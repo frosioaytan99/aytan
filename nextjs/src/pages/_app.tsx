@@ -24,7 +24,7 @@ function NavIcon({name}:{name:string}) {
 const menuItems: [string, string, string][] = [
   ['Accueil', '/feed', '⌂'], ['Weshbien IA', '/assistant', '✦'], ['18+', '/individual', '⚠'], ['Explorer', '/explore', '◉'], ['Recherche', '/search', '⌕'], ['Stories', '/stories', '◌'], ['En ligne', '/online', '●'],
   ['Amis', '/friends', '♧'], ['MeetMe', '/explore', '♡'], ['Communautés', '/communities', '▤'], ['Photos', '/photos', '▧'],
-  ['Forum', '/forums', '▤'], ['Blog', '/questions', '▣'], ['Notifications', '/notifications', '♧'],
+  ['Forum', '/forums', '▤'], ['Blog', '/questions', '▣'], ['Notifications', '/notifications', '♧'], ['Sécurité du compte', '/security', '🔐'],
   ['Messages', '/inbox', '✉'], ['Équipe de modération', '/moderators', '🛡️'], ['Mon profil', '/profile', '♙'], ['Administration', '/admin', '♢'],
 ]
 export default function App({ Component, pageProps }: AppProps) {
@@ -170,7 +170,8 @@ export default function App({ Component, pageProps }: AppProps) {
     supabase.auth.getUser().then(({ data }) => {
       if (active) { setSignedIn(!!data.user); setGuestName(data.user?.is_anonymous ? String(data.user.user_metadata?.display_name || 'Invité') : ''); document.documentElement.dataset.guest = data.user?.is_anonymous ? 'true' : 'false'; attach(data.user?.id || null) }
     })
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if(event==='SIGNED_IN'&&session?.user&&!session.user.is_anonymous){const ua=navigator.userAgent||'';const device_type=/ipad|tablet/i.test(ua)?'Tablette':/mobile|android|iphone|ipod/i.test(ua)?'Mobile':/windows|macintosh|linux/i.test(ua)?'Ordinateur':'Autre';const browser=/edg\//i.test(ua)?'Edge':/firefox\//i.test(ua)?'Firefox':/chrome\//i.test(ua)?'Chrome':/safari\//i.test(ua)?'Safari':'Navigateur inconnu';supabase.from('account_login_history').insert({user_id:session.user.id,device_type,browser}).then(()=>{})}
       setSignedIn(!!session?.user)
       setGuestName(session?.user?.is_anonymous ? String(session.user.user_metadata?.display_name || 'Invité') : '')
       document.documentElement.dataset.guest = session?.user?.is_anonymous ? 'true' : 'false'
