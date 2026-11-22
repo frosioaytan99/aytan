@@ -224,7 +224,7 @@ export default function SettingsPage() {
     <div className="wallpaper-heading"><div><span>PERSONNALISATION</span><h2>Thèmes complets & vidéos 4K</h2><p>Choisis une ambiance : le fond, les couleurs, les boutons, les cartes et les menus changent ensemble.</p></div><b>100 thèmes</b></div>
     <div className="wallpaper-grid">
       {wallpapers.map(item => <button type="button" key={item.id} onClick={() => chooseWallpaper(item.id)} className={'wallpaper-option' + (wallpaper === item.id ? ' selected' : '')} aria-pressed={wallpaper === item.id}>
-        <span className="wallpaper-preview" style={{ background: item.colors }}>{wallpaperVideoByTheme[item.id] && <video className="wallpaper-preview-video" src={wallpaperVideoSources[wallpaperVideoByTheme[item.id]]} autoPlay muted loop playsInline preload="metadata" aria-hidden="true" />}<i/><i/><i/><em>{wallpaperVideoByTheme[item.id] ? 'APERÇU VIDÉO' : 'FOND ANIMÉ'}</em></span>
+        <span className="wallpaper-preview" style={{ background: item.colors }}><i/><i/><i/><em>APERÇU LÉGER</em></span>
         <span className="wallpaper-option-copy"><strong>{item.name}</strong><small>{item.group}</small></span>
         <span className="wallpaper-check">{wallpaper === item.id ? '✓' : '+'}</span>
       </button>)}
@@ -282,14 +282,13 @@ export default function SettingsPage() {
     .wallpaper-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
     .wallpaper-option{position:relative;display:flex;flex-direction:column;gap:10px;min-width:0;padding:9px;border:2px solid var(--border,#e5e1ed);border-radius:18px;background:var(--card,#fff);color:var(--text,#29263a);text-align:left;cursor:pointer;overflow:hidden}
     .wallpaper-option.selected{border-color:var(--accent,#7c3aed);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent,#7c3aed) 15%,transparent)}
-    .wallpaper-preview{position:relative;display:block;overflow:hidden;height:110px;border-radius:12px;background-size:200% 200%;animation:wallpaperPreviewMove 8s ease-in-out infinite alternate}
+    .wallpaper-preview{position:relative;display:block;overflow:hidden;height:110px;border-radius:12px;background-size:100% 100%;animation:none}
     .wallpaper-preview-video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;pointer-events:none}
     .wallpaper-preview>i,.wallpaper-preview>em{z-index:1}
-    .wallpaper-preview i{position:absolute;width:80px;height:80px;border-radius:50%;filter:blur(18px);background:#ffffff66;animation:wallpaperOrb 7s ease-in-out infinite alternate}
-    .wallpaper-preview i:nth-child(1){left:8%;top:20%}.wallpaper-preview i:nth-child(2){right:10%;top:10%;animation-delay:-2s}.wallpaper-preview i:nth-child(3){left:45%;bottom:-30%;animation-delay:-4s}
+    .wallpaper-preview i{position:absolute;width:80px;height:80px;border-radius:50%;filter:none;background:#ffffff22;animation:none}
+    .wallpaper-preview i:nth-child(1){left:8%;top:20%}.wallpaper-preview i:nth-child(2){right:10%;top:10%}.wallpaper-preview i:nth-child(3){left:45%;bottom:-30%}
     .wallpaper-preview em{position:absolute;right:8px;bottom:8px;padding:5px 8px;border-radius:20px;background:#10101cbb;color:#fff;font-size:9px;font-style:normal;font-weight:900;letter-spacing:.7px;backdrop-filter:blur(8px)}
-    @keyframes wallpaperPreviewMove{from{background-position:0% 50%;transform:scale(1)}to{background-position:100% 50%;transform:scale(1.04)}}
-    @keyframes wallpaperOrb{from{transform:translate(-10px,-8px)}to{transform:translate(24px,14px)}}
+    
     .wallpaper-option-copy{display:flex;flex-direction:column;gap:3px;padding:0 3px 2px}.wallpaper-option-copy strong{font-size:14px}.wallpaper-option-copy small{color:var(--muted,#777)}
     .wallpaper-check{position:absolute;right:15px;top:15px;width:25px;height:25px;display:grid;place-items:center;border-radius:50%;background:#fff;color:#6d28d9;font-weight:900;box-shadow:0 2px 8px #0003}
     .wallpaper-status{min-height:22px;color:var(--accent,#7c3aed);font-size:13px;font-weight:700}
