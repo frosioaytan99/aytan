@@ -41,7 +41,7 @@ export default function ImportAmisPage() {
     <section className="directory" style={{ maxWidth: 850, margin: '0 auto' }}>
       <small>ANCIENS MEMBRES</small>
       <h1>Retrouver mes amis de Weshbien.com</h1>
-      <p>Colle ici les pseudos de tes anciens amis, séparés par des espaces, des virgules ou un retour à la ligne. Tu peux faire plusieurs lots de 500 pseudos maximum.</p>
+      <p>Colle ici les pseudos ou le contenu du CSV exporté depuis Weshbien.com. Tu peux faire plusieurs lots de 500 pseudos maximum.</p>
       <section className="card" style={{ padding: 16, marginBottom: 18 }}>
         <h2>Extraction depuis Weshbien.com</h2>
         <p>Sur le navigateur qui affiche Weshbien.com, ajoute un favori nommé « Extracteur Weshbien ». Modifie son adresse et colle le code ci-dessous. Ensuite, connecte-toi à Weshbien.com, ouvre ta liste d’amis et lance ce favori : un fichier texte sera téléchargé si les pseudos sont reconnus.</p>
