@@ -42,7 +42,6 @@ const wallpapers = [
   { id: 'laser', name: 'Laser', group: 'Néon', colors: 'linear-gradient(135deg,#1e1b4b,#7c3aed,#f0abfc)' },
   { id: 'rainbow', name: 'Arc-en-ciel', group: 'Néon', colors: 'linear-gradient(135deg,#7f1d1d,#2563eb,#facc15)' },
   { id: 'electric', name: 'Électricité', group: 'Néon', colors: 'linear-gradient(135deg,#172554,#1d4ed8,#67e8f9)' },
-,
   { id: 'nebula', name: 'Nébuleuse', group: 'Espace', colors: 'linear-gradient(135deg,#020617,#312e81,#a855f7)' },
   { id: 'galaxy', name: 'Voie lactée', group: 'Espace', colors: 'linear-gradient(135deg,#041b3a,#075985,#22d3ee)' },
   { id: 'blackhole', name: 'Trou noir', group: 'Espace', colors: 'linear-gradient(135deg,#31104a,#a83279,#f77f5b)' },
@@ -107,6 +106,21 @@ const wallpapers = [
 ]
 
 
+const appThemes = [
+  {id:'lilas',name:'Lilas élégant',category:'Élégant',accent:'#7956d8',bg:'#f7f4ff',surface:'#ffffff',text:'#28213d',muted:'#817991',border:'#e8e0f5',preview:'linear-gradient(135deg,#312e81,#a78bfa,#f5d0fe)'},
+  {id:'cyberpunk',name:'Cyberpunk',category:'Futuriste',accent:'#ec4899',bg:'#10091e',surface:'#1d1230',text:'#f8edff',muted:'#c4a9d8',border:'#4b2860',preview:'linear-gradient(135deg,#090018,#ec4899,#06b6d4)'},
+  {id:'ocean',name:'Océan',category:'Nature',accent:'#0891b2',bg:'#effaff',surface:'#ffffff',text:'#123044',muted:'#648394',border:'#cce8f0',preview:'linear-gradient(135deg,#082f49,#0891b2,#67e8f9)'},
+  {id:'rose',name:'Rose douceur',category:'Élégant',accent:'#db2777',bg:'#fff4f8',surface:'#ffffff',text:'#442034',muted:'#987487',border:'#f4d6e4',preview:'linear-gradient(135deg,#831843,#ec4899,#fbcfe8)'},
+  {id:'foret',name:'Forêt',category:'Nature',accent:'#16845b',bg:'#f0faf4',surface:'#ffffff',text:'#17382b',muted:'#6f8d7e',border:'#d1e9da',preview:'linear-gradient(135deg,#052e16,#15803d,#a3e635)'},
+  {id:'sunset',name:'Coucher de soleil',category:'Nature',accent:'#e76b45',bg:'#fff6f0',surface:'#ffffff',text:'#44271f',muted:'#98796e',border:'#f2ded3',preview:'linear-gradient(135deg,#431407,#c2410c,#fbbf24)'},
+  {id:'nuit',name:'Nuit profonde',category:'Sombre',accent:'#8b7cf6',bg:'#0b1020',surface:'#151c31',text:'#edf0ff',muted:'#a5aecb',border:'#303a59',preview:'linear-gradient(135deg,#020617,#312e81,#818cf8)'},
+  {id:'graphite',name:'Graphite',category:'Sombre',accent:'#94a3b8',bg:'#17191f',surface:'#242832',text:'#f1f3f6',muted:'#a8afbd',border:'#3b414d',preview:'linear-gradient(135deg,#09090b,#475569,#cbd5e1)'},
+  {id:'menthe',name:'Menthe',category:'Élégant',accent:'#0d9488',bg:'#effdfa',surface:'#ffffff',text:'#173b38',muted:'#6e918d',border:'#d0eeea',preview:'linear-gradient(135deg,#064e3b,#0d9488,#99f6e4)'},
+  {id:'gold',name:'Or royal',category:'Luxe',accent:'#c08a28',bg:'#17120a',surface:'#251c10',text:'#fff4d6',muted:'#c8b58c',border:'#574326',preview:'linear-gradient(135deg,#1c1205,#a16207,#facc15)'},
+  {id:'lavande',name:'Lavande',category:'Élégant',accent:'#9672df',bg:'#f8f5ff',surface:'#ffffff',text:'#302746',muted:'#89809c',border:'#e8def8',preview:'linear-gradient(135deg,#312e81,#8b5cf6,#e9d5ff)'},
+  {id:'rouge',name:'Rouge passion',category:'Audacieux',accent:'#dc2626',bg:'#fff5f5',surface:'#ffffff',text:'#401d1d',muted:'#987575',border:'#f3d7d7',preview:'linear-gradient(135deg,#450a0a,#dc2626,#fca5a5)'}
+]
+
 const darkWallpapers = [
   { id: 'cosmos', name: 'Cosmos nocturne', group: 'Espace', colors: 'linear-gradient(135deg,#020617,#312e81,#a855f7)' },
   { id: 'rain', name: 'Pluie sur la ville', group: 'Ville', colors: 'linear-gradient(135deg,#020617,#164e63,#64748b)' },
@@ -123,10 +137,20 @@ export default function SettingsPage() {
   const [wallpaper, setWallpaper] = useState('aurora')
   const [darkWallpaper, setDarkWallpaper] = useState('cosmos')
   const [status, setStatus] = useState('')
+  const [appTheme, setAppTheme] = useState('lilas')
+  const [themeCategory, setThemeCategory] = useState('Tous')
   useEffect(() => {
     setTheme(document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light')
+    try { const savedAppTheme = localStorage.getItem('weshbien-app-theme') || 'lilas'; setAppTheme(savedAppTheme); document.documentElement.dataset.appTheme = savedAppTheme } catch {}
     try { const saved = localStorage.getItem('weshbien-wallpaper') || 'aurora'; const darkSaved = localStorage.getItem('weshbien-dark-wallpaper') || 'cosmos'; setWallpaper(saved); setDarkWallpaper(darkSaved); const active = document.documentElement.dataset.theme === 'dark' ? darkSaved : saved; document.documentElement.dataset.wallpaper = active; document.body.dataset.wallpaper = active } catch {}
   }, [])
+  function chooseAppTheme(id: string) {
+    setAppTheme(id)
+    document.documentElement.dataset.appTheme = id
+    try { localStorage.setItem('weshbien-app-theme', id) } catch {}
+    const selected = appThemes.find(item => item.id === id)
+    setStatus('Thème « ' + (selected?.name || id) + ' » appliqué à toute l’interface.')
+  }
   function chooseWallpaper(id: string) {
     setWallpaper(id)
     try { localStorage.setItem('weshbien-wallpaper', id) } catch {}
@@ -164,6 +188,24 @@ export default function SettingsPage() {
       <button type="button" onClick={changeTheme}>{theme === 'dark' ? '☀️ Passer en mode clair' : '🌙 Passer en mode sombre'}</button>
       <button type="button" className="friend-secondary" onClick={logout}>↪ Déconnexion</button>
     </div>
+
+    <section className="app-theme-store">
+      <div className="app-theme-store-heading"><div><span>BOUTIQUE DE THÈMES</span><h2>Personnalise toute ton expérience</h2><p>Un thème modifie les couleurs des pages, des cartes, des menus et des boutons.</p></div><b>{appThemes.length} thèmes gratuits</b></div>
+      <div className="app-theme-categories">
+        {['Tous','Élégant','Futuriste','Nature','Sombre','Luxe','Audacieux'].map(category => <button type="button" key={category} className={themeCategory===category?'active':''} onClick={()=>setThemeCategory(category)}>{category}</button>)}
+      </div>
+      <div className="app-theme-grid">
+        {appThemes.filter(item=>themeCategory==='Tous'||item.category===themeCategory).map(item=><button type="button" key={item.id} className={'app-theme-card'+(appTheme===item.id?' active':'')} onClick={()=>chooseAppTheme(item.id)} aria-pressed={appTheme===item.id}>
+          <span className="app-theme-preview" style={{background:item.preview}}>
+            <i className="theme-demo-window"><b/><b/><b/><em/><em/></i>
+            <i className="theme-demo-bubble"/>
+            <strong>{item.name}</strong>
+          </span>
+          <span className="app-theme-card-footer"><span><b>{item.name}</b><small>{item.category}</small></span><span className="app-theme-apply">{appTheme===item.id?'✓ Actif':'Appliquer'}</span></span>
+        </button>)}
+      </div>
+      <p className="app-theme-note">Le thème choisi est mémorisé sur cet appareil. Les fonds animés restent personnalisables séparément juste en dessous.</p>
+    </section>
     <div className="wallpaper-heading"><div><span>PERSONNALISATION</span><h2>Thèmes complets & vidéos 4K</h2><p>Choisis une ambiance : le fond, les couleurs, les boutons, les cartes et les menus changent ensemble.</p></div><b>100 thèmes</b></div>
     <div className="wallpaper-grid">
       {wallpapers.map(item => <button type="button" key={item.id} onClick={() => chooseWallpaper(item.id)} className={'wallpaper-option' + (wallpaper === item.id ? ' selected' : '')} aria-pressed={wallpaper === item.id}>
@@ -184,6 +226,33 @@ export default function SettingsPage() {
     <div className="wallpaper-library-link"><strong>Vidéos 4K en mouvement</strong><p>Les scènes vidéo sont diffusées en UHD 3840 × 2160 quand l’appareil le permet. Pour économiser les données ou préserver la batterie, les appareils compatibles avec l’économie de données utilisent le fond animé léger à la place.</p><small>Vidéos libres issues de Pexels : <a href="https://www.pexels.com/video/ocean-from-above-17098934/" target="_blank" rel="noreferrer">Océan</a> · <a href="https://www.pexels.com/video/stunning-forest-waterfall-aerial-view-31346765/" target="_blank" rel="noreferrer">Forêt & cascade</a> · <a href="https://www.pexels.com/video/aerial-view-of-a-forest-at-sunset-20583509/" target="_blank" rel="noreferrer">Coucher de soleil</a> · <a href="https://www.pexels.com/video/stunning-night-sky-time-lapse-in-forest-29628756/" target="_blank" rel="noreferrer">Ciel étoilé</a>.</small></div>
   </section>
   <style jsx global>{`
+
+    .app-theme-store{margin:30px 0 38px;padding:22px;border:1px solid var(--border,#e5e1ed);border-radius:22px;background:var(--card,#fff)}
+    .app-theme-store-heading{display:flex;justify-content:space-between;align-items:flex-end;gap:14px}
+    .app-theme-store-heading>div>span{font-size:10px;letter-spacing:1.5px;font-weight:900;color:var(--accent,#7c3aed)}
+    .app-theme-store-heading h2{margin:7px 0;font-size:clamp(22px,4vw,30px)}
+    .app-theme-store-heading p,.app-theme-note{color:var(--muted,#777);font-size:13px;line-height:1.6}
+    .app-theme-store-heading>b{white-space:nowrap;border-radius:30px;padding:8px 11px;background:var(--surface,#fff);font-size:11px}
+    .app-theme-categories{display:flex;gap:8px;overflow-x:auto;padding:17px 0}
+    .app-theme-categories button{border:1px solid var(--border,#e5e1ed);border-radius:30px;padding:8px 13px;background:transparent;color:var(--text,#29263a);white-space:nowrap;font-size:11px;font-weight:800}
+    .app-theme-categories button.active{background:var(--accent,#7c3aed);border-color:var(--accent,#7c3aed);color:white}
+    .app-theme-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px}
+    .app-theme-card{min-width:0;padding:8px;border:2px solid var(--border,#e5e1ed);border-radius:17px;background:var(--surface,#fff);color:var(--text,#29263a);text-align:left}
+    .app-theme-card.active{border-color:var(--accent,#7c3aed);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent,#7c3aed) 17%,transparent)}
+    .app-theme-preview{height:126px;position:relative;display:block;overflow:hidden;border-radius:11px;padding:10px}
+    .theme-demo-window{position:absolute;left:13px;top:13px;width:66%;height:72px;border-radius:9px;background:#ffffffdf;padding:8px;box-shadow:0 5px 16px #0003}
+    .theme-demo-window b{display:inline-block;width:6px;height:6px;margin-right:4px;border-radius:50%;background:#a78bfa}
+    .theme-demo-window em{display:block;height:8px;margin-top:8px;border-radius:5px;background:#8b7cf688}
+    .theme-demo-window em:last-child{width:65%;background:#94a3b866}
+    .theme-demo-bubble{position:absolute;right:14px;bottom:32px;width:35px;height:35px;border-radius:12px;background:#ffffffb8;box-shadow:0 4px 12px #0002}
+    .app-theme-preview>strong{position:absolute;bottom:9px;left:11px;color:white;font-size:10px;text-shadow:0 1px 5px #000}
+    .app-theme-card-footer{display:flex;align-items:center;justify-content:space-between;gap:5px;padding:9px 2px 2px}
+    .app-theme-card-footer>span:first-child{display:grid;gap:3px;min-width:0}
+    .app-theme-card-footer b{font-size:12px}.app-theme-card-footer small{font-size:10px;color:var(--muted,#777)}
+    .app-theme-apply{font-size:10px;font-weight:900;color:var(--accent,#7c3aed);white-space:nowrap}
+    .app-theme-note{margin:15px 0 0}
+    @media(max-width:650px){.app-theme-store{padding:15px}.app-theme-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.app-theme-preview{height:108px}.app-theme-store-heading{align-items:flex-start;flex-direction:column}}
+
     .wallpaper-settings{max-width:1050px!important}
     .settings-main-card{display:grid;gap:12px;margin:18px 0 32px;padding:22px}
     .settings-main-card h2{margin:0 0 4px}
