@@ -43,7 +43,7 @@ export default function AnimatedBackground() {
     const lowCpu = Number(navigator.hardwareConcurrency || 8) <= 4
     const smallScreen = window.matchMedia('(max-width: 700px)').matches
     // Éviter les vidéos 4K en arrière-plan sur les appareils modestes ou les réseaux limités.
-    setVideoEnabled(!reduced && !saveData && !slowNetwork && !(smallScreen && (lowMemory || lowCpu)))
+    setVideoEnabled(!reduced && !saveData && !slowNetwork && !smallScreen && !lowMemory && !lowCpu)
     return () => { window.removeEventListener('weshbien:wallpaper-change', apply); observer.disconnect() }
   }, [])
 
