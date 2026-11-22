@@ -35,6 +35,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       await db.from('notifications').insert({ user_id: recipient, actor_id: uid, type: 'couple_request', title: 'Demande pour être en couple 💞', body: senderName+' souhaite être en couple avec toi.', link: '/notifications?couple_request='+row.id })
       return res.status(200).json({ ok: true, request_id: row.id })
     }
+    if (action === 'cancel') {
+      const recipient = String(req.body?.recipient_id || '')
+      if (!/^[0-9a-f-]{36}$/i.test(recipient) || recipient === uid) return res.status(400).json({ error: 'invalid_recipient' })
+      const { data: pending, error: findError } = await db.from('couple_requests').select('id').eq('sender_id', uid).eq('recipient_id', recipient).eq('status', 'pending').order('created_at', { ascending: false }).limit(1).maybeSingle()
+      if (findError || !pending) return res.status(404).json({ error: 'pending_request_not_found' })
+      const { error: deleteError } = await db.from('couple_requests').delete().eq('id', pending.id).eq('sender_id', uid).eq('status', 'pending')
+      if (deleteError) return res.status(503).json({ error: 'cancel_failed' })
+      await db.from('notifications').delete().eq('user_id', recipient).eq('type', 'couple_request').like('link', '%couple_request=' + pending.id)
+      return res.status(200).json({ ok: true, cancelled: true })
+    }
     if (action === 'respond') {
       const requestId = String(req.body?.request_id || '')
       const answer = req.body?.answer
