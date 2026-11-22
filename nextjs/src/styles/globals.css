@@ -1988,3 +1988,32 @@ html[data-app-theme] a,html[data-app-theme] .brand span,html[data-app-theme] .br
 html[data-app-theme] .primary-link,html[data-app-theme] .member-primary,html[data-app-theme] .composer button,html[data-app-theme] .search-row button,html[data-app-theme] .profile-form>button{background:var(--purple)!important;color:#fff!important}
 html[data-app-theme] .bubble-right{background:var(--purple)!important;color:#fff!important}
 html[data-app-theme] .auth-shell,html[data-app-theme] .member-shell{background:var(--wb-bg)!important;color:var(--wb-text)!important}
+
+
+/* Thèmes et fonds également visibles dans les conversations */
+.messenger-shell{background:transparent!important;color:var(--wb-text,var(--ink,#263247))!important}
+.messenger-topbar,.messenger-personbar,.messenger-compose{
+  background:color-mix(in srgb,var(--wb-surface,#fff) 78%,transparent)!important;
+  color:var(--wb-text,var(--ink,#263247))!important;
+  border-color:var(--wb-border,var(--line,#e5e7ef))!important;
+  backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)
+}
+.messenger-window{background:color-mix(in srgb,var(--wb-surface,#fff) 24%,transparent)!important;border-color:var(--wb-border,var(--line,#e8eaf1))!important}
+.messenger-history{background:color-mix(in srgb,var(--wb-bg,#fafbff) 34%,transparent)!important;backdrop-filter:blur(3px)}
+.messenger-search{background:color-mix(in srgb,var(--wb-surface,#fff) 76%,transparent)!important;border-color:var(--wb-border,var(--line,#e1e4ec))!important}
+.messenger-search input,.messenger-compose textarea{color:var(--wb-text,var(--ink,#293449))!important}
+.messenger-search input::placeholder,.messenger-compose textarea::placeholder{color:var(--wb-muted,var(--muted,#8993a5))!important}
+.messenger-bubble{background:color-mix(in srgb,var(--wb-surface,#fff) 86%,transparent)!important;border-color:var(--wb-border,var(--line,#e5e7ef))!important;color:var(--wb-text,var(--ink,#283449))!important}
+.messenger-message-row.mine .messenger-bubble{background:linear-gradient(115deg,var(--purple,#7956d8),color-mix(in srgb,var(--purple,#7956d8) 65%,#d946ef))!important;color:#fff!important;border:0!important}
+.messenger-person-copy strong,.messenger-brand,.messenger-brand b,.messenger-close{color:var(--wb-text,var(--ink,#172033))!important}
+.messenger-person-copy span,.messenger-brand span{color:var(--wb-muted,var(--muted,#8993a5))!important}
+.messenger-back,.messenger-more,.messenger-profile-shortcut{background:color-mix(in srgb,var(--wb-surface,#fff) 76%,transparent)!important;color:var(--purple,#7956d8)!important;border-color:var(--wb-border,var(--line,#e3e5ed))!important}
+.messenger-compose textarea{background:color-mix(in srgb,var(--wb-bg,#fafaff) 72%,transparent)!important;border-color:var(--wb-border,var(--line,#dcd7f4))!important;box-shadow:0 0 0 4px color-mix(in srgb,var(--purple,#7956d8) 12%,transparent)!important}
+.messenger-compose button:not(.messenger-plus-button):not(.messenger-attachment-menu button){background:var(--purple,#7956d8)!important;color:#fff!important}
+.messenger-attachment-wrap{position:relative;flex:0 0 54px}
+.messenger-compose .messenger-plus-button{width:54px;height:54px;min-width:54px;flex:0 0 54px;border-radius:18px;background:var(--purple,#7956d8)!important;color:#fff!important;font-size:34px;line-height:1;box-shadow:0 5px 15px color-mix(in srgb,var(--purple,#7956d8) 28%,transparent)}
+.messenger-attachment-menu{position:absolute;z-index:60;left:0;bottom:calc(100% + 12px);display:grid;gap:5px;min-width:168px;padding:8px;border:1px solid var(--wb-border,var(--line,#e5e7ef));border-radius:16px;background:var(--wb-surface,#fff);color:var(--wb-text,var(--ink,#263247));box-shadow:0 14px 38px #11182730}
+.messenger-compose .messenger-attachment-menu button{display:flex;align-items:center;gap:10px;width:100%;height:auto;min-height:44px;flex:none;padding:9px 12px;border:0;border-radius:10px;background:transparent!important;color:var(--wb-text,var(--ink,#263247))!important;box-shadow:none;font-size:15px;text-align:left}
+.messenger-compose .messenger-attachment-menu button:hover{background:color-mix(in srgb,var(--purple,#7956d8) 12%,transparent)!important}
+.messenger-compose .messenger-attachment-menu button span{font-size:13px;font-weight:750}
+@media(max-width:600px){.messenger-attachment-wrap{flex-basis:46px}.messenger-compose .messenger-plus-button{width:46px;height:46px;min-width:46px;flex-basis:46px;border-radius:15px}.messenger-attachment-menu{min-width:155px}}
