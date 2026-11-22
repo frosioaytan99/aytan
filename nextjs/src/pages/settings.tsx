@@ -154,10 +154,24 @@ export default function SettingsPage() {
   const [status, setStatus] = useState('')
   const [appTheme, setAppTheme] = useState('lilas')
   const [themeCategory, setThemeCategory] = useState('Tous')
+  const [accountRole, setAccountRole] = useState<'admin'|'moderator'|'member'>('member')
+  const [roleLoading, setRoleLoading] = useState(true)
   useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) { if (!cancelled) setRoleLoading(false); return }
+      const { data, error } = await supabase.from('user_roles').select('role').eq('user_id', user.id).maybeSingle()
+      if (!cancelled) {
+        setAccountRole(!error && data?.role === 'admin' ? 'admin' : !error && data?.role === 'moderator' ? 'moderator' : 'member')
+        setRoleLoading(false)
+      }
+    })()
+    
     setTheme(document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light')
     try { const savedAppTheme = localStorage.getItem('weshbien-app-theme') || 'lilas'; setAppTheme(savedAppTheme); document.documentElement.dataset.appTheme = savedAppTheme } catch {}
     try { const saved = localStorage.getItem('weshbien-wallpaper') || 'aurora'; const darkSaved = localStorage.getItem('weshbien-dark-wallpaper') || 'cosmos'; setWallpaper(saved); setDarkWallpaper(darkSaved); const active = document.documentElement.dataset.theme === 'dark' ? darkSaved : saved; document.documentElement.dataset.wallpaper = active; document.body.dataset.wallpaper = active } catch {}
+    return () => { cancelled = true }
   }, [])
   function chooseAppTheme(id: string) {
     setAppTheme(id)
@@ -203,6 +217,18 @@ export default function SettingsPage() {
       <button type="button" onClick={changeTheme}>{theme === 'dark' ? '☀️ Passer en mode clair' : '🌙 Passer en mode sombre'}</button>
       <button type="button" className="friend-secondary" onClick={logout}>↪ Déconnexion</button>
     </div>
+
+    <section className="card profile-form" aria-labelledby="account-role-title">
+      <h2 id="account-role-title">Rôles et permissions</h2>
+      {roleLoading ? <p>Vérification de ton rôle…</p> : <>
+        <p>Ton rôle actuel : <strong>{accountRole === 'admin' ? '🛡️ Administrateur' : accountRole === 'moderator' ? '🔧 Modérateur / Modératrice' : 'Membre'}</strong></p>
+        {(accountRole === 'admin' || accountRole === 'moderator') ? <>
+          <p>Les outils de modération sont activés pour ton compte.</p>
+          <Link href="/moderation-18">🛡️ Ouvrir la modération de l’espace 18+</Link>
+          <Link href="/admin">Ouvrir le tableau de modération</Link>
+        </> : <p>Les accès de modération sont réservés aux comptes autorisés par un administrateur.</p>}
+      </>}
+    </section>
 
     <section className="app-theme-store">
       <div className="app-theme-store-heading"><div><span>BOUTIQUE DE THÈMES</span><h2>Personnalise toute ton expérience</h2><p>Un thème modifie les couleurs des pages, des cartes, des menus et des boutons.</p></div><b>{appThemes.length} thèmes gratuits</b></div>
