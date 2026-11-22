@@ -120,7 +120,19 @@ export default function App({ Component, pageProps }: AppProps) {
       supabase.from('user_roles').select('role').eq('user_id',userId).maybeSingle().then(({data})=>{if(active)setIsAdmin(data?.role==='admin')})
       checkSuspension(userId)
       suspensionTimer = setInterval(() => { if (document.visibilityState === 'visible') checkSuspension(userId) }, 60000)
-      supabase.from('profiles').select('avatar_url').eq('id', userId).maybeSingle().then(({ data }) => { if (active) setAvatarUrl(data?.avatar_url || null) })
+      supabase.from('profiles').select('avatar_url,username').eq('id', userId).maybeSingle().then(({ data }) => {
+        if (!active) return
+        setAvatarUrl(data?.avatar_url || null)
+        // Retirer le fond « Pluie de cœurs » du compte Aytan uniquement.
+        if (String(data?.username || '').trim().toLowerCase() === 'aytan') {
+          let changed = false
+          try {
+            if (localStorage.getItem('weshbien-wallpaper') === 'hearts') { localStorage.setItem('weshbien-wallpaper', 'aurora'); changed = true }
+            if (localStorage.getItem('weshbien-dark-wallpaper') === 'hearts') { localStorage.setItem('weshbien-dark-wallpaper', 'cosmos'); changed = true }
+          } catch {}
+          if (changed) window.dispatchEvent(new Event('weshbien:wallpaper-change'))
+        }
+      })
       const refreshSiteStats = () => supabase.rpc('get_site_stats').then(({data,error}) => { if(!active||error)return; const row=Array.isArray(data)?data[0]:data; setSiteStats({visits:Number(row?.total_member_visits)||0,active:Number(row?.active_members)||0}) })
       supabase.rpc('record_site_visit').then(()=>refreshSiteStats())
       const updatePresence = () => {
