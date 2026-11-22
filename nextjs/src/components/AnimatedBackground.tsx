@@ -196,6 +196,18 @@ body[data-wallpaper="glitch"]::before{background:radial-gradient(ellipse at 22% 
         html[data-theme="dark"] body::after { opacity:.25; }
         @media(max-width:768px){body::before{inset:-12%;filter:blur(22px) saturate(1.2);animation:wbFloat 36s ease-in-out infinite alternate;will-change:transform}body::after{animation:wbParticles 90s linear infinite;opacity:.07;will-change:transform}.wb-wallpaper-video{display:none!important}}
         /* Fond Flamme : flammes animées et braises visibles sur mobile comme sur ordinateur */
+        body[data-wallpaper="fire"] {
+          background:#2b0b06!important;
+          background-image:linear-gradient(180deg,#160b0b 0%,#45100b 48%,#170806 100%)!important;
+        }
+        body[data-wallpaper="fire"]::before {
+          animation:wbFlame 1.8s ease-in-out infinite alternate!important;
+          transition:none!important;
+        }
+        body[data-wallpaper="fire"]::after {
+          animation:wbEmbers 4.5s linear infinite!important;
+          transition:none!important;
+        }
         body[data-wallpaper="fire"]::before {
           opacity:.92!important;
           filter:blur(30px) saturate(1.8)!important;
