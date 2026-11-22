@@ -9,14 +9,15 @@ function decodeKey(value: string) {
 }
 
 export default function PushNotifications() {
-  const [state, setState] = useState<'loading'|'off'|'on'|'unsupported'|'denied'>('loading')
+  const [state, setState] = useState<'loading'|'off'|'on'|'unsupported'|'denied'|'facebook-unsupported'>('loading')
   const [busy, setBusy] = useState(false)
 
   useEffect(() => {
     let active = true
     async function check() {
+      const inFacebook = /FBAN|FBAV|FB_IAB|FB4A/i.test(navigator.userAgent || '')
       if (!('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window)) {
-        if (active) setState('unsupported')
+        if (active) setState(inFacebook ? 'facebook-unsupported' : 'unsupported')
         return
       }
       try {
@@ -24,7 +25,7 @@ export default function PushNotifications() {
         const subscription = await registration.pushManager.getSubscription()
         if (active) setState(subscription ? 'on' : Notification.permission === 'denied' ? 'denied' : 'off')
       } catch {
-        if (active) setState('unsupported')
+        if (active) setState(inFacebook ? 'facebook-unsupported' : 'unsupported')
       }
     }
     void check()
@@ -66,7 +67,8 @@ export default function PushNotifications() {
   }
 
   if (state === 'loading' || state === 'unsupported') return null
-  return <button
+  if (state === 'facebook-unsupported') return <div role="status" style={{maxWidth:320,padding:'9px 12px',borderRadius:12,background:'var(--surface,#fff)',color:'var(--text,#222)',fontSize:13,lineHeight:1.4,boxShadow:'0 2px 10px #0001'}}>ℹ️ Le navigateur Facebook ne prend pas en charge les notifications push sur cet appareil. Les notifications resteront visibles quand tu ouvres Weshbien2.</div>
+  return <div style={{display:'grid',gap:5,justifyItems:'start'}}><button
     type="button"
     onClick={enable}
     disabled={busy || state === 'on' || state === 'denied'}
@@ -74,5 +76,5 @@ export default function PushNotifications() {
     style={{border:0,borderRadius:999,padding:'8px 12px',fontWeight:700,cursor:state==='on'||state==='denied'?'default':'pointer',background:state==='on'?'#dcfce7':'var(--surface,#fff)',color:state==='on'?'#166534':'var(--text,#222)',boxShadow:'0 2px 10px #0001'}}
   >
     {busy ? 'Activation…' : state === 'on' ? '🔔 Notifications activées' : state === 'denied' ? '🔕 Notifications bloquées' : '🔔 Activer les notifications'}
-  </button>
+  </button>{/FBAN|FBAV|FB_IAB|FB4A/i.test(typeof navigator !== 'undefined' ? navigator.userAgent || '' : '') && state !== 'on' && <small style={{maxWidth:280,fontSize:11,color:'var(--muted,#777)'}}>Tu es dans Facebook : même si l’activation réussit, Facebook peut suspendre les notifications en arrière-plan.</small>}</div>
 }
