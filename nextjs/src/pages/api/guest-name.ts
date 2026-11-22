@@ -26,7 +26,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       user_metadata: { ...(data.user.user_metadata || {}), username, display_name: username, age },
     })
     if (updateError) return res.status(503).json({ error: 'guest_metadata_save_failed' })
-    const { error: profileError } = await admin.from('profiles').upsert({ id: data.user.id, username, display_name: username, age }, { onConflict: 'id' })
+    const { error: profileError } = await admin.from('profiles').upsert({ id: data.user.id, username, display_name: username, age, is_private: false }, { onConflict: 'id' })
     if (profileError) return res.status(503).json({ error: 'guest_profile_save_failed' })
     return res.status(200).json({ display_name: username })
   } catch {
