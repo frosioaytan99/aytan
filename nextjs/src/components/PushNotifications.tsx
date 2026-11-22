@@ -66,8 +66,8 @@ export default function PushNotifications() {
     }
   }
 
-  if (state === 'loading' || state === 'unsupported') return null
-  if (state === 'facebook-unsupported') return <div role="status" style={{maxWidth:320,padding:'9px 12px',borderRadius:12,background:'var(--surface,#fff)',color:'var(--text,#222)',fontSize:13,lineHeight:1.4,boxShadow:'0 2px 10px #0001'}}>ℹ️ Le navigateur Facebook ne prend pas en charge les notifications push sur cet appareil. Les notifications resteront visibles quand tu ouvres Weshbien2.</div>
+  if (state === 'loading') return null
+  if (state === 'unsupported' || state === 'facebook-unsupported') return <div role="status" style={{maxWidth:320,padding:'9px 12px',borderRadius:12,background:'var(--surface,#fff)',color:'var(--text,#222)',fontSize:13,lineHeight:1.4,boxShadow:'0 2px 10px #0001'}}>ℹ️ Les notifications push ne sont pas prises en charge dans ce navigateur. Tu peux continuer à consulter tes notifications en ouvrant Weshbien2.</div>
   return <div style={{display:'grid',gap:5,justifyItems:'start'}}><button
     type="button"
     onClick={enable}
