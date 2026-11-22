@@ -3,7 +3,8 @@ import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { supabase } from '../lib/supabaseClient'
 import MemberAvatar from '../components/MemberAvatar'
-type Msg={id:string;sender:string;recipient:string;subject:string|null;body:string|null;created_at:string;is_read:boolean;attachment_path?:string|null;attachment_type?:'image'|'audio'|null;attachment_url?:string|null}\ntype Reaction={id:string;message_id:string;user_id:string;emoji:string}
+type Msg={id:string;sender:string;recipient:string;subject:string|null;body:string|null;created_at:string;is_read:boolean;attachment_path?:string|null;attachment_type?:'image'|'audio'|null;attachment_url?:string|null}
+type Reaction={id:string;message_id:string;user_id:string;emoji:string}
 export default function ConversationPage(){
  const historyRef=useRef<HTMLDivElement|null>(null),imageInputRef=useRef<HTMLInputElement|null>(null),audioInputRef=useRef<HTMLInputElement|null>(null),hasInitialScroll=useRef(false)
  const router=useRouter(),[uid,setUid]=useState(''),[other,setOther]=useState(''),[person,setPerson]=useState<any>(null),[presenceLastSeen,setPresenceLastSeen]=useState<string|null>(null),[messages,setMessages]=useState<Msg[]>([]),[reactions,setReactions]=useState<Reaction[]>([]),[body,setBody]=useState(''),[replyTo,setReplyTo]=useState<Msg|null>(null),[busy,setBusy]=useState(false),[status,setStatus]=useState(''),[search,setSearch]=useState(''),[menuFor,setMenuFor]=useState(''),[hiddenIds,setHiddenIds]=useState<string[]>([]),[uploading,setUploading]=useState(false),[editingId,setEditingId]=useState(''),[editDraft,setEditDraft]=useState(''),[emojiOpen,setEmojiOpen]=useState(false)
