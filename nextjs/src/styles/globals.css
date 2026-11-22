@@ -1586,3 +1586,12 @@ html[data-wallpaper]:not([data-theme="dark"]) .profile-form>button{background:li
  .app-toast{animation:wbToastIn .28s cubic-bezier(.2,.8,.2,1) both}
 }
 @keyframes wbToastIn{from{opacity:0;transform:translate3d(0,14px,0) scale(.98)}to{opacity:1;transform:translate3d(0,0,0) scale(1)}}
+
+
+.messenger-compose{position:relative}
+.messenger-compose .message-emoji-picker{position:absolute;left:12px;bottom:calc(100% + 8px);z-index:30;width:min(340px,calc(100vw - 36px));max-height:220px;overflow:auto;display:grid;grid-template-columns:repeat(7,minmax(0,1fr));box-shadow:0 14px 40px rgba(30,22,60,.2);backdrop-filter:blur(18px)}
+.messenger-compose .message-emoji-picker button{width:auto;height:auto;min-width:0;flex:auto;background:transparent;box-shadow:none;color:inherit;font-size:22px;padding:7px}
+.app-toast{overflow:hidden;transition:transform .2s ease,box-shadow .2s ease}
+.app-toast:hover{transform:translateY(-2px);box-shadow:0 18px 46px #21183c45}
+.app-toast::after{content:"";position:absolute;left:0;bottom:0;height:3px;width:100%;background:linear-gradient(90deg,#8e73f4,#55d8bd);transform-origin:left;animation:toast-progress 10s linear forwards}
+@keyframes toast-progress{from{transform:scaleX(1)}to{transform:scaleX(0)}}
