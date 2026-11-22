@@ -46,6 +46,7 @@ export default function AnimatedBackground() {
 
   return (
     <>
+      {wallpaper === 'hearts' && <div className="wb-heart-rain" aria-hidden="true">{Array.from({length:28}, (_, i) => <span key={i} style={{ left: `${(i * 37) % 100}%`, animationDelay: `${-((i * 1.7) % 18)}s`, animationDuration: `${10 + (i % 9)}s`, fontSize: `${14 + (i % 5) * 7}px`, opacity: 0.35 + (i % 5) * 0.12 }}>{i % 3 === 0 ? '💗' : i % 3 === 1 ? '❤️' : '💕'}</span>)}</div>}
       {wallpaper === 'matrix' && <div className="wb-matrix-rain" aria-hidden="true">
         {['010101110010101101001011010101','101101001010110101101001010110','001011010110010101101011001010','110010101101001011010110101101','010110100101101101001010110101','101001011010110010101101001011','011010110101001011010110100101','100101101001011010110101001011'].map((code, index) => <span key={index}>{code}</span>)}
       </div>}
@@ -186,6 +187,15 @@ body[data-wallpaper="glitch"]::before{background:radial-gradient(ellipse at 22% 
           opacity:.12!important;background-image:linear-gradient(90deg,transparent 49%,#22c55e 50%,transparent 51%);
           background-size:48px 100%;
         }
+        body[data-wallpaper="hearts"] { background:#2b0718!important; }
+        body[data-wallpaper="hearts"]::before {
+          opacity:.9!important; filter:blur(42px) saturate(1.5)!important;
+          background:radial-gradient(ellipse at 20% 25%,#fb7185aa,transparent 45%),radial-gradient(ellipse at 80% 70%,#be185daa,transparent 48%),linear-gradient(135deg,#240817,#701a3d,#3b0a2a)!important;
+        }
+        body[data-wallpaper="hearts"]::after { opacity:.08!important; }
+        .wb-heart-rain { position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none; }
+        .wb-heart-rain span { position:absolute;top:-12vh;display:block;filter:drop-shadow(0 2px 8px #fb718866);animation:wbHeartFall linear infinite;will-change:transform; }
+        @keyframes wbHeartFall { 0%{transform:translate3d(0,-8vh,0) rotate(-15deg); } 50%{transform:translate3d(22px,52vh,0) rotate(15deg);} 100%{transform:translate3d(-12px,115vh,0) rotate(-10deg);} }
         .wb-matrix-rain {
           position:fixed;inset:0;z-index:-1;display:flex;justify-content:space-around;
           overflow:hidden;pointer-events:none;opacity:.32;color:#4ade80;
@@ -271,7 +281,7 @@ body[data-wallpaper="glitch"]::before{background:radial-gradient(ellipse at 22% 
         body[data-wallpaper="meteor"]::after,
         body[data-wallpaper="stardust"]::after,
         body[data-wallpaper="eclipse"]::after { opacity:.2!important; }
-        @media(prefers-reduced-motion:reduce){body::before,body::after{animation:none!important}.wb-wallpaper-video,.wb-matrix-rain span{display:none!important}}
+        @media(prefers-reduced-motion:reduce){body::before,body::after{animation:none!important}.wb-wallpaper-video,.wb-matrix-rain span,.wb-heart-rain span{display:none!important}}
       `}</style>
     </>
   )
