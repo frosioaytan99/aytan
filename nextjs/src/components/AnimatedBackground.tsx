@@ -195,6 +195,39 @@ body[data-wallpaper="glitch"]::before{background:radial-gradient(ellipse at 22% 
         html[data-theme="dark"] body::before { opacity:.42; }
         html[data-theme="dark"] body::after { opacity:.25; }
         @media(max-width:768px){body::before{inset:-12%;filter:blur(22px) saturate(1.2);animation:wbFloat 36s ease-in-out infinite alternate;will-change:transform}body::after{animation:wbParticles 90s linear infinite;opacity:.07;will-change:transform}.wb-wallpaper-video{display:none!important}}
+        /* Fond Flamme : flammes animées et braises visibles sur mobile comme sur ordinateur */
+        body[data-wallpaper="fire"]::before {
+          opacity:.92!important;
+          filter:blur(30px) saturate(1.8)!important;
+          background:
+            radial-gradient(ellipse 18% 48% at 18% 100%,#fff7ae 0%,#fbbf24 20%,#f97316 48%,transparent 78%),
+            radial-gradient(ellipse 22% 58% at 42% 105%,#fff1a6 0%,#fb923c 28%,#dc2626 58%,transparent 80%),
+            radial-gradient(ellipse 20% 50% at 68% 105%,#fde68a 0%,#f97316 35%,#b91c1c 62%,transparent 82%),
+            radial-gradient(ellipse 18% 45% at 88% 105%,#fef3c7 0%,#ea580c 38%,#991b1b 66%,transparent 82%),
+            linear-gradient(180deg,#160b0b 0%,#45100b 48%,#170806 100%)!important;
+          animation:wbFlame 3.8s ease-in-out infinite alternate!important;
+        }
+        body[data-wallpaper="fire"]::after {
+          opacity:.7!important;
+          background-image:
+            radial-gradient(circle,#fde68a 1.5px,transparent 3px),
+            radial-gradient(circle,#fb923c 1.2px,transparent 3px),
+            radial-gradient(circle,#ef4444 1px,transparent 2.8px)!important;
+          background-size:73px 91px,113px 127px,157px 139px!important;
+          background-position:0 0,35px 52px,78px 21px!important;
+          animation:wbEmbers 8s linear infinite!important;
+          mask-image:linear-gradient(to top,#000 5%,#000 72%,transparent 100%)!important;
+        }
+        @keyframes wbFlame {
+          0%{transform:translate3d(-1%,1%,0) scale(1) skewX(-1deg);filter:blur(32px) saturate(1.65)}
+          35%{transform:translate3d(1%,-2%,0) scale(1.04) skewX(1deg);filter:blur(27px) saturate(1.95)}
+          70%{transform:translate3d(-2%,-1%,0) scale(1.07) skewX(-2deg);filter:blur(30px) saturate(1.8)}
+          100%{transform:translate3d(2%,-3%,0) scale(1.03) skewX(2deg);filter:blur(25px) saturate(2)}
+        }
+        @keyframes wbEmbers {
+          from{transform:translate3d(0,15%,0)}
+          to{transform:translate3d(-18px,-38%,0)}
+        }
         @media(prefers-reduced-motion:reduce){body::before,body::after{animation:none!important}.wb-wallpaper-video,.wb-matrix-rain span{display:none!important}}
       `}</style>
     </>
