@@ -36,11 +36,13 @@ export default function App({ Component, pageProps }: AppProps) {
   const [signedIn, setSignedIn] = useState(false)
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
   const [currentUserId, setCurrentUserId] = useState('')
+  const [isAdmin, setIsAdmin] = useState(false)
   const [guestName, setGuestName] = useState('')
   const [authChecked, setAuthChecked] = useState(false)
   const [accountMenuOpen, setAccountMenuOpen] = useState(false)
   const router = useRouter()
   const memberPage = router.pathname !== '/' && router.pathname !== '/auth' && router.pathname !== '/404'
+  const navItems = isAdmin ? [menuItems.find(item=>item[0]==='Administration')!, ...menuItems.filter(item=>item[0]!=='Administration')] : menuItems.filter(item=>item[0]!=='Administration')
 
   useEffect(() => {
     if (!router.isReady) return
@@ -105,8 +107,9 @@ export default function App({ Component, pageProps }: AppProps) {
       if (suspensionTimer) { clearInterval(suspensionTimer); suspensionTimer = undefined }
       if (presenceVisibilityHandler) { document.removeEventListener('visibilitychange', presenceVisibilityHandler); presenceVisibilityHandler = null }
       if (messagesReadHandler) { window.removeEventListener('weshbien:messages-read', messagesReadHandler); messagesReadHandler = null }
-      if (!userId) { setUnread(0); setUnreadMessages(0); setAvatarUrl(null); setCurrentUserId(''); return }
+      if (!userId) { setUnread(0); setUnreadMessages(0); setAvatarUrl(null); setCurrentUserId(''); setIsAdmin(false); return }
       setCurrentUserId(userId)
+      supabase.from('user_roles').select('role').eq('user_id',userId).maybeSingle().then(({data})=>{if(active)setIsAdmin(data?.role==='admin')})
       checkSuspension(userId)
       suspensionTimer = setInterval(() => { if (document.visibilityState === 'visible') checkSuspension(userId) }, 60000)
       supabase.from('profiles').select('avatar_url').eq('id', userId).maybeSingle().then(({ data }) => { if (active) setAvatarUrl(data?.avatar_url || null) })
@@ -215,7 +218,7 @@ export default function App({ Component, pageProps }: AppProps) {
       <header className="desktop-community-header">
         <Link href="/feed" className="desktop-brand"><span className="brand-mark">w</span><span>weshbien2.</span></Link>
         <nav className="desktop-community-nav" aria-label="Navigation principale">
-          {menuItems.map(([label, href]) => <Link key={label} href={href} className={router.pathname === href ? 'active' : ''}>{label}{label === 'Notifications' && unread > 0 ? <b className="desktop-nav-count">{unread > 99 ? '99+' : unread}</b> : null}{label === 'Messages' && unreadMessages > 0 ? <b className="desktop-nav-count">{unreadMessages > 99 ? '99+' : unreadMessages}</b> : null}</Link>)}
+          {navItems.map(([label, href]) => <Link key={label} href={href} className={router.pathname === href ? 'active' : ''}>{label}{label === 'Notifications' && unread > 0 ? <b className="desktop-nav-count">{unread > 99 ? '99+' : unread}</b> : null}{label === 'Messages' && unreadMessages > 0 ? <b className="desktop-nav-count">{unreadMessages > 99 ? '99+' : unreadMessages}</b> : null}</Link>)}
         </nav>
         <div className="desktop-header-actions">
           <button type="button" onClick={toggleTheme} aria-label="Changer le thème">{theme === 'dark' ? '☀️' : '🌙'}</button>
@@ -235,12 +238,13 @@ export default function App({ Component, pageProps }: AppProps) {
         <aside className="mobile-drawer" onClick={event => event.stopPropagation()}>
           <div className="mobile-drawer-heading"><span className="brand"><span className="brand-mark">w</span>weshbien2.</span><button type="button" onClick={() => setMenuOpen(false)} aria-label="Fermer">×</button></div>
           <small>NAVIGATION</small>
-          {menuItems.map(([label, href, icon]) => <Link key={label} href={href} onClick={() => setMenuOpen(false)}><span>{icon}</span>{label}{label === 'Notifications' && unread > 0 && <b className="drawer-count-badge">{unread > 99 ? '99+' : unread}</b>}{label === 'Messages' && unreadMessages > 0 && <b className="drawer-count-badge">{unreadMessages > 99 ? '99+' : unreadMessages}</b>}</Link>)}
+          {navItems.map(([label, href, icon]) => <Link key={label} href={href} onClick={() => setMenuOpen(false)}><span>{icon}</span>{label}{label === 'Notifications' && unread > 0 && <b className="drawer-count-badge">{unread > 99 ? '99+' : unread}</b>}{label === 'Messages' && unreadMessages > 0 && <b className="drawer-count-badge">{unreadMessages > 99 ? '99+' : unreadMessages}</b>}</Link>)}
           <button className="drawer-theme" type="button" onClick={toggleTheme}>{theme === 'dark' ? '☀️ Mode clair' : '🌙 Mode sombre'}</button>
         </aside>
       </div>}
     </>}
     {(!memberPage || authChecked) ? <Component {...pageProps} /> : <main className="auth-shell"><section className="auth-card"><p>Vérification de ta connexion…</p></section></main>}
+    <footer className="global-footer"><span>© Weshbien2</span><Link href="/guide">Mode d’emploi complet</Link><Link href="/moderators">Équipe de modération</Link><Link href="/profile">Mon profil</Link></footer>
     {notice && <button type="button" className="app-toast" role="status" aria-live="polite" onClick={() => { setNotice(''); router.push('/notifications') }}><span className="toast-icon">✓</span><span>{notice}<small>Appuie pour ouvrir tes notifications</small></span></button>}
   </>
 }
