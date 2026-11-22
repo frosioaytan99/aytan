@@ -14,13 +14,13 @@ export default function RetourWeshbienPage() {
           <Link href="/auth">Me connecter ou créer un compte →</Link>
         </div>
         <div className="card" style={{ padding: 18, margin: '20px 0', textAlign: 'left' }}>
-          <h2 style={{ marginTop: 0 }}>2. Recherche tes anciens amis</h2>
-          <p>Dans Découvrir, saisis leur ancien pseudo ou leur nom affiché. Si tes amis ont déjà rejoint Weshbien2, tu pourras ouvrir leur profil et leur envoyer une demande.</p>
-          <Link href="/explore">Rechercher mes amis →</Link>
+          <h2 style={{ marginTop: 0 }}>2. Retrouve plusieurs amis à la fois</h2>
+          <p>Colle une liste de pseudos pour rechercher en une seule fois les anciens amis qui ont déjà rejoint Weshbien2.</p>
+          <Link href="/importer-amis">Importer / rechercher mes amis →</Link>
         </div>
         <div className="card" style={{ padding: 18, margin: '20px 0', textAlign: 'left' }}>
           <h2 style={{ marginTop: 0 }}>À savoir</h2>
-          <p>Cette page ne transfère pas automatiquement les anciens comptes ni les anciennes listes d’amis. Pour un transfert complet, il faudra une sauvegarde officielle de Weshbien.com. Ne communique jamais ton ancien mot de passe à quelqu’un.</p>
+          <p>Cet outil recherche les profils publics déjà présents sur Weshbien2. Il ne transfère pas automatiquement les anciens comptes ni les anciennes amitiés. Pour une migration complète, il faut un export officiel ou un accès autorisé aux données de Weshbien.com. Ne communique jamais ton ancien mot de passe.</p>
         </div>
         <p><Link href="/feed">← Retour à Weshbien2</Link></p>
       </section>
