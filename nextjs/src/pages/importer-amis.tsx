@@ -34,12 +34,20 @@ export default function ImportAmisPage() {
     setBusy(false)
   }
 
+  const bookmarklet = "javascript:(()=>{const s=document.createElement('script');s.src='https://weshbien2-production.up.railway.app/weshbien-extracteur.js';document.body.appendChild(s)})()"
+
   return <main className="app-shell">
     <header className="app-header"><Link className="brand" href="/">weshbien2<span>.</span></Link><nav><Link href="/feed">Fil</Link><Link href="/explore">Découvrir</Link><Link href="/profile">Mon profil</Link></nav></header>
     <section className="directory" style={{ maxWidth: 850, margin: '0 auto' }}>
       <small>ANCIENS MEMBRES</small>
       <h1>Retrouver mes amis de Weshbien.com</h1>
       <p>Colle ici les pseudos de tes anciens amis, séparés par des espaces, des virgules ou un retour à la ligne. Tu peux faire plusieurs lots de 500 pseudos maximum.</p>
+      <section className="card" style={{ padding: 16, marginBottom: 18 }}>
+        <h2>Extraction depuis Weshbien.com</h2>
+        <p>Sur le navigateur qui affiche Weshbien.com, ajoute un favori nommé « Extracteur Weshbien ». Modifie son adresse et colle le code ci-dessous. Ensuite, connecte-toi à Weshbien.com, ouvre ta liste d’amis et lance ce favori : un fichier texte sera téléchargé si les pseudos sont reconnus.</p>
+        <button type="button" onClick={() => { navigator.clipboard?.writeText(bookmarklet).then(() => setMessage('Code de favori copié.')); }} style={{ marginTop: 8 }}>Copier le code de l’extracteur</button>
+        <p><small>Limite : l’extracteur ne lit que les liens de profils visibles dans la page ouverte. Il ne récupère ni mots de passe, ni messages, ni données privées. Vérifie le fichier avant import.</small></p>
+      </section>
       <form onSubmit={searchFriends} className="card" style={{ padding: 18 }}>
         <label htmlFor="old-friends-list">Liste des pseudos</label>
         <textarea id="old-friends-list" value={raw} onChange={e => setRaw(e.target.value)} rows={8} placeholder={'exemple\nOriana66\nCharli012\neremrem'} style={{ width: '100%', marginTop: 10, padding: 12, borderRadius: 12 }} />
