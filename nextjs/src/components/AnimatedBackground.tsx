@@ -9,7 +9,7 @@ const videoByTheme: Record<string, string> = {
   dream: 'stars', minimal: 'stars', marble: 'stars', crystal: 'ocean',
   copper: 'sunset', silver: 'stars', emerald: 'forest', ruby: 'sunset',
   sapphire: 'ocean', cosmos: 'stars', moon: 'stars', stars: 'stars',
-  matrix: 'matrix', cyber: 'stars', laser: 'stars', rainbow: 'sunset', electric: 'ocean',
+  matrix: 'matrix', laser: 'stars', rainbow: 'sunset', electric: 'ocean',
 }
 
 const videoSources: Record<string, string> = {
@@ -46,7 +46,7 @@ export default function AnimatedBackground() {
     return () => { window.removeEventListener('weshbien:wallpaper-change', apply); observer.disconnect() }
   }, [])
 
-  const videoGroup = videoByTheme[wallpaper] || 'stars'
+  const videoGroup = wallpaper === 'cyber' ? '' : (videoByTheme[wallpaper] || 'stars')
   const videoSource = videoEnabled ? videoSources[videoGroup] : ''
 
   return (
@@ -163,6 +163,26 @@ body[data-wallpaper="arcade"]::before{background:radial-gradient(ellipse at 22% 
 body[data-wallpaper="plasma"]::before{background:radial-gradient(ellipse at 22% 25%,#38bdf8bb,transparent 43%),radial-gradient(ellipse at 78% 72%,#334155aa,transparent 48%),linear-gradient(135deg,#0f172a,#334155,#38bdf8)!important;}
 body[data-wallpaper="glitch"]::before{background:radial-gradient(ellipse at 22% 25%,#a78bfabb,transparent 43%),radial-gradient(ellipse at 78% 72%,#4c1d95aa,transparent 48%),linear-gradient(135deg,#111827,#4c1d95,#a78bfa)!important;}
         #__next { position: relative; z-index: 1; background: transparent !important; }
+        /* Cyberpunk : néons et grille futuriste, sans vidéo d'étoiles filantes */
+        body[data-wallpaper="cyber"]::before {
+          opacity:.9!important;filter:blur(18px) saturate(1.7)!important;
+          background:
+            radial-gradient(ellipse at 18% 28%,#ec4899bb,transparent 38%),
+            radial-gradient(ellipse at 82% 68%,#06b6d4bb,transparent 42%),
+            linear-gradient(135deg,#080018 0%,#19072d 52%,#031521 100%)!important;
+          animation:wbCyberGlow 8s ease-in-out infinite alternate!important;
+        }
+        body[data-wallpaper="cyber"]::after {
+          opacity:.38!important;
+          background-image:
+            linear-gradient(rgba(34,211,238,.34) 1px,transparent 1px),
+            linear-gradient(90deg,rgba(236,72,153,.3) 1px,transparent 1px)!important;
+          background-size:48px 48px!important;
+          mask-image:linear-gradient(to bottom,transparent,#000 18%,#000 90%)!important;
+          animation:wbCyberGrid 16s linear infinite!important;
+        }
+        @keyframes wbCyberGlow {from{transform:translate3d(-1%,0,0) scale(1)}to{transform:translate3d(1%,-2%,0) scale(1.06)}}
+        @keyframes wbCyberGrid {from{background-position:0 0}to{background-position:0 96px}}
         body[data-wallpaper="matrix"]::before {
           opacity:.8!important;filter:blur(12px) saturate(1.3);
           background:radial-gradient(ellipse at 50% 40%,#064e3b88,transparent 65%),linear-gradient(180deg,#020b07,#031a0d 55%,#010805)!important;
