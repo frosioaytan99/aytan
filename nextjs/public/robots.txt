@@ -15,3 +15,5 @@ Disallow: /questions
 Disallow: /stories
 Disallow: /communities
 Disallow: /search
+
+Sitemap: https://weshbien2-production.up.railway.app/sitemap.xml
