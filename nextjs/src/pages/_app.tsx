@@ -118,7 +118,9 @@ export default function App({ Component, pageProps }: AppProps) {
       supabase.rpc('record_site_visit').then(()=>refreshSiteStats())
       const updatePresence = () => {
         if (document.visibilityState === 'visible') {
-          supabase.from('profiles').update({ last_seen_at: new Date().toISOString() }).eq('id', userId).then(() => refreshSiteStats())
+          supabase.from('profiles').update({ last_seen_at: new Date().toISOString() }).eq('id', userId).then(({ error }) => {
+            if (error) console.warn('Mise à jour de présence impossible', error.message)
+          })
         }
       }
       updatePresence()
