@@ -24,7 +24,7 @@ function NavIcon({name}:{name:string}) {
 const menuItems: [string, string, string][] = [
   ['Accueil', '/feed', '⌂'], ['Weshbien IA', '/assistant', '✦'], ['18+', '/individual', '⚠'], ['Explorer', '/explore', '◉'], ['Recherche', '/search', '⌕'], ['Stories', '/stories', '◌'], ['En ligne', '/online', '●'],
   ['Amis', '/friends', '♧'], ['MeetMe', '/meetme', '♡'], ['Communautés', '/communities', '▤'], ['Photos', '/photos', '▧'],
-  ['Forum', '/forums', '▤'], ['Blog', '/questions', '▣'], ['Notifications', '/notifications', '♧'], ['Sécurité du compte', '/security', '🔐'],
+  ['Forum', '/forums', '▤'], ['Questions', '/questions', '▣'], ['Notifications', '/notifications', '♧'], ['Sécurité du compte', '/security', '🔐'],
   ['Messages', '/inbox', '✉'], ['Équipe de modération', '/moderators', '🛡️'], ['Mon profil', '/profile', '♙'], ['Administration', '/admin', '♢'],
 ]
 export default function App({ Component, pageProps }: AppProps) {
@@ -88,7 +88,6 @@ export default function App({ Component, pageProps }: AppProps) {
       document.documentElement.dataset.theme = initial
     } catch {}
     const onNotice = (event: Event) => {
-      const message = (event as CustomEvent).detail
       const detail = (event as CustomEvent).detail
       const message = typeof detail === 'string' ? detail : detail?.message
       if (typeof message !== 'string' || !message) return
