@@ -108,6 +108,8 @@ export default function App({ Component, pageProps }: AppProps) {
       }
     }
     const attach = (userId: string | null) => {
+      if (incomingPollTimer) { clearInterval(incomingPollTimer); incomingPollTimer = undefined }
+      if (unreadRefreshTimer) { clearInterval(unreadRefreshTimer); unreadRefreshTimer = undefined }
       if (channel) { supabase.removeChannel(channel); channel = null }
       if (presenceTimer) { clearInterval(presenceTimer); presenceTimer = undefined }
       if (suspensionTimer) { clearInterval(suspensionTimer); suspensionTimer = undefined }
@@ -147,9 +149,10 @@ export default function App({ Component, pageProps }: AppProps) {
       const seenIncoming = new Set<string>()
       const pollIncomingMessages = async () => {
         if (!active || document.visibilityState !== 'visible') return
-        const { data, error } = await supabase.from('messages').select('id,sender,created_at').eq('recipient', userId).gt('created_at', lastIncomingCheck).order('created_at', { ascending: true }).limit(30)
+        const checkUntil = new Date().toISOString()
+        const { data, error } = await supabase.from('messages').select('id,sender,created_at').eq('recipient', userId).gt('created_at', lastIncomingCheck).lt('created_at', checkUntil).order('created_at', { ascending: true }).limit(30)
         if (error) { console.warn('Vérification des nouveaux messages impossible', error.message); return }
-        lastIncomingCheck = new Date().toISOString()
+        lastIncomingCheck = checkUntil
         for (const row of data || []) {
           if (!row.id || seenIncoming.has(row.id)) continue
           seenIncoming.add(row.id)
