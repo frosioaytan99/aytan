@@ -71,10 +71,19 @@ export default function ImportAmisPage() {
       <h1>Retrouver mes amis de Weshbien.com</h1>
       <p>Colle ici les pseudos ou le contenu du CSV exporté depuis Weshbien.com. Tu peux faire plusieurs lots de 500 pseudos maximum.</p>
       <section className="card" style={{ padding: 16, marginBottom: 18 }}>
-        <h2>Extraction depuis Weshbien.com</h2>
-        <p>Sur le navigateur qui affiche Weshbien.com, ajoute un favori nommé « Extracteur Weshbien ». Modifie son adresse et colle le code ci-dessous. Ensuite, connecte-toi à Weshbien.com, ouvre ta liste d’amis et lance ce favori : un fichier texte sera téléchargé si les pseudos sont reconnus.</p>
-        <button type="button" onClick={() => { navigator.clipboard?.writeText(bookmarklet).then(() => setMessage('Code de favori copié.')); }} style={{ marginTop: 8 }}>Copier le code de l’extracteur</button>
-        <p><small>Limite : l’extracteur ne lit que les liens de profils visibles dans la page ouverte. Il ne récupère ni mots de passe, ni messages, ni données privées. Vérifie le fichier avant import.</small></p>
+        <h2>Depuis Facebook : méthode sans extracteur</h2>
+        <ol>
+          <li>Dans le navigateur Facebook, ouvre Weshbien.com et affiche ta liste d’amis.</li>
+          <li>Essaie de sélectionner les pseudos visibles en maintenant le doigt sur le texte, puis copie-les.</li>
+          <li>Reviens sur cette page Weshbien2 et colle les pseudos dans la zone « Liste des pseudos ».</li>
+          <li>Appuie sur « Rechercher mes amis ».</li>
+        </ol>
+        <p><small>Le navigateur intégré de Facebook bloque souvent les favoris qui exécutent du code. Cette méthode manuelle ne lit que les pseudos visibles et copiables. Si Facebook ne permet pas de sélectionner la liste, l’extraction automatique ne pourra pas fonctionner dans ce navigateur.</small></p>
+        <details style={{ marginTop: 12 }}>
+          <summary>Autre méthode : extracteur dans un navigateur compatible</summary>
+          <p>Sur Chrome ou Edge, tu peux utiliser le favori Extracteur Weshbien après avoir ouvert ta liste d’amis.</p>
+          <button type="button" onClick={() => { navigator.clipboard?.writeText(bookmarklet).then(() => setMessage('Code de favori copié.')); }} style={{ marginTop: 8 }}>Copier le code de l’extracteur</button>
+        </details>
       </section>
       <form onSubmit={searchFriends} className="card" style={{ padding: 18 }}>
         <h2>Importer facilement ton fichier</h2>
