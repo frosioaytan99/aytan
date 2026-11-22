@@ -4,8 +4,8 @@ self.addEventListener('push', event => {
   const title = payload.title || 'Nouveau message sur Weshbien2'
   const options = {
     body: payload.body || 'Tu as reçu un nouveau message.',
-    icon: '/icons/icon-192.png',
-    badge: '/icons/icon-192.png',
+    icon: '/favicon.ico',
+    badge: '/favicon.ico',
     tag: payload.tag || 'weshbien-message',
     renotify: true,
     data: { url: payload.url || '/inbox' }
