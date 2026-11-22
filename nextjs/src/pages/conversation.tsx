@@ -174,10 +174,11 @@ export default function ConversationPage(){
  }
  async function send(e:any){
   e.preventDefault();if(!body.trim()||!uid||!other||busy)return
-  setBusy(true);const quoted=replyTo?'↪ Réponse à '+(replyTo.sender===uid?'ton message':'son message')+' : « '+(replyTo.body||replyTo.subject||'').replace(/\s+/g,' ').slice(0,240)+' »\n\n':'';const {error}=await supabase.from('messages').insert({sender:uid,recipient:other,subject:'Message',body:quoted+body.trim()})
+  setBusy(true);const quoted=replyTo?'↪ Réponse à '+(replyTo.sender===uid?'ton message':'son message')+' : « '+(replyTo.body||replyTo.subject||'').replace(/\s+/g,' ').slice(0,240)+' »\n\n':'';const {data,error}=await supabase.from('messages').insert({sender:uid,recipient:other,subject:'Message',body:quoted+body.trim()}).select('id,sender,recipient,subject,body,created_at,is_read,attachment_path,attachment_type').single()
   setBusy(false)
-  if(error){setStatus(error.code==='42501'?'Vous devez être amis pour envoyer un message.':'Envoi impossible.');return}
-  setBody('');setReplyTo(null);setStatus('');await load(uid,other)
+  if(error){setStatus(error.code==='42501'?'Vous devez être amis pour envoyer un message.':'Envoi impossible : '+error.message);return}
+  if(data)setMessages(current=>current.some(item=>item.id===data.id)?current:[...current,data as Msg].sort((a,b)=>new Date(a.created_at).getTime()-new Date(b.created_at).getTime()))
+  setBody('');setReplyTo(null);setStatus('');void load(uid,other)
  }
  return <main className="messenger-shell">
   <header className="messenger-topbar"><Link href="/inbox" className="messenger-close" aria-label="Retour à la messagerie">×</Link><div className="messenger-brand"><b>🔒 weshbien.com</b><span>Messenger</span></div><Link href={'/profile?id='+other} className="messenger-profile-shortcut" aria-label="Voir le profil">◎</Link></header>
