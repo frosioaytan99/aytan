@@ -1853,3 +1853,103 @@ html[data-theme="dark"] .home-feed-tabs button.active,html[data-theme="dark"] .h
 .typing-dots i:nth-child(2){animation-delay:.15s}
 .typing-dots i:nth-child(3){animation-delay:.3s}
 @keyframes typing-bounce{0%,60%,100%{opacity:.45;transform:translateY(0)}30%{opacity:1;transform:translateY(-3px)}}
+
+
+/* Correctif mobile : profil lisible, informations séparées et actions aérées */
+.profile-public-card .profile-identity{
+  display:grid!important;
+  grid-template-columns:88px minmax(0,1fr);
+  align-items:end;
+  column-gap:16px;
+  row-gap:16px;
+  padding:0 24px 22px!important;
+  margin-top:-42px!important;
+}
+.profile-public-card .profile-identity>.member-avatar-wrap{
+  grid-column:1;
+  grid-row:1;
+  z-index:2;
+}
+.profile-public-card .profile-identity-copy{
+  grid-column:2;
+  grid-row:1;
+  min-width:0!important;
+  padding-top:48px!important;
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+  gap:5px;
+}
+.profile-public-card .profile-identity-copy h2,
+.profile-public-card .profile-identity-copy p{
+  max-width:100%;
+  overflow-wrap:anywhere;
+  margin:0!important;
+}
+.profile-public-card .profile-identity-copy small{
+  display:block!important;
+  max-width:100%;
+  line-height:1.5;
+  white-space:normal;
+  overflow-wrap:anywhere;
+  font-size:12px!important;
+  margin:0!important;
+}
+.profile-public-card .profile-identity-actions{
+  grid-column:1 / -1;
+  grid-row:2;
+  width:100%;
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:stretch;
+  align-items:stretch;
+  gap:10px;
+  margin:0!important;
+}
+.profile-public-card .profile-identity-actions>*{
+  flex:1 1 130px;
+  min-width:0;
+  min-height:46px;
+  white-space:normal!important;
+  text-align:center;
+  line-height:1.35;
+}
+.profile-public-card>.profile-add-friend-button{
+  align-self:stretch;
+  margin:0 24px 12px!important;
+  min-height:46px;
+  white-space:normal;
+}
+.profile-public-card .profile-public-tabs{
+  margin-top:8px;
+}
+.profile-public-card .profile-about-section>p{
+  overflow-wrap:anywhere;
+}
+.profile-public-card .profile-details-grid p{
+  min-width:0;
+  overflow-wrap:anywhere;
+}
+@media(max-width:650px){
+  .profile-public-card .profile-cover{height:155px!important;min-height:155px!important}
+  .profile-public-card .profile-identity{
+    grid-template-columns:76px minmax(0,1fr);
+    column-gap:14px;
+    row-gap:18px;
+    padding:0 16px 20px!important;
+    margin-top:-38px!important;
+  }
+  .profile-public-card .profile-identity>.member-avatar-wrap{
+    width:76px!important;height:76px!important;
+  }
+  .profile-public-card .profile-identity .avatar.large{
+    width:68px!important;height:68px!important;
+  }
+  .profile-public-card .profile-identity-copy{padding-top:44px!important;gap:6px}
+  .profile-public-card .profile-identity-copy h2{font-size:19px!important}
+  .profile-public-card .profile-identity-copy p{font-size:13px!important}
+  .profile-public-card .profile-identity-copy small{font-size:11px!important}
+  .profile-public-card .profile-identity-actions>*{flex:1 1 100%;width:100%}
+  .profile-public-card>.profile-add-friend-button{margin:0 16px 12px!important}
+  .profile-public-card .profile-public-tabs{gap:12px;padding:12px 16px!important}
+}
