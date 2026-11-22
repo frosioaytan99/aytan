@@ -11,7 +11,7 @@ function spotifyEmbedUrl(value:string|null|undefined):string|null{
  return match?'https://open.spotify.com/embed/'+match[1].toLowerCase()+'/'+match[2]+'?utm_source=generator':null
 }
 export default function ConversationPage(){
- const historyRef=useRef<HTMLDivElement|null>(null),imageInputRef=useRef<HTMLInputElement|null>(null),audioInputRef=useRef<HTMLInputElement|null>(null),videoInputRef=useRef<HTMLInputElement|null>(null),hasInitialScroll=useRef(false),typingChannelRef=useRef<ReturnType<typeof supabase.channel>|null>(null),typingStopTimer=useRef<ReturnType<typeof setTimeout>|null>(null),lastTypingSent=useRef(0),voiceRecorderRef=useRef<MediaRecorder|null>(null),voiceChunksRef=useRef<Blob[]>([])
+ const historyRef=useRef<HTMLDivElement|null>(null),imageInputRef=useRef<HTMLInputElement|null>(null),audioInputRef=useRef<HTMLInputElement|null>(null),videoInputRef=useRef<HTMLInputElement|null>(null),hasInitialScroll=useRef(false),typingChannelRef=useRef<ReturnType<typeof supabase.channel>|null>(null),typingStopTimer=useRef<ReturnType<typeof setTimeout>|null>(null),lastTypingSent=useRef(0),voiceRecorderRef=useRef<MediaRecorder|null>(null),voiceChunksRef=useRef<Blob[]>([]),signedUrlCacheRef=useRef<Map<string,{url:string;expiresAt:number}>>(new Map())
  const router=useRouter(),[uid,setUid]=useState(''),[other,setOther]=useState(''),[person,setPerson]=useState<any>(null),[presenceLastSeen,setPresenceLastSeen]=useState<string|null>(null),[messages,setMessages]=useState<Msg[]>([]),[reactions,setReactions]=useState<Reaction[]>([]),[body,setBody]=useState(''),[replyTo,setReplyTo]=useState<Msg|null>(null),[busy,setBusy]=useState(false),[status,setStatus]=useState(''),[search,setSearch]=useState(''),[menuFor,setMenuFor]=useState(''),[hiddenIds,setHiddenIds]=useState<string[]>([]),[uploading,setUploading]=useState(false),[editingId,setEditingId]=useState(''),[editDraft,setEditDraft]=useState(''),[emojiOpen,setEmojiOpen]=useState(false),[otherTyping,setOtherTyping]=useState(false),[attachmentMenuOpen,setAttachmentMenuOpen]=useState(false),[recordingVoice,setRecordingVoice]=useState(false)
  async function load(a:string,b:string){
   const {data,error}=await supabase.from('messages').select('id,sender,recipient,subject,body,created_at,is_read,attachment_path,attachment_type').or('and(sender.eq.'+a+',recipient.eq.'+b+'),and(sender.eq.'+b+',recipient.eq.'+a+')').order('created_at',{ascending:true})
@@ -20,14 +20,17 @@ export default function ConversationPage(){
   const attachmentRows=rows.filter(m=>m.attachment_path)
   if(attachmentRows.length){
    const results=await Promise.all(attachmentRows.map(async m=>{
+    const cached=signedUrlCacheRef.current.get(m.attachment_path!)
+    if(cached&&cached.expiresAt>Date.now()+60000)return {path:m.attachment_path,url:cached.url,error:null}
     let signedUrl:string|null=null
     let lastError:any=null
-    for(let attempt=0;attempt<3&&!signedUrl;attempt++){
-     if(attempt)await new Promise(resolve=>setTimeout(resolve,500*attempt))
+    for(let attempt=0;attempt<2&&!signedUrl;attempt++){
+     if(attempt)await new Promise(resolve=>setTimeout(resolve,300))
      const {data:urlData,error:urlError}=await supabase.storage.from('chat-attachments').createSignedUrl(m.attachment_path!,60*60*24*7)
      signedUrl=urlData?.signedUrl||null
      lastError=urlError
     }
+    if(signedUrl)signedUrlCacheRef.current.set(m.attachment_path!,{url:signedUrl,expiresAt:Date.now()+7*24*60*60*1000})
     return {path:m.attachment_path,url:signedUrl,error:lastError}
    }))
    const urlByPath=new Map(results.map(item=>[item.path,item.url]))
@@ -65,7 +68,9 @@ export default function ConversationPage(){
  const presenceLabel=()=>{if(!presenceLastSeen)return 'Hors ligne';const elapsed=Date.now()-new Date(presenceLastSeen).getTime();if(!Number.isFinite(elapsed)||elapsed<0)return 'Hors ligne';if(elapsed<=120000)return '● En ligne';const minutes=Math.floor(elapsed/60000);if(minutes<60)return 'Actif il y a '+minutes+' min';const hours=Math.floor(minutes/60);if(hours<24)return 'Actif il y a '+hours+' h';return 'Vu le '+new Date(presenceLastSeen).toLocaleDateString('fr-FR')}
  useEffect(()=>{
   if(!uid||!other)return
-  let refreshTimer:ReturnType<typeof setInterval>|null=null
+  let fallbackTimer:ReturnType<typeof setInterval>|null=null
+  const startFallback=()=>{if(!fallbackTimer)fallbackTimer=setInterval(()=>{void load(uid,other)},30000)}
+  const stopFallback=()=>{if(fallbackTimer){clearInterval(fallbackTimer);fallbackTimer=null}}
   const channel=supabase.channel('conversation-read-'+[uid,other].sort().join('-'))
    .on('broadcast',{event:'typing'},({payload})=>{if(payload?.user_id!==other)return;setOtherTyping(!!payload.is_typing);if(typingStopTimer.current)clearTimeout(typingStopTimer.current);if(payload.is_typing)typingStopTimer.current=setTimeout(()=>setOtherTyping(false),2800)})
    .on('postgres_changes',{event:'*',schema:'public',table:'message_reactions'},()=>load(uid,other))
@@ -73,12 +78,12 @@ export default function ConversationPage(){
     const row:any=payload.new
     if(row&&(row.sender===uid&&row.recipient===other||row.sender===other&&row.recipient===uid))void load(uid,other)
    }).subscribe((state)=>{
-    if(state==='SUBSCRIBED'&&!refreshTimer)refreshTimer=setInterval(()=>{void load(uid,other)},5000)
+    if(state==='SUBSCRIBED')stopFallback()
+    else startFallback()
    })
   typingChannelRef.current=channel
-  // Actualise aussi périodiquement si Realtime se déconnecte ou si un événement est manqué.
-  const fallbackTimer=setInterval(()=>{void load(uid,other)},12000)
-  return()=>{if(typingStopTimer.current)clearTimeout(typingStopTimer.current);if(refreshTimer)clearInterval(refreshTimer);clearInterval(fallbackTimer);typingChannelRef.current=null;setOtherTyping(false);supabase.removeChannel(channel)}
+  startFallback()
+  return()=>{if(typingStopTimer.current)clearTimeout(typingStopTimer.current);stopFallback();typingChannelRef.current=null;setOtherTyping(false);supabase.removeChannel(channel)}
  },[uid,other])
  const visibleMessages=useMemo(()=>{const q=search.trim().toLocaleLowerCase('fr-FR');return q?messages.filter(m=>(m.body||m.subject||'').toLocaleLowerCase('fr-FR').includes(q)):messages},[messages,search])
  useEffect(()=>{
