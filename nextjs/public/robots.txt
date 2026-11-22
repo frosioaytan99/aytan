@@ -16,4 +16,4 @@ Disallow: /stories
 Disallow: /communities
 Disallow: /search
 
-Sitemap: https://aytan-six.vercel.app/sitemap.xml
+Sitemap: https://weshbien2-production.up.railway.app/sitemap.xml
