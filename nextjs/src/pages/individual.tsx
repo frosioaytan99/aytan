@@ -14,6 +14,8 @@ export default function IndividualPage() {
   const [activeTab,setActiveTab]=useState<'fil'|'reglement'>('fil')
   const [posts,setPosts]=useState<Post[]>([])
   const [userId,setUserId]=useState('')
+  const [canModerate,setCanModerate]=useState(false)
+  const [deleting,setDeleting]=useState('')
   const [body,setBody]=useState('')
   const [files,setFiles]=useState<File[]>([])
   const [previews,setPreviews]=useState<string[]>([])
@@ -26,6 +28,8 @@ export default function IndividualPage() {
     const {data:{user}}=await supabase.auth.getUser()
     if(!user){window.location.href='/auth';return}
     setUserId(user.id)
+    const {data:role}=await supabase.from('user_roles').select('role').eq('user_id',user.id).maybeSingle()
+    setCanModerate(role?.role==='admin'||role?.role==='moderator')
     const {data,error}=await supabase.from('individual_posts').select('*').order('created_at',{ascending:false}).limit(50)
     if(error){setStatus('Impossible de charger le fil : '+error.message);setLoading(false);return}
     const rows=data||[],ids=rows.map((p:any)=>p.id)
@@ -80,6 +84,20 @@ export default function IndividualPage() {
     const {error}=await supabase.from('individual_post_comments').insert({post_id:postId,author_id:userId,body:text})
     if(error){setStatus('Commentaire impossible : '+error.message);return}
     setDrafts(v=>({...v,[postId]:''}));await loadFeed()
+  }
+
+  async function deletePost(post:Post){
+    if(!canModerate)return
+    if(!window.confirm('Supprimer définitivement cette publication et ses commentaires ?'))return
+    setDeleting(post.id);setStatus('')
+    const {error:commentsError}=await supabase.from('individual_post_comments').delete().eq('post_id',post.id)
+    if(commentsError){setStatus('Suppression impossible des commentaires : '+commentsError.message);setDeleting('');return}
+    const {error:likesError}=await supabase.from('individual_post_likes').delete().eq('post_id',post.id)
+    if(likesError){setStatus('Suppression impossible des mentions J’aime : '+likesError.message);setDeleting('');return}
+    const {error}=await supabase.from('individual_posts').delete().eq('id',post.id)
+    if(error)setStatus('Suppression impossible : '+error.message)
+    else {setPosts(current=>current.filter(item=>item.id!==post.id));setStatus('Publication supprimée.')}
+    setDeleting('')
   }
 
   async function reportPost(postId:string){
@@ -148,7 +166,7 @@ export default function IndividualPage() {
               <div className="post-author"><Link href={'/profile?id='+p.author_id} className="post-profile-link"><MemberAvatar userId={p.author_id} name={p.profile?.display_name||p.profile?.username} avatarUrl={p.profile?.avatar_url} className="avatar"/><div><b>{p.profile?.display_name||p.profile?.username||'Membre'}</b><small>@{p.profile?.username||'membre'}</small></div></Link><small>{new Date(p.created_at).toLocaleString('fr-FR')}</small></div>
               {p.body&&<p className="post-body">{p.body}</p>}
               {(p.image_urls||[]).map((url,index)=><CommunityImage key={url} className="post-image individual-post-image" style={{display:'block',width:'100%',maxWidth:'280px',height:'180px',maxHeight:'180px',objectFit:'contain',margin:'10px auto'}} src={url} alt={'Image '+(index+1)+' de la publication'}/>)}
-              <div className="post-actions"><button type="button" onClick={()=>toggleLike(p)}>{p.liked?'♥':'♡'} {p.likes} J’aime</button><span>{p.comments.length} commentaire{p.comments.length>1?'s':''}</span><button type="button" onClick={()=>reportPost(p.id)}>⚑ Signaler</button></div>
+              <div className="post-actions">{canModerate&&<button type="button" disabled={deleting===p.id} onClick={()=>deletePost(p)} style={{color:'#b42318',fontWeight:800}}>{deleting===p.id?'Suppression…':'🗑️ Supprimer (modération)'}</button>}<button type="button" onClick={()=>toggleLike(p)}>{p.liked?'♥':'♡'} {p.likes} J’aime</button><span>{p.comments.length} commentaire{p.comments.length>1?'s':''}</span><button type="button" onClick={()=>reportPost(p.id)}>⚑ Signaler</button></div>
               <section className="comments"><div className="comments-list">{p.comments.map(c=><div className="comment" key={c.id}><Link href={'/profile?id='+c.author_id} className="comment-profile-link"><MemberAvatar userId={c.author_id} name={c.profile?.display_name||c.profile?.username} avatarUrl={c.profile?.avatar_url} className="avatar comment-author-avatar"/><b>{c.profile?.display_name||c.profile?.username||'Membre'}</b></Link><p>{c.body}</p><small>{new Date(c.created_at).toLocaleString('fr-FR')}</small></div>)}</div><form className="comment-form" onSubmit={e=>addComment(e,p.id)}><input aria-label="Écrire un commentaire" maxLength={500} value={drafts[p.id]||''} onChange={e=>setDrafts(v=>({...v,[p.id]:e.target.value}))} placeholder="Écrire un commentaire…"/><button type="submit" disabled={!(drafts[p.id]||'').trim()}>Envoyer</button></form></section>
             </article>)}
             </>}
