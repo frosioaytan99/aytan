@@ -65,24 +65,27 @@ export default function ConversationPage(){
  const presenceLabel=()=>{if(!presenceLastSeen)return 'Hors ligne';const elapsed=Date.now()-new Date(presenceLastSeen).getTime();if(!Number.isFinite(elapsed)||elapsed<0)return 'Hors ligne';if(elapsed<=120000)return '● En ligne';const minutes=Math.floor(elapsed/60000);if(minutes<60)return 'Actif il y a '+minutes+' min';const hours=Math.floor(minutes/60);if(hours<24)return 'Actif il y a '+hours+' h';return 'Vu le '+new Date(presenceLastSeen).toLocaleDateString('fr-FR')}
  useEffect(()=>{
   if(!uid||!other)return
+  let refreshTimer:ReturnType<typeof setInterval>|null=null
   const channel=supabase.channel('conversation-read-'+[uid,other].sort().join('-'))
    .on('broadcast',{event:'typing'},({payload})=>{if(payload?.user_id!==other)return;setOtherTyping(!!payload.is_typing);if(typingStopTimer.current)clearTimeout(typingStopTimer.current);if(payload.is_typing)typingStopTimer.current=setTimeout(()=>setOtherTyping(false),2800)})
-   .on('postgres_changes',{event:'*',schema:'public',table:'message_reactions'},()=>load(uid,other)).on('postgres_changes',{event:'*',schema:'public',table:'messages'},payload=>{
-   const row:any=payload.new||payload.old
-   if(row&&(row.sender===uid&&row.recipient===other||row.sender===other&&row.recipient===uid))load(uid,other)
-  }).subscribe()
+   .on('postgres_changes',{event:'*',schema:'public',table:'message_reactions'},()=>load(uid,other))
+   .on('postgres_changes',{event:'INSERT',schema:'public',table:'messages'},payload=>{
+    const row:any=payload.new
+    if(row&&(row.sender===uid&&row.recipient===other||row.sender===other&&row.recipient===uid))void load(uid,other)
+   }).subscribe((state)=>{
+    if(state==='SUBSCRIBED'&&!refreshTimer)refreshTimer=setInterval(()=>{void load(uid,other)},5000)
+   })
   typingChannelRef.current=channel
-  return()=>{if(typingStopTimer.current)clearTimeout(typingStopTimer.current);typingChannelRef.current=null;setOtherTyping(false);supabase.removeChannel(channel)}
+  // Actualise aussi périodiquement si Realtime se déconnecte ou si un événement est manqué.
+  const fallbackTimer=setInterval(()=>{void load(uid,other)},12000)
+  return()=>{if(typingStopTimer.current)clearTimeout(typingStopTimer.current);if(refreshTimer)clearInterval(refreshTimer);clearInterval(fallbackTimer);typingChannelRef.current=null;setOtherTyping(false);supabase.removeChannel(channel)}
  },[uid,other])
  const visibleMessages=useMemo(()=>{const q=search.trim().toLocaleLowerCase('fr-FR');return q?messages.filter(m=>(m.body||m.subject||'').toLocaleLowerCase('fr-FR').includes(q)):messages},[messages,search])
  useEffect(()=>{
   const el=historyRef.current
   if(!el)return
-  const nearBottom=el.scrollHeight-el.scrollTop-el.clientHeight<160
-  if(!hasInitialScroll.current||nearBottom){
-   requestAnimationFrame(()=>{el.scrollTop=el.scrollHeight})
-   hasInitialScroll.current=true
-  }
+  requestAnimationFrame(()=>{el.scrollTop=el.scrollHeight})
+  hasInitialScroll.current=true
  },[visibleMessages.length])
  async function toggleReaction(m:Msg,emoji:string){
   if(!uid)return
