@@ -29,6 +29,7 @@ const menuItems: [string, string, string][] = [
 ]
 export default function App({ Component, pageProps }: AppProps) {
   const [notice, setNotice] = useState('')
+  const [noticeHref, setNoticeHref] = useState('/notifications')
   const [theme, setTheme] = useState<'light' | 'dark'>('light')
   const [unread, setUnread] = useState(0)
   const [unreadMessages, setUnreadMessages] = useState(0)
@@ -88,8 +89,11 @@ export default function App({ Component, pageProps }: AppProps) {
     } catch {}
     const onNotice = (event: Event) => {
       const message = (event as CustomEvent).detail
+      const detail = (event as CustomEvent).detail
+      const message = typeof detail === 'string' ? detail : detail?.message
       if (typeof message !== 'string' || !message) return
       setNotice(message)
+      setNoticeHref(typeof detail?.href === 'string' ? detail.href : '/notifications')
       if (timer) clearTimeout(timer)
       timer = setTimeout(() => setNotice(''), 10000)
     }
@@ -159,10 +163,13 @@ export default function App({ Component, pageProps }: AppProps) {
         .on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, payload => {
           const row: any = payload.new || payload.old
           if (row?.recipient === userId || row?.sender === userId) refreshUnreadMessages()
+          if (payload.eventType === 'INSERT' && row?.recipient === userId && row?.sender !== userId) {
+            onNotice(new CustomEvent('weshbien:notify', { detail: { message: 'Nouveau message reçu', href: '/inbox' } }))
+          }
         })
         .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications', filter: 'user_id=eq.' + userId }, payload => {
           const row: any = payload.new
-          onNotice(new CustomEvent('weshbien:notify', { detail: [row?.title, row?.message || row?.body].filter(Boolean).join(' — ') || 'Nouvelle notification' }))
+          onNotice(new CustomEvent('weshbien:notify', { detail: { message: [row?.title, row?.message || row?.body].filter(Boolean).join(' — ') || 'Nouvelle notification', href: row?.link || '/notifications' } }))
           refreshUnreadNotifications()
         })
         .on('postgres_changes', { event: '*', schema: 'public', table: 'notifications', filter: 'user_id=eq.' + userId }, () => {
@@ -251,6 +258,6 @@ export default function App({ Component, pageProps }: AppProps) {
     </>}
     {(!memberPage || authChecked) ? <Component {...pageProps} /> : <main className="auth-shell"><section className="auth-card"><p>Vérification de ta connexion…</p></section></main>}
     <footer className="global-footer"><span>© Weshbien2</span><span>👁 {siteStats.visits.toLocaleString("fr-FR")} visites membres</span><span>🟢 {siteStats.active} membre{siteStats.active>1?"s":""} en ligne</span><Link href="/guide">Mode d’emploi complet</Link><Link href="/moderators">Équipe de modération</Link><Link href="/profile">Mon profil</Link></footer>
-    {notice && <button type="button" className="app-toast" role="status" aria-live="polite" onClick={() => { setNotice(''); router.push('/notifications') }}><span className="toast-icon">✓</span><span>{notice}<small>Appuie pour ouvrir tes notifications</small></span></button>}
+    {notice && <button type="button" className="app-toast" role="status" aria-live="polite" onClick={() => { setNotice(''); router.push(noticeHref) }}><span className="toast-icon">✓</span><span>{notice}<small>Appuie pour ouvrir</small></span></button>}
   </>
 }
