@@ -1556,3 +1556,33 @@ html[data-wallpaper]:not([data-theme="dark"]) .profile-form>button{background:li
  .profile-public-card .profile-likes-count,.profile-public-card>.profile-like-button,.profile-public-card>.friend-secondary,.profile-public-card>.danger-action,.profile-public-card>.notice,.profile-public-card>a:last-child{margin-left:16px;margin-right:16px}
  .profile-public-card .profile-like-button{width:calc(100% - 32px)}
 }
+
+
+/* Weshbien2: new messaging, discovery and help UI */
+.message-emoji-picker,.message-edit-box>div{display:flex;flex-wrap:wrap;gap:6px;padding:9px;border-radius:14px;background:var(--card,#fff);border:1px solid var(--line,#e8e4f1);margin:8px 0}
+.message-emoji-picker button,.message-edit-box>div button{border:0;background:transparent;border-radius:8px;padding:6px;font-size:21px;line-height:1.2}
+.message-emoji-picker button:hover,.message-edit-box>div button:hover{background:rgba(112,85,223,.12)}
+.message-edit-box{display:grid;gap:8px;min-width:min(280px,72vw)}
+.message-edit-box textarea{width:100%;min-height:82px;border:1px solid var(--line,#e8e4f1);border-radius:12px;padding:10px;background:var(--card,#fff);color:inherit}
+.message-edit-box>button{justify-self:start;border:0;border-radius:9px;padding:8px 12px;background:var(--purple,#7055df);color:#fff;font-weight:700}
+.message-edit-box>button+button{background:transparent;color:inherit;border:1px solid var(--line,#e8e4f1)}
+.discover-history{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:12px 0 20px}
+.discover-history small{width:100%;color:var(--muted,#858197)}
+.discover-history button{border:1px solid var(--line,#e8e4f1);border-radius:999px;background:rgba(255,255,255,.72);padding:6px 11px;color:inherit}
+.member-compatibility{display:inline-flex;margin:7px 0;padding:5px 9px;border-radius:999px;background:rgba(112,85,223,.1);color:var(--purple,#7055df);font-weight:800}
+.global-footer{max-width:1180px;margin:36px auto 0;padding:22px 28px 100px;display:flex;align-items:center;justify-content:center;gap:18px;flex-wrap:wrap;color:var(--muted,#858197);font-size:13px}
+.global-footer a{color:inherit;text-decoration:none}
+.global-footer a:hover{color:var(--purple,#7055df);text-decoration:underline}
+.help-guide{max-width:1050px;margin:34px auto 100px}
+.help-guide>h1{font-size:clamp(30px,5vw,46px);margin:8px 0}
+.help-guide-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:16px;margin:26px 0}
+.help-guide-card{padding:22px}
+.help-guide-card>span{display:inline-flex;font-size:12px;font-weight:900;letter-spacing:.12em;color:var(--purple,#7055df)}
+.help-guide-card h2{font-size:19px;margin:9px 0}
+.help-guide-card p{line-height:1.65;color:var(--muted,#858197);margin:0}
+@media(prefers-reduced-motion:no-preference){
+ body::before{animation-duration:22s}
+ body::after{animation-duration:42s}
+ .app-toast{animation:wbToastIn .28s cubic-bezier(.2,.8,.2,1) both}
+}
+@keyframes wbToastIn{from{opacity:0;transform:translate3d(0,14px,0) scale(.98)}to{opacity:1;transform:translate3d(0,0,0) scale(1)}}
