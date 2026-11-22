@@ -246,6 +246,7 @@ export default function App({ Component, pageProps }: AppProps) {
         <Link href="/feed" className="mobile-brand"><span className="brand-mark">w</span></Link>{guestName && <span className="guest-name-label">{guestName}</span>}<span className="mobile-header-spacer" />
 <Link href="/feed" className="mobile-home-button" aria-label="Accueil" title="Accueil"><NavIcon name="home"/></Link>
 <Link href="/notifications" className="mobile-notification-button" aria-label="Notifications"><NavIcon name="bell"/>{unread > 0 && <span className="mobile-notification-count">{unread > 99 ? '99+' : unread}</span>}</Link>
+        <Link href="/inbox" className="mobile-chat-button" aria-label="Messages"><NavIcon name="chat"/>{unreadMessages > 0 && <i aria-hidden="true"/>}</Link>
         <div className="account-menu-wrap" style={{position:'relative'}}>
           <button type="button" className="mobile-user-dot" onClick={() => setAccountMenuOpen(value => !value)} aria-label="Ouvrir le menu du compte" aria-expanded={accountMenuOpen} style={{padding:0,overflow:'hidden',borderRadius:'50%',border:'2px solid var(--accent,#7c3aed)',background:'var(--surface,#fff)',width:28,height:28,minWidth:28,minHeight:28,display:'grid',placeItems:'center',cursor:'pointer'}}>
             {currentUserId ? <MemberAvatar userId={currentUserId} name="Mon profil" avatarUrl={avatarUrl} className="account-avatar-image"/> : <NavIcon name="profile" />}
