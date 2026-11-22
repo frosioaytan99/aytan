@@ -81,6 +81,8 @@ export default function App({ Component, pageProps }: AppProps) {
     let suspensionTimer: ReturnType<typeof setInterval> | undefined
     let presenceVisibilityHandler: (() => void) | null = null
     let messagesReadHandler: (() => void) | null = null
+    let notificationsReadHandler: (() => void) | null = null
+    let attachedUserId: string | null | undefined = undefined
     let channel: ReturnType<typeof supabase.channel> | null = null
     let active = true
     try {
@@ -108,6 +110,10 @@ export default function App({ Component, pageProps }: AppProps) {
       }
     }
     const attach = (userId: string | null) => {
+      // Supabase peut émettre INITIAL_SESSION puis getUser, et des refreshs de token.
+      // Ne pas recréer les canaux/requêtes si le compte connecté n'a pas changé.
+      if (attachedUserId === userId) return
+      attachedUserId = userId
       if (incomingPollTimer) { clearInterval(incomingPollTimer); incomingPollTimer = undefined }
       if (unreadRefreshTimer) { clearInterval(unreadRefreshTimer); unreadRefreshTimer = undefined }
       if (channel) { supabase.removeChannel(channel); channel = null }
@@ -115,6 +121,7 @@ export default function App({ Component, pageProps }: AppProps) {
       if (suspensionTimer) { clearInterval(suspensionTimer); suspensionTimer = undefined }
       if (presenceVisibilityHandler) { document.removeEventListener('visibilitychange', presenceVisibilityHandler); presenceVisibilityHandler = null }
       if (messagesReadHandler) { window.removeEventListener('weshbien:messages-read', messagesReadHandler); messagesReadHandler = null }
+      if (notificationsReadHandler) { window.removeEventListener('weshbien:notifications-read', notificationsReadHandler); notificationsReadHandler = null }
       if (!userId) { setUnread(0); setUnreadMessages(0); setAvatarUrl(null); setCurrentUserId(''); setIsAdmin(false); setSiteStats({visits:0,active:0}); return }
       setCurrentUserId(userId)
       supabase.from('user_roles').select('role').eq('user_id',userId).maybeSingle().then(({data})=>{if(active)setIsAdmin(data?.role==='admin')})
@@ -155,8 +162,8 @@ export default function App({ Component, pageProps }: AppProps) {
       window.addEventListener('weshbien:messages-read', messagesReadHandler)
       const refreshUnreadNotifications = () => supabase.from('notifications').select('id', { count: 'exact', head: true }).eq('user_id', userId).eq('is_read', false)
         .then(({ count, error }) => { if (active && !error) setUnread(count || 0) })
-      const onNotificationsRead = () => refreshUnreadNotifications()
-      window.addEventListener('weshbien:notifications-read', onNotificationsRead)
+      notificationsReadHandler = () => refreshUnreadNotifications()
+      window.addEventListener('weshbien:notifications-read', notificationsReadHandler)
       refreshUnreadNotifications()
       const seenIncoming = new Set<string>()
       const notifyIncomingMessage = async (senderId: string) => {
@@ -214,6 +221,7 @@ export default function App({ Component, pageProps }: AppProps) {
       window.removeEventListener('weshbien:notify', onNotice)
       if (presenceVisibilityHandler) document.removeEventListener('visibilitychange', presenceVisibilityHandler)
       if (messagesReadHandler) window.removeEventListener('weshbien:messages-read', messagesReadHandler)
+      if (notificationsReadHandler) window.removeEventListener('weshbien:notifications-read', notificationsReadHandler)
       subscription.unsubscribe()
       if (channel) supabase.removeChannel(channel)
       if (timer) clearTimeout(timer)
