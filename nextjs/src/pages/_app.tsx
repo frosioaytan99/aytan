@@ -133,6 +133,7 @@ export default function App({ Component, pageProps }: AppProps) {
       const refreshUnreadMessages = () => supabase.from('messages').select('id', { count: 'exact', head: true }).eq('recipient', userId).eq('is_read', false)
         .then(({ count, error }) => { if (active && !error) setUnreadMessages(count || 0) })
       refreshUnreadMessages()
+      const unreadRefreshTimer = setInterval(refreshUnreadMessages, 10000)
       messagesReadHandler = () => refreshUnreadMessages()
       window.addEventListener('weshbien:messages-read', messagesReadHandler)
       const refreshUnreadNotifications = () => supabase.from('notifications').select('id', { count: 'exact', head: true }).eq('user_id', userId).eq('is_read', false)
@@ -140,6 +141,21 @@ export default function App({ Component, pageProps }: AppProps) {
       const onNotificationsRead = () => refreshUnreadNotifications()
       window.addEventListener('weshbien:notifications-read', onNotificationsRead)
       refreshUnreadNotifications()
+      let lastIncomingCheck = new Date(Date.now() - 2000).toISOString()
+      const seenIncoming = new Set<string>()
+      const pollIncomingMessages = async () => {
+        if (!active || document.visibilityState !== 'visible') return
+        const { data, error } = await supabase.from('messages').select('id,sender,created_at').eq('recipient', userId).gt('created_at', lastIncomingCheck).order('created_at', { ascending: true }).limit(30)
+        if (error) { console.warn('Vérification des nouveaux messages impossible', error.message); return }
+        lastIncomingCheck = new Date().toISOString()
+        for (const row of data || []) {
+          if (!row.id || seenIncoming.has(row.id)) continue
+          seenIncoming.add(row.id)
+          if (row.sender !== userId) onNotice(new CustomEvent('weshbien:notify', { detail: { message: 'Nouveau message reçu', href: '/inbox' } }))
+        }
+      }
+      const incomingPollTimer = setInterval(pollIncomingMessages, 4000)
+      void pollIncomingMessages()
       let moderatorRoleChecked = false
       let isModerator = false
       const checkModeratorRole = async () => {
@@ -162,7 +178,8 @@ export default function App({ Component, pageProps }: AppProps) {
         .on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, payload => {
           const row: any = payload.new || payload.old
           if (row?.recipient === userId || row?.sender === userId) refreshUnreadMessages()
-          if (payload.eventType === 'INSERT' && row?.recipient === userId && row?.sender !== userId) {
+          if (payload.eventType === 'INSERT' && row?.recipient === userId && row?.sender !== userId && row?.id) {
+            seenIncoming.add(row.id)
             onNotice(new CustomEvent('weshbien:notify', { detail: { message: 'Nouveau message reçu', href: '/inbox' } }))
           }
         })
@@ -195,6 +212,8 @@ export default function App({ Component, pageProps }: AppProps) {
       if (timer) clearTimeout(timer)
       if (presenceTimer) clearInterval(presenceTimer)
       if (suspensionTimer) clearInterval(suspensionTimer)
+      if (incomingPollTimer) clearInterval(incomingPollTimer)
+      if (unreadRefreshTimer) clearInterval(unreadRefreshTimer)
     }
   }, [])
   function toggleTheme() {
