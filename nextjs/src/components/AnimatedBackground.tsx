@@ -62,13 +62,16 @@ export default function AnimatedBackground() {
         html, body, #__next { min-height: 100%; }
         body {
           position: relative; isolation: isolate;
-          background: var(--paper, #faf9fc) !important;
+          background: transparent !important;
+          background-color: transparent !important;
           background-attachment: fixed;
         }
         body::before, body::after {
-          content: ""; position: fixed; inset: -35%; z-index: -1;
+          content: ""; position: fixed; inset: -35%; z-index: 0;
           pointer-events: none; will-change: transform;
         }
+        #__next { position: relative; z-index: 1; background: transparent !important; }
+
         body::before {
           opacity: .76; filter: blur(54px) saturate(1.4);
           background:
