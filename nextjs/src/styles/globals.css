@@ -53,9 +53,18 @@ html,body,#__next{background:var(--paper);color:var(--ink)}
 
 
 /* Notifications, conversation view and community forums */
-.app-toast{position:fixed;z-index:1000;top:18px;right:18px;display:flex;align-items:center;gap:11px;max-width:min(390px,calc(100vw - 32px));padding:14px 18px;background:#28233e;color:#fff;border-radius:14px;box-shadow:0 14px 40px #21183c35;font-size:13px;font-weight:700;animation:toast-in .2s ease-out}
-.toast-icon{display:grid;place-items:center;width:25px;height:25px;border-radius:50%;background:#6bc8a3;color:#173e32;font-weight:900}
-@keyframes toast-in{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+.app-toast{position:fixed;z-index:1001;left:50%;bottom:calc(86px + env(safe-area-inset-bottom));transform:translateX(-50%);width:min(620px,calc(100vw - 28px));min-height:112px;box-sizing:border-box;display:flex;align-items:flex-start;gap:14px;padding:25px 20px 18px;background:#fff;color:#1f2937;border:1px solid #e6eaf0;border-top:6px solid #2583ff;border-radius:24px;box-shadow:0 12px 35px #1e293b24;font-size:15px;font-weight:500;animation:toast-in .22s ease-out}
+.toast-icon{display:grid;place-items:center;flex:0 0 48px;width:48px;height:48px;border-radius:17px;background:#edf5ff;color:#1670ed;font-size:26px;font-weight:700}
+.toast-content{display:flex;min-width:0;flex:1;flex-direction:column;align-items:flex-start;gap:15px;padding-top:3px}
+.toast-message{font-size:16px;line-height:1.35;font-weight:600;overflow-wrap:anywhere}
+.toast-view{border:0;background:transparent;color:#155de7;font-size:19px;font-weight:500;padding:0 0 0 17px;cursor:pointer}
+.toast-close{border:0;background:transparent;color:#94a3b8;font-size:28px;line-height:1;padding:0 0 0 6px;cursor:pointer}
+@keyframes toast-in{from{opacity:0;transform:translate(-50%,14px)}to{opacity:1;transform:translate(-50%,0)}}
+.mobile-chat-button{position:relative;display:grid;place-items:center;width:32px;height:32px;min-width:32px;color:#536073;text-decoration:none;border-radius:50%}
+.mobile-chat-button svg{width:21px;height:21px}
+.mobile-chat-button i,.mobile-bottom-nav .chat-unread-dot{position:absolute;top:1px;right:0;width:10px;height:10px;border-radius:50%;background:#d52be5;border:1px solid #fff}
+.mobile-bottom-nav .chat-unread-dot{top:0;right:0;width:11px;height:11px}
+@media(max-width:650px){.app-toast{bottom:calc(84px + env(safe-area-inset-bottom));width:calc(100vw - 28px);min-height:112px;padding:24px 17px 18px;border-radius:23px}.toast-message{font-size:15px}.toast-view{font-size:18px}}
 .conversation-row{display:flex;align-items:center;gap:13px;color:inherit;text-decoration:none}
 .conversation-row:hover{background:#faf9fd}
 .conversation-row .member-message-copy{min-width:0;flex:1}
