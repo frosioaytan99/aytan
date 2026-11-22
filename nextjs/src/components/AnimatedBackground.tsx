@@ -1,14 +1,10 @@
 import React, { useEffect, useState } from 'react'
 
 const videoByTheme: Record<string, string> = {
-  ocean: 'ocean',
-  forest: 'forest',
-  sunset: 'sunset',
-  aurora: 'stars',
-  space: 'stars',
-  cosmos: 'stars',
-  stars: 'stars',
-  moon: 'stars',
+  ocean: 'ocean', beach: 'ocean', waterfall: 'ocean', deepsea: 'ocean', coral: 'ocean', lagoon: 'ocean', arctic: 'ocean', glacier: 'ocean', waves: 'ocean', ripple: 'ocean',
+  forest: 'forest', jungle: 'forest', emerald: 'forest', bamboo: 'forest', moss: 'forest', meadow: 'forest', canyon: 'forest', spring: 'forest',
+  sunset: 'sunset', desert: 'sunset', volcano: 'sunset', fire: 'sunset', autumn: 'sunset', dawn: 'sunset', dusk: 'sunset', savanna: 'sunset',
+  aurora: 'stars', space: 'stars', cosmos: 'stars', stars: 'stars', moon: 'stars', nebula: 'stars', galaxy: 'stars', blackhole: 'stars', comet: 'stars', meteor: 'stars', stardust: 'stars', eclipse: 'stars', planet: 'stars',
 }
 
 const videoSources: Record<string, string> = {
@@ -40,8 +36,8 @@ export default function AnimatedBackground() {
     observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] })
 
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    const saveData = Boolean((navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData)
-    setVideoEnabled(!reduced && !saveData)
+    // Les fonds vidéo restent actifs même si l'économie de données du navigateur est activée.
+    setVideoEnabled(!reduced)
     return () => { window.removeEventListener('weshbien:wallpaper-change', apply); observer.disconnect() }
   }, [])
 
@@ -53,7 +49,7 @@ export default function AnimatedBackground() {
       {wallpaper === 'matrix' && <div className="wb-matrix-rain" aria-hidden="true">
         {['010101110010101101001011010101','101101001010110101101001010110','001011010110010101101011001010','110010101101001011010110101101','010110100101101101001010110101','101001011010110010101101001011','011010110101001011010110100101','100101101001011010110101001011'].map((code, index) => <span key={index}>{code}</span>)}
       </div>}
-      {videoSource && <video key={videoSource} className="wb-wallpaper-video" autoPlay muted loop playsInline preload="none" aria-hidden="true">
+      {videoSource && <video key={videoSource} className="wb-wallpaper-video" autoPlay muted loop playsInline preload="auto" aria-hidden="true">
         <source src={videoSource} type="video/mp4" />
       </video>}
       <style jsx global>{`
@@ -208,7 +204,7 @@ body[data-wallpaper="glitch"]::before{background:radial-gradient(ellipse at 22% 
         html[data-theme="dark"] body[data-wallpaper="volcano"]::before { background:radial-gradient(ellipse at 50% 75%,#f97316bb,transparent 38%),linear-gradient(135deg,#090909,#450a0a,#7f1d1d)!important; }
         html[data-theme="dark"] body[data-wallpaper="aurora"]::before { background:radial-gradient(ellipse at 20% 25%,#14b8a6bb,transparent 40%),radial-gradient(ellipse at 75% 70%,#7c3aedbb,transparent 45%),linear-gradient(135deg,#020617,#071b2c,#171044)!important; }
         html[data-theme="dark"] body[data-wallpaper="neon"]::before { background:radial-gradient(ellipse at 20% 25%,#a855f7bb,transparent 42%),radial-gradient(ellipse at 80% 70%,#db2777aa,transparent 48%),linear-gradient(135deg,#090018,#1e1035,#071a2d)!important; }
-        .wb-wallpaper-video { position:fixed;inset:0;width:100vw;height:100vh;height:100dvh;object-fit:cover;z-index:-2;pointer-events:none;filter:brightness(.52) saturate(1.12); }
+         .wb-wallpaper-video { position:fixed;inset:0;width:100vw;height:100vh;height:100dvh;object-fit:cover;z-index:-1;pointer-events:none;filter:brightness(.58) saturate(1.12); }
         body[data-wallpaper]::before { opacity:.34; }
         @keyframes wbFloat { 0%{transform:translate3d(-3%,-2%,0) rotate(-5deg) scale(1)} 50%{transform:translate3d(3%,2%,0) rotate(4deg) scale(1.08)} 100%{transform:translate3d(-1%,4%,0) rotate(-2deg) scale(1.04)} }
         @keyframes wbParticles { from{transform:translate3d(0,0,0)} to{transform:translate3d(-86px,-137px,0)} }
