@@ -227,9 +227,10 @@ export default function SettingsPage() {
   </section>
   <style jsx global>{`
 
-    .app-theme-store{margin:30px 0 38px;padding:22px;border:1px solid var(--border,#e5e1ed);border-radius:22px;background:var(--card,#fff)}
+    .app-theme-store{margin:30px 0 38px;padding:22px;border:1px solid color-mix(in srgb,var(--border,#e5e1ed) 55%,transparent);border-radius:22px;background:color-mix(in srgb,var(--surface,#fff) 24%,transparent)!important;backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px)}
     .app-theme-store-heading{display:flex;justify-content:space-between;align-items:flex-end;gap:14px}
     .app-theme-store-heading>div>span{font-size:10px;letter-spacing:1.5px;font-weight:900;color:var(--accent,#7c3aed)}
+    .app-theme-store-heading,.app-theme-store-heading h2,.app-theme-store-heading p,.app-theme-note{ text-shadow:0 1px 8px color-mix(in srgb,var(--bg,#fff) 45%,transparent) }
     .app-theme-store-heading h2{margin:7px 0;font-size:clamp(22px,4vw,30px)}
     .app-theme-store-heading p,.app-theme-note{color:var(--muted,#777);font-size:13px;line-height:1.6}
     .app-theme-store-heading>b{white-space:nowrap;border-radius:30px;padding:8px 11px;background:var(--surface,#fff);font-size:11px}
@@ -237,7 +238,7 @@ export default function SettingsPage() {
     .app-theme-categories button{border:1px solid var(--border,#e5e1ed);border-radius:30px;padding:8px 13px;background:transparent;color:var(--text,#29263a);white-space:nowrap;font-size:11px;font-weight:800}
     .app-theme-categories button.active{background:var(--accent,#7c3aed);border-color:var(--accent,#7c3aed);color:white}
     .app-theme-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px}
-    .app-theme-card{min-width:0;padding:8px;border:2px solid var(--border,#e5e1ed);border-radius:17px;background:var(--surface,#fff);color:var(--text,#29263a);text-align:left}
+    .app-theme-card{min-width:0;padding:8px;border:2px solid color-mix(in srgb,var(--border,#e5e1ed) 58%,transparent);border-radius:17px;background:color-mix(in srgb,var(--surface,#fff) 32%,transparent)!important;color:var(--text,#29263a);text-align:left;backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)}
     .app-theme-card.active{border-color:var(--accent,#7c3aed);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent,#7c3aed) 17%,transparent)}
     .app-theme-preview{height:126px;position:relative;display:block;overflow:hidden;border-radius:11px;padding:10px}
     .theme-demo-window{position:absolute;left:13px;top:13px;width:66%;height:72px;border-radius:9px;background:#ffffffdf;padding:8px;box-shadow:0 5px 16px #0003}
