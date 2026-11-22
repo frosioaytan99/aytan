@@ -87,7 +87,7 @@ export default function AuthPage() {
         await supabase.auth.signOut()
         setMessage("La confirmation par e-mail n'est pas activée sur le serveur. Active-la dans Supabase avant de valider les inscriptions.")
       } else if (data.session && data.user) {
-        const { error: profileError } = await supabase.from('profiles').upsert({ id: data.user.id, username: cleanUsername, display_name: cleanUsername, age: parsedAge }, { onConflict: 'id' })
+        const { error: profileError } = await supabase.from('profiles').upsert({ id: data.user.id, username: cleanUsername, display_name: cleanUsername, age: parsedAge, is_private: false }, { onConflict: 'id' })
         if (profileError) {
           await supabase.auth.signOut()
           setMessage(profileError.code === '23505' ? "Cet identifiant est déjà pris. Choisis-en un autre." : "Impossible d'enregistrer ton identifiant : " + profileError.message)
