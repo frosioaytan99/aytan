@@ -1,7 +1,11 @@
 import Link from 'next/link'
 import Head from 'next/head'
+import {useEffect,useState} from 'react'
+import {supabase} from '../lib/supabaseClient'
 
 export default function Home() {
+  const [connected,setConnected]=useState(false)
+  useEffect(()=>{supabase.auth.getUser().then(({data})=>setConnected(!!data.user))},[])
   return (
     <>
       <Head>
@@ -43,7 +47,7 @@ export default function Home() {
           <Link href="/questions">Questions</Link>
           <Link href="/explore">Découvrir</Link>
           <Link href="/inbox">Messages</Link>
-          <Link href="/auth" className="nav-login">Connexion</Link>
+          <Link href={connected?"/feed":"/auth"} className="nav-login">{connected?"Mon espace":"Commencer"}</Link>
         </nav>
       </header>
       <section className="hero">
@@ -52,7 +56,7 @@ export default function Home() {
           <h1>Des gens, des<br/><span>histoires</span>, du lien.</h1>
           <p className="hero-text">Rencontre une communauté, partage tes moments et échange avec des personnes qui ont envie de discuter. Ici, chacun avance à son rythme.</p>
           <div className="hero-actions">
-            <Link href="/auth" className="primary-link">Rejoindre la communauté <b>→</b></Link>
+            <Link href={connected?"/feed":"/auth"} className="primary-link">{connected?"Mon espace":"Commencer"} <b>→</b></Link>
             <Link href="/explore" className="secondary-link">Découvrir les membres</Link>
           </div>
           <p className="small-note">♡ Un espace pour échanger dans le respect de chacun.</p>
