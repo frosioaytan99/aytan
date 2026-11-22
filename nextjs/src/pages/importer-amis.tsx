@@ -14,7 +14,11 @@ export default function ImportAmisPage() {
   async function searchFriends(e: any) {
     e.preventDefault()
     if (busy) return
-    const names = Array.from(new Set(raw.split(/[\n,;\t ]+/).map(x => x.trim().replace(/^@+/, '').toLowerCase()).filter(x => /^[a-z0-9_]{3,20}$/.test(x))))
+    const lines = raw.split(/\r?\n/).map(x => x.trim()).filter(Boolean)
+    const hasHeader = /^(username|pseudo|identifiant|login)(,|;|$)/i.test(lines[0] || '')
+    const sourceLines = hasHeader ? lines.slice(1) : lines
+    const values = sourceLines.flatMap(line => line.includes(',') ? [line.split(',')[0].replace(/^"|"$/g, '')] : line.split(/[;\t ]+/))
+    const names = Array.from(new Set(values.map(x => x.trim().replace(/^@+/, '').toLowerCase()).filter(x => /^[a-z0-9_]{3,20}$/.test(x))))
     if (!names.length) { setMessage('Colle les pseudos de tes amis, séparés par des espaces ou des retours à la ligne.'); return }
     if (names.length > 500) { setMessage('Limite de 500 pseudos par recherche. Fais plusieurs lots.'); return }
     setBusy(true); setMessage('Recherche des membres publics sur Weshbien2…'); setMatches([]); setNotFound([])
@@ -50,7 +54,7 @@ export default function ImportAmisPage() {
       </section>
       <form onSubmit={searchFriends} className="card" style={{ padding: 18 }}>
         <label htmlFor="old-friends-list">Liste des pseudos</label>
-        <textarea id="old-friends-list" value={raw} onChange={e => setRaw(e.target.value)} rows={8} placeholder={'exemple\nOriana66\nCharli012\neremrem'} style={{ width: '100%', marginTop: 10, padding: 12, borderRadius: 12 }} />
+        <textarea id="old-friends-list" value={raw} onChange={e => setRaw(e.target.value)} rows={8} placeholder={'username,display_name,avatar_url\nOriana66,Oriana,\nCharli012,Charlie,\n'} style={{ width: '100%', marginTop: 10, padding: 12, borderRadius: 12 }} />
         <button type="submit" disabled={busy} style={{ marginTop: 12 }}>{busy ? 'Recherche…' : 'Rechercher mes amis'}</button>
       </form>
       {message && <p role="status" className="notice">{message}</p>}
