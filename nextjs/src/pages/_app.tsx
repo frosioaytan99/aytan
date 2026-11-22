@@ -237,7 +237,7 @@ export default function App({ Component, pageProps }: AppProps) {
     try { window.localStorage.setItem('weshbien-theme', next) } catch {}
   }
   return <>
-    <Head><meta name="google-site-verification" content="c7RnujLkrayih6qAI39GgeyRCUOPR8js25gIz9_B0t0" /><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" /><link rel="manifest" href="/manifest.json" /><meta name="theme-color" content="#7c3aed" /></Head>
+    <Head><meta name="google-site-verification" content="MiAGQqrXcSge5uV8DQyKa41fieTb7QCnMuOUDyTwAF8" /><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" /><link rel="manifest" href="/manifest.json" /><meta name="theme-color" content="#7c3aed" /></Head>
     <AnimatedBackground />
     <div className="global-tools global-tools-top">
       {signedIn && <PushNotifications />}
