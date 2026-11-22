@@ -11,6 +11,20 @@ export default function ImportAmisPage() {
   const [message, setMessage] = useState('')
   const [busy, setBusy] = useState(false)
 
+  async function copyText(value: string, success: string) {
+    try {
+      await navigator.clipboard.writeText(value)
+      setMessage(success)
+    } catch {
+      setMessage('Copie impossible sur ce navigateur. Tu peux sélectionner le texte manuellement.')
+    }
+  }
+
+  function copyInvitation() {
+    const invitation = 'Salut ! Je suis sur Weshbien2, le nouveau site pour retrouver la communauté. Rejoins-nous ici : https://weshbien2-production.up.railway.app/auth\nCrée ton propre compte, puis recherche mon pseudo pour me retrouver. Ne partage jamais ton ancien mot de passe.'
+    void copyText(invitation, 'Message d’invitation copié. Tu peux l’envoyer à tes anciens amis !')
+  }
+
   async function searchFriends(e: any) {
     e.preventDefault()
     if (busy) return
@@ -59,7 +73,8 @@ export default function ImportAmisPage() {
       </form>
       {message && <p role="status" className="notice">{message}</p>}
       {matches.length > 0 && <><h2>Membres retrouvés</h2><div className="member-grid">{matches.map(p => <article className="card member-card" key={p.id}><h3>{p.display_name || p.username || 'Membre'}</h3><small>@{p.username}</small><p><Link href={'/profile?id=' + p.id}>Voir le profil →</Link></p></article>)}</div></>}
-      {notFound.length > 0 && <section className="card" style={{ padding: 16, marginTop: 20 }}><h2>Pseudos non retrouvés ({notFound.length})</h2><p>Ces personnes n’ont peut-être pas encore rejoint Weshbien2, utilisent un autre pseudo ou ont un profil privé.</p><p style={{ overflowWrap: 'anywhere' }}>{notFound.join(', ')}</p></section>}
+      {notFound.length > 0 && <section className="card" style={{ padding: 16, marginTop: 20 }}><h2>Pseudos non retrouvés ({notFound.length})</h2><p>Ces personnes n’ont peut-être pas encore rejoint Weshbien2, utilisent un autre pseudo ou ont un profil privé.</p><p style={{ overflowWrap: 'anywhere' }}>{notFound.join(', ')}</p><div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 12 }}><button type="button" onClick={() => void copyText(notFound.join('\n'), 'Liste des pseudos non retrouvés copiée.')}>Copier les pseudos</button><button type="button" onClick={copyInvitation}>Copier le message pour les inviter</button></div></section>}
+      <section className="card" style={{ padding: 16, marginTop: 20 }}><h2>Faire revenir les anciens membres</h2><p>Tu peux envoyer une invitation à tes amis pour qu’ils créent leur propre compte sur Weshbien2 et te retrouvent.</p><button type="button" onClick={copyInvitation}>Copier le message d’invitation</button></section>
       <section className="card" style={{ padding: 16, marginTop: 20 }}><strong>Important</strong><p>Cet outil recherche uniquement les profils publics déjà présents sur Weshbien2. Il ne copie pas les comptes ni les données privées de Weshbien.com et ne crée pas automatiquement d’amitiés. Les anciens membres devront rejoindre Weshbien2 et accepter les demandes d’amitié.</p></section>
       <p><Link href="/retour-weshbien">← Retour à la page des anciens membres</Link></p>
     </section>
