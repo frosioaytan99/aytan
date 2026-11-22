@@ -147,6 +147,12 @@ export default function App({ Component, pageProps }: AppProps) {
       refreshUnreadNotifications()
       let lastIncomingCheck = new Date(Date.now() - 2000).toISOString()
       const seenIncoming = new Set<string>()
+      const notifyIncomingMessage = async (senderId: string) => {
+        const { data: profile } = await supabase.from('profiles').select('display_name,username').eq('id', senderId).maybeSingle()
+        if (!active) return
+        const senderName = profile?.display_name || profile?.username || 'Quelqu’un'
+        onNotice(new CustomEvent('weshbien:notify', { detail: { message: senderName + ' t’a envoyé un message', href: '/conversation?with=' + encodeURIComponent(senderId) } }))
+      }
       const pollIncomingMessages = async () => {
         if (!active || document.visibilityState !== 'visible') return
         const checkUntil = new Date().toISOString()
@@ -154,9 +160,9 @@ export default function App({ Component, pageProps }: AppProps) {
         if (error) { console.warn('Vérification des nouveaux messages impossible', error.message); return }
         lastIncomingCheck = checkUntil
         for (const row of data || []) {
-          if (!row.id || seenIncoming.has(row.id)) continue
+          if (!row.id || seenIncoming.has(row.id) || row.sender === userId) continue
           seenIncoming.add(row.id)
-          if (row.sender !== userId) onNotice(new CustomEvent('weshbien:notify', { detail: { message: 'Nouveau message reçu', href: '/inbox' } }))
+          void notifyIncomingMessage(row.sender)
         }
       }
       incomingPollTimer = setInterval(pollIncomingMessages, 4000)
@@ -183,9 +189,9 @@ export default function App({ Component, pageProps }: AppProps) {
         .on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, payload => {
           const row: any = payload.new || payload.old
           if (row?.recipient === userId || row?.sender === userId) refreshUnreadMessages()
-          if (payload.eventType === 'INSERT' && row?.recipient === userId && row?.sender !== userId && row?.id) {
+          if (payload.eventType === 'INSERT' && row?.recipient === userId && row?.sender !== userId && row?.id && !seenIncoming.has(row.id)) {
             seenIncoming.add(row.id)
-            onNotice(new CustomEvent('weshbien:notify', { detail: { message: 'Nouveau message reçu', href: '/inbox' } }))
+            void notifyIncomingMessage(row.sender)
           }
         })
         .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications', filter: 'user_id=eq.' + userId }, payload => {
@@ -267,7 +273,7 @@ export default function App({ Component, pageProps }: AppProps) {
         <Link className={router.pathname === '/explore' ? 'selected' : ''} href="/explore"><span><NavIcon name="explore"/></span>Explorer</Link>
         <Link className={router.pathname === '/online' ? 'selected' : ''} href="/online"><span><NavIcon name="explore"/></span>En ligne</Link>
         <Link className={router.pathname === '/individual' ? 'selected' : ''} href="/individual"><span aria-hidden="true">⚠️</span>18+</Link>
-        <Link className={router.pathname === '/inbox' || router.pathname === '/conversation' ? 'selected' : ''} href="/inbox"><span><NavIcon name="chat"/>{unreadMessages > 0 && <b className="nav-count-badge">{unreadMessages > 99 ? '99+' : unreadMessages}</b>}</span>Chat</Link>
+        <Link className={router.pathname === '/inbox' || router.pathname === '/conversation' ? 'selected' : ''} href="/inbox"><span><NavIcon name="chat"/>{unreadMessages > 0 && <i className="chat-unread-dot" aria-label="Messages non lus"/>}</span>Chat</Link>
         <Link className={router.pathname === '/profile' ? 'selected' : ''} href="/profile"><span><NavIcon name="profile"/></span>Profil</Link>
       </nav>
       {menuOpen && <div className="mobile-drawer-backdrop" onClick={() => setMenuOpen(false)}>
@@ -281,6 +287,6 @@ export default function App({ Component, pageProps }: AppProps) {
     </>}
     {(!memberPage || authChecked) ? <Component {...pageProps} /> : <main className="auth-shell"><section className="auth-card"><p>Vérification de ta connexion…</p></section></main>}
     <footer className="global-footer"><span>© Weshbien2</span><span>👁 {siteStats.visits.toLocaleString("fr-FR")} visites membres</span><span>🟢 {siteStats.active} membre{siteStats.active>1?"s":""} en ligne</span><Link href="/guide">Mode d’emploi complet</Link><Link href="/moderators">Équipe de modération</Link><Link href="/profile">Mon profil</Link></footer>
-    {notice && <button type="button" className="app-toast" role="status" aria-live="polite" onClick={() => { setNotice(''); router.push(noticeHref) }}><span className="toast-icon">✓</span><span>{notice}<small>Appuie pour ouvrir</small></span></button>}
+    {notice && <div className="app-toast" role="status" aria-live="polite"><span className="toast-icon" aria-hidden="true">ⓘ</span><div className="toast-content"><span className="toast-message">{notice}</span><button type="button" className="toast-view" onClick={() => { setNotice(''); void router.push(noticeHref) }}>Voir</button></div><button type="button" className="toast-close" aria-label="Fermer la notification" onClick={() => setNotice('')}>×</button></div>}
   </>
 }
