@@ -41,9 +41,8 @@ export default function AnimatedBackground() {
     observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] })
 
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    const smallScreen = window.matchMedia('(max-width: 768px)').matches
     const saveData = Boolean((navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData)
-    setVideoEnabled(!reduced && !smallScreen && !saveData)
+    setVideoEnabled(!reduced && !saveData)
     return () => { window.removeEventListener('weshbien:wallpaper-change', apply); observer.disconnect() }
   }, [])
 
@@ -197,7 +196,7 @@ body[data-wallpaper="glitch"]::before{background:radial-gradient(ellipse at 22% 
         html[data-theme="dark"] body { background-color:#11101b !important; }
         html[data-theme="dark"] body::before { opacity:.42; }
         html[data-theme="dark"] body::after { opacity:.25; }
-        @media(max-width:768px){body::before{inset:-12%;filter:blur(22px) saturate(1.2);animation:wbFloat 36s ease-in-out infinite alternate;will-change:transform}body::after{animation:wbParticles 90s linear infinite;opacity:.07;will-change:transform}.wb-wallpaper-video{display:none!important}}
+        @media(max-width:768px){body::before{inset:-12%;filter:blur(22px) saturate(1.2);animation:wbFloat 36s ease-in-out infinite alternate;will-change:transform}body::after{animation:wbParticles 90s linear infinite;opacity:.07;will-change:transform}}
         /* Fond Flamme : flammes animées et braises visibles sur mobile comme sur ordinateur */
         body[data-wallpaper="fire"] {
           background:#2b0b06!important;
