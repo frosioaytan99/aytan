@@ -170,6 +170,9 @@ html[data-theme="dark"] .comment-form input{background:#191727;color:var(--ink);
 .admin-account-row>div:first-child{display:grid;gap:4px;min-width:0}
 .admin-account-row small{font-size:11px;color:var(--muted);overflow-wrap:anywhere}
 .admin-account-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.admin-role-badge{display:inline-flex;align-items:center;justify-content:center;white-space:nowrap;border-radius:999px;padding:6px 10px;font-size:11px;font-weight:800;background:var(--surface-2,#f1edff);color:var(--purple);border:1px solid var(--line)}
+.admin-role-badge.moderator{background:#e8f3ff;color:#1762a5;border-color:#c8e1fb}
+.admin-role-badge.admin{background:#f4eaff;color:#7136a5;border-color:#e4d1f5}
 .admin-account-actions a{font-size:12px;font-weight:800;color:var(--purple)}
 .admin-account-actions button,.message-report{font-size:11px;padding:9px 11px}
 .message-report{border:0;background:transparent;color:#b4473f;cursor:pointer}
