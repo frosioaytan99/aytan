@@ -10,6 +10,7 @@ export default function ImportAmisPage() {
   const [notFound, setNotFound] = useState<string[]>([])
   const [message, setMessage] = useState('')
   const [busy, setBusy] = useState(false)
+  const [selectedFileName, setSelectedFileName] = useState('Aucun fichier choisi')
 
   async function copyText(value: string, success: string) {
     try {
@@ -23,6 +24,7 @@ export default function ImportAmisPage() {
   async function loadCsvFile(e: any) {
     const file = e.target.files?.[0] as File | undefined
     if (!file) return
+    setSelectedFileName(file.name)
     if (file.size > 2 * 1024 * 1024) { setMessage('Le fichier est trop volumineux (maximum 2 Mo).'); e.target.value = ''; return }
     try {
       setRaw(await file.text())
@@ -88,7 +90,7 @@ export default function ImportAmisPage() {
       <form onSubmit={searchFriends} className="card" style={{ padding: 18 }}>
         <h2>Importer facilement ton fichier</h2>
         <label htmlFor="friends-csv-file">1. Choisis le fichier CSV téléchargé depuis Weshbien.com</label>
-        <input id="friends-csv-file" type="file" accept=".csv,.txt,text/csv,text/plain" onChange={loadCsvFile} style={{ display: 'block', width: '100%', margin: '10px 0 16px' }} />
+        <div className="friends-file-picker"><label htmlFor="friends-csv-file" className="friends-file-button">Choisir un fichier</label><span className="friends-file-name">{selectedFileName}</span><input id="friends-csv-file" type="file" accept=".csv,.txt,text/csv,text/plain,*/*" onChange={loadCsvFile} /></div>
         <p style={{ textAlign: 'center', margin: '8px 0' }}>ou colle directement les pseudos ci-dessous</p>
         <label htmlFor="old-friends-list">2. Liste des pseudos</label>
         <textarea id="old-friends-list" value={raw} onChange={e => setRaw(e.target.value)} rows={8} placeholder={'username,display_name,avatar_url\nOriana66,Oriana,\nCharli012,Charlie,\n'} style={{ width: '100%', marginTop: 10, padding: 12, borderRadius: 12 }} />
