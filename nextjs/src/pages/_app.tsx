@@ -137,7 +137,8 @@ export default function App({ Component, pageProps }: AppProps) {
       const refreshUnreadMessages = () => supabase.from('messages').select('id', { count: 'exact', head: true }).eq('recipient', userId).eq('is_read', false)
         .then(({ count, error }) => { if (active && !error) setUnreadMessages(count || 0) })
       refreshUnreadMessages()
-      unreadRefreshTimer = setInterval(refreshUnreadMessages, 10000)
+      // Les changements de messages sont déjà suivis par Supabase Realtime ci-dessous.
+      // On évite donc une requête COUNT toutes les 10 secondes.
       messagesReadHandler = () => refreshUnreadMessages()
       window.addEventListener('weshbien:messages-read', messagesReadHandler)
       const refreshUnreadNotifications = () => supabase.from('notifications').select('id', { count: 'exact', head: true }).eq('user_id', userId).eq('is_read', false)
@@ -145,7 +146,6 @@ export default function App({ Component, pageProps }: AppProps) {
       const onNotificationsRead = () => refreshUnreadNotifications()
       window.addEventListener('weshbien:notifications-read', onNotificationsRead)
       refreshUnreadNotifications()
-      let lastIncomingCheck = new Date(Date.now() - 2000).toISOString()
       const seenIncoming = new Set<string>()
       const notifyIncomingMessage = async (senderId: string) => {
         const { data: profile } = await supabase.from('profiles').select('display_name,username').eq('id', senderId).maybeSingle()
@@ -153,20 +153,6 @@ export default function App({ Component, pageProps }: AppProps) {
         const senderName = profile?.display_name || profile?.username || 'Quelqu’un'
         onNotice(new CustomEvent('weshbien:notify', { detail: { message: senderName + ' t’a envoyé un message', href: '/conversation?with=' + encodeURIComponent(senderId) } }))
       }
-      const pollIncomingMessages = async () => {
-        if (!active || document.visibilityState !== 'visible') return
-        const checkUntil = new Date().toISOString()
-        const { data, error } = await supabase.from('messages').select('id,sender,created_at').eq('recipient', userId).gt('created_at', lastIncomingCheck).lt('created_at', checkUntil).order('created_at', { ascending: true }).limit(30)
-        if (error) { console.warn('Vérification des nouveaux messages impossible', error.message); return }
-        lastIncomingCheck = checkUntil
-        for (const row of data || []) {
-          if (!row.id || seenIncoming.has(row.id) || row.sender === userId) continue
-          seenIncoming.add(row.id)
-          void notifyIncomingMessage(row.sender)
-        }
-      }
-      incomingPollTimer = setInterval(pollIncomingMessages, 4000)
-      void pollIncomingMessages()
       let moderatorRoleChecked = false
       let isModerator = false
       const checkModeratorRole = async () => {
@@ -199,9 +185,7 @@ export default function App({ Component, pageProps }: AppProps) {
           onNotice(new CustomEvent('weshbien:notify', { detail: { message: [row?.title, row?.message || row?.body].filter(Boolean).join(' — ') || 'Nouvelle notification', href: row?.link || '/notifications' } }))
           refreshUnreadNotifications()
         })
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'notifications', filter: 'user_id=eq.' + userId }, () => {
-          refreshUnreadNotifications()
-        }).subscribe()
+.subscribe()
     }
     supabase.auth.getUser().then(({ data }) => {
       if (active) { setSignedIn(!!data.user); setGuestName(data.user?.is_anonymous ? String(data.user.user_metadata?.display_name || 'Invité') : ''); document.documentElement.dataset.guest = data.user?.is_anonymous ? 'true' : 'false'; attach(data.user?.id || null) }
