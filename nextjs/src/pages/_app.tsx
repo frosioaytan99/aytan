@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
 import Link from 'next/link'
 import Head from 'next/head'
-import { Analytics } from '@vercel/analytics/next'
 import '../styles/globals.css'
 import type { AppProps } from 'next/app'
 import { supabase } from '../lib/supabaseClient'
@@ -239,7 +238,6 @@ export default function App({ Component, pageProps }: AppProps) {
   }
   return <>
     <Head><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" /><link rel="manifest" href="/manifest.json" /><meta name="theme-color" content="#7c3aed" /></Head>
-    <Analytics />
     <AnimatedBackground />
     <div className="global-tools global-tools-top">
       {signedIn && <PushNotifications />}
@@ -249,51 +247,51 @@ export default function App({ Component, pageProps }: AppProps) {
     {memberPage && signedIn && <>
       <header className="mobile-community-header">
         <button type="button" className="mobile-menu-trigger" onClick={() => setMenuOpen(true)} aria-label="Ouvrir le menu">☰</button>
-        <Link href="/feed" className="mobile-brand"><span className="brand-mark">w</span></Link>{guestName && <span className="guest-name-label">{guestName}</span>}<span className="mobile-header-spacer" />
-<Link href="/feed" className="mobile-home-button" aria-label="Accueil" title="Accueil"><NavIcon name="home"/></Link>
-<Link href="/notifications" className="mobile-notification-button" aria-label="Notifications"><NavIcon name="bell"/>{unread > 0 && <span className="mobile-notification-count">{unread > 99 ? '99+' : unread}</span>}</Link>
-        <Link href="/inbox" className="mobile-chat-button" aria-label="Messages"><NavIcon name="chat"/>{unreadMessages > 0 && <i aria-hidden="true"/>}</Link>
+        <Link prefetch={false} href="/feed" className="mobile-brand"><span className="brand-mark">w</span></Link>{guestName && <span className="guest-name-label">{guestName}</span>}<span className="mobile-header-spacer" />
+<Link prefetch={false} href="/feed" className="mobile-home-button" aria-label="Accueil" title="Accueil"><NavIcon name="home"/></Link>
+<Link prefetch={false} href="/notifications" className="mobile-notification-button" aria-label="Notifications"><NavIcon name="bell"/>{unread > 0 && <span className="mobile-notification-count">{unread > 99 ? '99+' : unread}</span>}</Link>
+        <Link prefetch={false} href="/inbox" className="mobile-chat-button" aria-label="Messages"><NavIcon name="chat"/>{unreadMessages > 0 && <i aria-hidden="true"/>}</Link>
         <div className="account-menu-wrap" style={{position:'relative'}}>
           <button type="button" className="mobile-user-dot" onClick={() => setAccountMenuOpen(value => !value)} aria-label="Ouvrir le menu du compte" aria-expanded={accountMenuOpen} style={{padding:0,overflow:'hidden',borderRadius:'50%',border:'2px solid var(--accent,#7c3aed)',background:'var(--surface,#fff)',width:28,height:28,minWidth:28,minHeight:28,display:'grid',placeItems:'center',cursor:'pointer'}}>
             {currentUserId ? <MemberAvatar userId={currentUserId} name="Mon profil" avatarUrl={avatarUrl} className="account-avatar-image"/> : <NavIcon name="profile" />}
           </button>
           {accountMenuOpen && <div role="menu" style={{position:'absolute',right:0,top:'calc(100% + 10px)',zIndex:1000,minWidth:180,padding:8,borderRadius:14,background:'var(--card,#fff)',border:'1px solid var(--border,#ddd)',boxShadow:'0 12px 32px #0002',display:'grid',gap:4}}>
-            <Link role="menuitem" href="/profile" onClick={() => setAccountMenuOpen(false)} style={{padding:'11px 12px',borderRadius:9,textDecoration:'none',color:'inherit'}}>👤 Profil</Link>
-            <Link role="menuitem" href="/settings" onClick={() => setAccountMenuOpen(false)} style={{padding:'11px 12px',borderRadius:9,textDecoration:'none',color:'inherit'}}>⚙️ Paramètres</Link>
+            <Link prefetch={false} role="menuitem" href="/profile" onClick={() => setAccountMenuOpen(false)} style={{padding:'11px 12px',borderRadius:9,textDecoration:'none',color:'inherit'}}>👤 Profil</Link>
+            <Link prefetch={false} role="menuitem" href="/settings" onClick={() => setAccountMenuOpen(false)} style={{padding:'11px 12px',borderRadius:9,textDecoration:'none',color:'inherit'}}>⚙️ Paramètres</Link>
             <button role="menuitem" type="button" onClick={async () => { setAccountMenuOpen(false); await supabase.auth.signOut(); await router.replace('/auth') }} style={{padding:'11px 12px',border:0,borderRadius:9,textAlign:'left',background:'transparent',color:'inherit',cursor:'pointer'}}>↪ Déconnexion</button>
           </div>}
         </div>
       </header>
       <header className="desktop-community-header">
-        <Link href="/feed" className="desktop-brand"><span className="brand-mark">w</span><span>weshbien2.</span></Link>
+        <Link prefetch={false} href="/feed" className="desktop-brand"><span className="brand-mark">w</span><span>weshbien2.</span></Link>
         <nav className="desktop-community-nav" aria-label="Navigation principale">
-          {navItems.map(([label, href]) => <Link key={label} href={href} className={router.pathname === href ? 'active' : ''}>{label}{label === 'Notifications' && unread > 0 ? <b className="desktop-nav-count">{unread > 99 ? '99+' : unread}</b> : null}{label === 'Messages' && unreadMessages > 0 ? <b className="desktop-nav-count">{unreadMessages > 99 ? '99+' : unreadMessages}</b> : null}</Link>)}
+          {navItems.map(([label, href]) => <Link prefetch={false} key={label} href={href} className={router.pathname === href ? 'active' : ''}>{label}{label === 'Notifications' && unread > 0 ? <b className="desktop-nav-count">{unread > 99 ? '99+' : unread}</b> : null}{label === 'Messages' && unreadMessages > 0 ? <b className="desktop-nav-count">{unreadMessages > 99 ? '99+' : unreadMessages}</b> : null}</Link>)}
         </nav>
         <div className="desktop-header-actions">
           <button type="button" onClick={toggleTheme} aria-label="Changer le thème">{theme === 'dark' ? '☀️' : '🌙'}</button>
-          <Link href="/profile" className="desktop-profile-link"><MemberAvatar userId={currentUserId} name="Mon profil" avatarUrl={avatarUrl} className="account-avatar-image"/></Link>
+          <Link prefetch={false} href="/profile" className="desktop-profile-link"><MemberAvatar userId={currentUserId} name="Mon profil" avatarUrl={avatarUrl} className="account-avatar-image"/></Link>
           <button type="button" onClick={async () => { await supabase.auth.signOut(); await router.replace('/auth') }} aria-label="Déconnexion">↪</button>
         </div>
       </header>
       <nav className="mobile-bottom-nav" aria-label="Navigation mobile">
-        <Link className={router.pathname === '/feed' ? 'selected' : ''} href="/feed"><span><NavIcon name="home"/></span>Accueil</Link>
-        <Link className={router.pathname === '/explore' ? 'selected' : ''} href="/explore"><span><NavIcon name="explore"/></span>Explorer</Link>
-        <Link className={router.pathname === '/online' ? 'selected' : ''} href="/online"><span><NavIcon name="explore"/></span>En ligne</Link>
-        <Link className={router.pathname === '/individual' ? 'selected' : ''} href="/individual"><span aria-hidden="true">⚠️</span>18+</Link>
-        <Link className={router.pathname === '/inbox' || router.pathname === '/conversation' ? 'selected' : ''} href="/inbox"><span><NavIcon name="chat"/>{unreadMessages > 0 && <i className="chat-unread-dot" aria-label="Messages non lus"/>}</span>Chat</Link>
-        <Link className={router.pathname === '/profile' ? 'selected' : ''} href="/profile"><span><NavIcon name="profile"/></span>Profil</Link>
+        <Link prefetch={false} className={router.pathname === '/feed' ? 'selected' : ''} href="/feed"><span><NavIcon name="home"/></span>Accueil</Link>
+        <Link prefetch={false} className={router.pathname === '/explore' ? 'selected' : ''} href="/explore"><span><NavIcon name="explore"/></span>Explorer</Link>
+        <Link prefetch={false} className={router.pathname === '/online' ? 'selected' : ''} href="/online"><span><NavIcon name="explore"/></span>En ligne</Link>
+        <Link prefetch={false} className={router.pathname === '/individual' ? 'selected' : ''} href="/individual"><span aria-hidden="true">⚠️</span>18+</Link>
+        <Link prefetch={false} className={router.pathname === '/inbox' || router.pathname === '/conversation' ? 'selected' : ''} href="/inbox"><span><NavIcon name="chat"/>{unreadMessages > 0 && <i className="chat-unread-dot" aria-label="Messages non lus"/>}</span>Chat</Link>
+        <Link prefetch={false} className={router.pathname === '/profile' ? 'selected' : ''} href="/profile"><span><NavIcon name="profile"/></span>Profil</Link>
       </nav>
       {menuOpen && <div className="mobile-drawer-backdrop" onClick={() => setMenuOpen(false)}>
         <aside className="mobile-drawer" onClick={event => event.stopPropagation()}>
           <div className="mobile-drawer-heading"><span className="brand"><span className="brand-mark">w</span>weshbien2.</span><button type="button" onClick={() => setMenuOpen(false)} aria-label="Fermer">×</button></div>
           <small>NAVIGATION</small>
-          {navItems.map(([label, href, icon]) => <Link key={label} href={href} onClick={() => setMenuOpen(false)}><span>{icon}</span>{label}{label === 'Notifications' && unread > 0 && <b className="drawer-count-badge">{unread > 99 ? '99+' : unread}</b>}{label === 'Messages' && unreadMessages > 0 && <b className="drawer-count-badge">{unreadMessages > 99 ? '99+' : unreadMessages}</b>}</Link>)}
+          {navItems.map(([label, href, icon]) => <Link prefetch={false} key={label} href={href} onClick={() => setMenuOpen(false)}><span>{icon}</span>{label}{label === 'Notifications' && unread > 0 && <b className="drawer-count-badge">{unread > 99 ? '99+' : unread}</b>}{label === 'Messages' && unreadMessages > 0 && <b className="drawer-count-badge">{unreadMessages > 99 ? '99+' : unreadMessages}</b>}</Link>)}
           <button className="drawer-theme" type="button" onClick={toggleTheme}>{theme === 'dark' ? '☀️ Mode clair' : '🌙 Mode sombre'}</button>
         </aside>
       </div>}
     </>}
     {(!memberPage || authChecked) ? <Component {...pageProps} /> : <main className="auth-shell"><section className="auth-card"><p>Vérification de ta connexion…</p></section></main>}
-    <footer className="global-footer"><span>© Weshbien2</span><span>👁 {siteStats.visits.toLocaleString("fr-FR")} visites membres</span><span>🟢 {siteStats.active} membre{siteStats.active>1?"s":""} en ligne</span><Link href="/guide">Mode d’emploi complet</Link><Link href="/moderators">Équipe de modération</Link><Link href="/profile">Mon profil</Link></footer>
+    <footer className="global-footer"><span>© Weshbien2</span><span>👁 {siteStats.visits.toLocaleString("fr-FR")} visites membres</span><span>🟢 {siteStats.active} membre{siteStats.active>1?"s":""} en ligne</span><Link prefetch={false} href="/guide">Mode d’emploi complet</Link><Link prefetch={false} href="/moderators">Équipe de modération</Link><Link prefetch={false} href="/profile">Mon profil</Link></footer>
     {notice && <div className="app-toast" role="status" aria-live="polite"><span className="toast-icon" aria-hidden="true">ⓘ</span><div className="toast-content"><span className="toast-message">{notice}</span><button type="button" className="toast-view" onClick={() => { setNotice(''); void router.push(noticeHref) }}>Voir</button></div><button type="button" className="toast-close" aria-label="Fermer la notification" onClick={() => setNotice('')}>×</button></div>}
   </>
 }
