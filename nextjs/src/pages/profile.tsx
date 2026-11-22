@@ -33,7 +33,6 @@ export default function ProfilePage() {
  const [photoBusy,setPhotoBusy]=useState(false)
  const [liked,setLiked]=useState(false)
  const [likeCount,setLikeCount]=useState(0)
- const [privateProfile,setPrivateProfile]=useState(false)
  const [status,setStatus]=useState('')
  const [loading,setLoading]=useState(true)
  const [currentUser,setCurrentUser]=useState('')
@@ -76,12 +75,12 @@ export default function ProfilePage() {
    if(error){setProfile(null);setStatus('Impossible de charger ce profil : '+error.message)}
    else if(data){
     if(target!==user.id){const {data:ownProfile}=await supabase.from('profiles').select('interests,hobbies,favorite_music,city').eq('id',user.id).maybeSingle();setCompatibility(ownProfile?calculateCompatibility(ownProfile,data):null)}
-    setProfile(data as ProfileData);setName(data.display_name||'');setUsername(data.username||'');setBio(data.bio||'');setInterests(data.interests||'');setAvatarUrl(data.avatar_url||'');setPrivateProfile(!!data.is_private);setAge(data.age?String(data.age):'');setCity(data.city||'');setFavoriteMusic(data.favorite_music||'');setHobbies(data.hobbies||'');setGender(data.gender||'');setGalleryUrls(data.gallery_urls||[])
+    setProfile(data as ProfileData);setName(data.display_name||'');setUsername(data.username||'');setBio(data.bio||'');setInterests(data.interests||'');setAvatarUrl(data.avatar_url||'');setAge(data.age?String(data.age):'');setCity(data.city||'');setFavoriteMusic(data.favorite_music||'');setHobbies(data.hobbies||'');setGender(data.gender||'');setGalleryUrls(data.gallery_urls||[])
     const {data:photoPosts}=await supabase.from('posts').select('image_url,image_urls').eq('author_id',target).order('created_at',{ascending:false}).limit(200)
     const postPhotoUrls=(photoPosts||[]).flatMap((post:any)=>post.image_urls?.length?post.image_urls:(post.image_url?[post.image_url]:[])).filter((url:any)=>typeof url==='string'&&url)
     setProfilePhotoUrls([...new Set([...(data.gallery_urls||[]),...postPhotoUrls])])
     if(target!==user.id){await loadFriendState(user.id,target);const likes=await supabase.from('profile_likes').select('id',{count:'exact',head:true}).eq('to_user_id',target);const mine=await supabase.from('profile_likes').select('id').eq('from_user_id',user.id).eq('to_user_id',target).maybeSingle();setLikeCount(likes.count||0);setLiked(!!mine.data);const follows=await supabase.from('profile_follows').select('id',{count:'exact',head:true}).eq('followed_id',target);const mineFollow=await supabase.from('profile_follows').select('id').eq('follower_id',user.id).eq('followed_id',target).maybeSingle();setFollowerCount(follows.count||0);setFollowing(!!mineFollow.data)}
-   }else{setProfile(null);setName('');setUsername('');setBio('');setInterests('');setGalleryUrls([]);setProfilePhotoUrls([]);setAge('');setCity('');setFavoriteMusic('');setHobbies('');setGender('');setPrivateProfile(true);setStatus(target===user.id?'Ton profil n’a pas encore été créé. Tu peux le compléter ci-dessous.':'Ce profil est introuvable, privé ou indisponible.')}
+   }else{setProfile(null);setName('');setUsername('');setBio('');setInterests('');setGalleryUrls([]);setProfilePhotoUrls([]);setAge('');setCity('');setFavoriteMusic('');setHobbies('');setGender('');setStatus(target===user.id?'Ton profil n’a pas encore été créé. Tu peux le compléter ci-dessous.':'Ce profil est introuvable ou indisponible.')}
    if(!cancelled)setLoading(false)
   }
   loadProfile()
@@ -142,7 +141,7 @@ export default function ProfilePage() {
   setStatus('')
   const parsedAge=age.trim()===''?null:Number(age)
   if(parsedAge!==null&&(!Number.isInteger(parsedAge)||parsedAge<13||parsedAge>26)){setStatus('L’âge doit être compris entre 13 et 26 ans.');return}
-  const {data,error}=await supabase.from('profiles').upsert({id:uid,display_name:name.trim(),username:username.trim().toLowerCase(),bio:bio.trim(),interests:interests.trim(),avatar_url:avatarUrl||null,is_private:privateProfile,age:parsedAge,city:city.trim(),favorite_music:favoriteMusic.trim(),hobbies:hobbies.trim(),gender:gender||null,gallery_urls:galleryUrls},{onConflict:'id'}).select('id,display_name,username,bio,interests,avatar_url,is_private,age,city,favorite_music,hobbies,gender,gallery_urls').single()
+  const {data,error}=await supabase.from('profiles').upsert({id:uid,display_name:name.trim(),username:username.trim().toLowerCase(),bio:bio.trim(),interests:interests.trim(),avatar_url:avatarUrl||null,is_private:false,age:parsedAge,city:city.trim(),favorite_music:favoriteMusic.trim(),hobbies:hobbies.trim(),gender:gender||null,gallery_urls:galleryUrls},{onConflict:'id'}).select('id,display_name,username,bio,interests,avatar_url,is_private,age,city,favorite_music,hobbies,gender,gallery_urls').single()
   if(error){setStatus('Enregistrement impossible : '+error.message);return}
   setProfile(data as ProfileData);setStatus('Profil enregistré !')
  }
@@ -245,7 +244,6 @@ export default function ProfilePage() {
      <label>Loisirs et passions<input maxLength={180} value={hobbies} onChange={e=>setHobbies(e.target.value)} placeholder="Danse, dessin, football…"/></label>
      <label>Musique préférée<input maxLength={120} value={favoriteMusic} onChange={e=>setFavoriteMusic(e.target.value)} placeholder="Tes artistes ou styles préférés…"/></label>
      <section className="profile-gallery-editor"><h3>Ma galerie photo ({galleryUrls.length})</h3><label className="photo-upload-button">🖼️ {galleryBusy?'Envoi…':'Ajouter une photo à la galerie'}<input type="file" accept="image/jpeg,image/png,image/webp,image/gif" disabled={galleryBusy} onChange={e=>{uploadGalleryPhoto(e.target.files?.[0]);e.currentTarget.value=''}}/></label><div className="profile-gallery-grid">{galleryUrls.map(url=><div className="profile-gallery-thumb" key={url}><CommunityImage src={url} alt="Photo de ma galerie"/><button type="button" onClick={()=>removeGalleryPhoto(url)}>🗑️ Supprimer</button></div>)}</div><small>Ajoute tes photos · 8 Mo maximum chacune</small></section>
-     <label className="checkline"><input type="checkbox" checked={privateProfile} onChange={e=>setPrivateProfile(e.target.checked)}/>Rendre mon profil privé</label>
      <button type="submit">Enregistrer mon profil</button>{status&&<p className="notice" role="status">{status}</p>}
     </form>
    ):profile?(
