@@ -66,8 +66,8 @@ export default function ProfilePage() {
    if(target!==user.id)await supabase.from('profile_views').insert({profile_id:target,viewer_id:user.id})
    const {data:viewTotal}=await supabase.rpc('get_profile_view_count',{target_profile:target});setProfileViews(Number(viewTotal)||0)
    setCompatibility(null)
-   const friendCountResult=await supabase.from('friend_requests').select('id',{count:'exact',head:true}).eq('status','accepted').or(`sender_id.eq.${target},recipient_id.eq.${target}`)
-   if(!cancelled)setFriendCount(friendCountResult.count||0)
+   const {data:publicFriendCount,error:friendCountError}=await supabase.rpc('get_public_friend_count',{target_profile:target})
+   if(!cancelled)setFriendCount(friendCountError?0:Number(publicFriendCount)||0)
    const {data:{session}}=await supabase.auth.getSession()
    if(session?.access_token){const roleResponse=await fetch('/api/member-role?user_id='+encodeURIComponent(target),{headers:{Authorization:'Bearer '+session.access_token},cache:'no-store'});const rolePayload=await roleResponse.json().catch(()=>null);setProfileRole(roleResponse.ok&&['admin','moderator'].includes(rolePayload?.role)?rolePayload.role:'member')}else setProfileRole('member')
    const {data,error}=await supabase.from('profiles').select('id,display_name,username,bio,interests,avatar_url,is_private,age,city,favorite_music,hobbies,gender,gallery_urls,last_seen_at').eq('id',target).maybeSingle()
@@ -243,7 +243,6 @@ export default function ProfilePage() {
    {loading?<div className="card empty" role="status">Chargement du profil…</div>:me?(
     <form className="card profile-form" onSubmit={save}>
      <p className="profile-friend-count">👁 {profileViews} vue{profileViews>1?"s":""} · ♡ {friendCount} ami{friendCount>1?"s":""}</p>
-     <p className="profile-friend-count">♡ {friendCount} ami{friendCount>1?"s":""}</p>
      <div className="profile-photo-editor"><MemberAvatar userId={uid} name={name||username} avatarUrl={avatarUrl} className="avatar profile-avatar-preview"/><label className="photo-upload-button">📷 {photoBusy?'Envoi…':'Ajouter une photo'}<input type="file" accept="image/jpeg,image/png,image/webp,image/gif" disabled={photoBusy} onChange={e=>uploadAvatar(e.target.files?.[0])}/></label>{avatarUrl&&<button type="button" className="friend-secondary" disabled={photoBusy} onClick={removeAvatar}>🗑️ Supprimer ma photo</button>}<small>JPG, PNG, WEBP ou GIF · 8 Mo maximum</small></div>
      <label>Nom affiché<input maxLength={50} value={name} onChange={e=>setName(e.target.value)} placeholder="Ton nom affiché"/></label>
      <label>Pseudo<input required pattern="[a-zA-Z0-9_]{3,24}" value={username} onChange={e=>setUsername(e.target.value)} placeholder="pseudo (3 à 24 caractères)"/></label>
