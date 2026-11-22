@@ -238,7 +238,7 @@ export default function App({ Component, pageProps }: AppProps) {
     try { window.localStorage.setItem('weshbien-theme', next) } catch {}
   }
   return <>
-    <Head><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" /></Head>
+    <Head><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" /><link rel="manifest" href="/manifest.json" /><meta name="theme-color" content="#7c3aed" /></Head>
     <Analytics />
     <AnimatedBackground />
     <div className="global-tools global-tools-top">
