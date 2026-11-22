@@ -2041,3 +2041,7 @@ html[data-theme="dark"] .directory>small,html[data-theme="dark"] .directory .fri
 html[data-theme="dark"] .directory textarea,html[data-theme="dark"] .directory input:not([type="file"]){background:#191727!important;color:#f1effa!important;border-color:#48415e!important}
 html[data-theme="dark"] .directory textarea::placeholder{color:#aaa5bf!important}
 html[data-app-theme="cyberpunk"] .friends-file-button,html[data-app-theme="nuit"] .friends-file-button,html[data-app-theme="graphite"] .friends-file-button,html[data-app-theme="gold"] .friends-file-button{color:#fff!important}
+
+
+.messenger-reply-link{display:block;width:100%;max-width:100%;text-align:left;margin:0 0 8px;padding:8px 10px;border:0;border-left:3px solid var(--purple,#7040d8);border-radius:7px;background:rgba(112,64,216,.10);color:inherit;font-size:12px;line-height:1.45;cursor:pointer;overflow-wrap:anywhere}
+.messenger-message-highlight .messenger-bubble{outline:3px solid var(--purple,#7040d8);outline-offset:3px;transition:outline-color .2s}
