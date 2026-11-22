@@ -76,6 +76,8 @@ export default function App({ Component, pageProps }: AppProps) {
   useEffect(() => {
     let timer: ReturnType<typeof setTimeout> | undefined
     let presenceTimer: ReturnType<typeof setInterval> | undefined
+    let unreadRefreshTimer: ReturnType<typeof setInterval> | undefined
+    let incomingPollTimer: ReturnType<typeof setInterval> | undefined
     let suspensionTimer: ReturnType<typeof setInterval> | undefined
     let presenceVisibilityHandler: (() => void) | null = null
     let messagesReadHandler: (() => void) | null = null
@@ -133,7 +135,7 @@ export default function App({ Component, pageProps }: AppProps) {
       const refreshUnreadMessages = () => supabase.from('messages').select('id', { count: 'exact', head: true }).eq('recipient', userId).eq('is_read', false)
         .then(({ count, error }) => { if (active && !error) setUnreadMessages(count || 0) })
       refreshUnreadMessages()
-      const unreadRefreshTimer = setInterval(refreshUnreadMessages, 10000)
+      unreadRefreshTimer = setInterval(refreshUnreadMessages, 10000)
       messagesReadHandler = () => refreshUnreadMessages()
       window.addEventListener('weshbien:messages-read', messagesReadHandler)
       const refreshUnreadNotifications = () => supabase.from('notifications').select('id', { count: 'exact', head: true }).eq('user_id', userId).eq('is_read', false)
@@ -154,7 +156,7 @@ export default function App({ Component, pageProps }: AppProps) {
           if (row.sender !== userId) onNotice(new CustomEvent('weshbien:notify', { detail: { message: 'Nouveau message reçu', href: '/inbox' } }))
         }
       }
-      const incomingPollTimer = setInterval(pollIncomingMessages, 4000)
+      incomingPollTimer = setInterval(pollIncomingMessages, 4000)
       void pollIncomingMessages()
       let moderatorRoleChecked = false
       let isModerator = false
