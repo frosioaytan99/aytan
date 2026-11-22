@@ -25,7 +25,7 @@ export default function MeetMePage(){
       if(!user){window.location.href='/auth';return}
       setUid(user.id)
       const [people,friendRows]=await Promise.all([
-        supabase.from('profiles').select('id,username,display_name,avatar_url,bio,city,interests,last_seen_at').neq('id',user.id).eq('is_private',false).order('last_seen_at',{ascending:false,nullsFirst:false}).limit(150),
+        supabase.from('profiles').select('id,username,display_name,avatar_url,bio,city,interests,last_seen_at').neq('id',user.id).order('last_seen_at',{ascending:false,nullsFirst:false}).limit(150),
         supabase.from('friend_requests').select('id,sender_id,recipient_id,status').or('sender_id.eq.'+user.id+',recipient_id.eq.'+user.id)
       ])
       if(people.error)throw people.error
