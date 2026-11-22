@@ -1953,3 +1953,15 @@ html[data-theme="dark"] .home-feed-tabs button.active,html[data-theme="dark"] .h
   .profile-public-card>.profile-add-friend-button{margin:0 16px 12px!important}
   .profile-public-card .profile-public-tabs{gap:12px;padding:12px 16px!important}
 }
+
+
+/* Correctif fonds d'écran : ne pas peindre un grand panneau opaque au-dessus du fond global */
+html, body, #__next { background-color: transparent; }
+#__next > .app-shell,
+#__next .app-shell {
+  background: transparent !important;
+  background-color: transparent !important;
+}
+.global-footer {
+  background: transparent !important;
+}
