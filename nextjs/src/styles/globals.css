@@ -2026,3 +2026,15 @@ html[data-app-theme] .auth-shell,html[data-app-theme] .member-shell{background:v
 .messenger-compose .messenger-attachment-menu button:hover{background:color-mix(in srgb,var(--purple,#7956d8) 12%,transparent)!important}
 .messenger-compose .messenger-attachment-menu button span{font-size:13px;font-weight:750}
 @media(max-width:600px){.messenger-attachment-wrap{flex-basis:46px}.messenger-compose .messenger-plus-button{width:46px;height:46px;min-width:46px;flex-basis:46px;border-radius:15px}.messenger-attachment-menu{min-width:155px}}
+
+
+/* Import des anciens amis : sélecteur Android plus visible et thème sombre lisible */
+.friends-file-picker{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:12px 0 18px}
+.friends-file-picker input[type="file"]{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden;pointer-events:none}
+.friends-file-button{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:11px 16px;border:0;border-radius:11px;background:var(--purple,#7057d9);color:#fff!important;font-size:13px;font-weight:800;cursor:pointer}
+.friends-file-name{min-width:0;overflow-wrap:anywhere;color:var(--muted,#858397);font-size:12px}
+html[data-theme="dark"] .directory,html[data-theme="dark"] .directory h1,html[data-theme="dark"] .directory h2,html[data-theme="dark"] .directory p,html[data-theme="dark"] .directory li,html[data-theme="dark"] .directory label,html[data-theme="dark"] .directory small{color:var(--ink)!important}
+html[data-theme="dark"] .directory>small,html[data-theme="dark"] .directory .friends-file-name{color:var(--muted)!important}
+html[data-theme="dark"] .directory textarea,html[data-theme="dark"] .directory input:not([type="file"]){background:#191727!important;color:#f1effa!important;border-color:#48415e!important}
+html[data-theme="dark"] .directory textarea::placeholder{color:#aaa5bf!important}
+html[data-app-theme="cyberpunk"] .friends-file-button,html[data-app-theme="nuit"] .friends-file-button,html[data-app-theme="graphite"] .friends-file-button,html[data-app-theme="gold"] .friends-file-button{color:#fff!important}
