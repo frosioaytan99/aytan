@@ -2045,3 +2045,54 @@ html[data-app-theme="cyberpunk"] .friends-file-button,html[data-app-theme="nuit"
 
 .messenger-reply-link{display:block;width:100%;max-width:100%;text-align:left;margin:0 0 8px;padding:8px 10px;border:0;border-left:3px solid var(--purple,#7040d8);border-radius:7px;background:rgba(112,64,216,.10);color:inherit;font-size:12px;line-height:1.45;cursor:pointer;overflow-wrap:anywhere}
 .messenger-message-highlight .messenger-bubble{outline:3px solid var(--purple,#7040d8);outline-offset:3px;transition:outline-color .2s}
+
+
+/* Correctif mobile : empêcher l’avatar de recouvrir les informations du profil */
+@media(max-width:600px){
+  .profile-identity{
+    display:grid;
+    grid-template-columns:72px minmax(0,1fr);
+    align-items:start;
+    column-gap:12px;
+    row-gap:12px;
+    padding:0 16px 17px;
+    margin-top:-37px;
+  }
+  .profile-identity>.member-avatar-wrap{
+    grid-column:1;
+    grid-row:1;
+    width:72px;
+    height:72px;
+    min-width:72px;
+    margin:0;
+  }
+  .profile-identity .avatar.large{
+    width:64px;
+    height:64px;
+    margin:0;
+  }
+  .profile-identity-copy{
+    grid-column:2;
+    grid-row:1;
+    min-width:0;
+    width:100%;
+    padding-top:37px;
+    overflow-wrap:anywhere;
+  }
+  .profile-identity-copy h2,
+  .profile-identity-copy p,
+  .profile-identity-copy small{
+    max-width:100%;
+    overflow-wrap:anywhere;
+  }
+  .profile-identity-actions{
+    grid-column:1 / -1;
+    grid-row:2;
+    width:100%;
+    margin:0;
+    justify-content:flex-start;
+  }
+  .profile-identity-actions>*{
+    max-width:100%;
+  }
+}
