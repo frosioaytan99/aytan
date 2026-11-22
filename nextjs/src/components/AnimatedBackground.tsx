@@ -36,8 +36,14 @@ export default function AnimatedBackground() {
     observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] })
 
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    // Les fonds vidéo restent actifs même si l'économie de données du navigateur est activée.
-    setVideoEnabled(!reduced)
+    const connection = (navigator as any).connection
+    const saveData = Boolean(connection?.saveData)
+    const slowNetwork = ['slow-2g', '2g'].includes(String(connection?.effectiveType || ''))
+    const lowMemory = Number((navigator as any).deviceMemory || 8) <= 4
+    const lowCpu = Number(navigator.hardwareConcurrency || 8) <= 4
+    const smallScreen = window.matchMedia('(max-width: 700px)').matches
+    // Éviter les vidéos 4K en arrière-plan sur les appareils modestes ou les réseaux limités.
+    setVideoEnabled(!reduced && !saveData && !slowNetwork && !(smallScreen && (lowMemory || lowCpu)))
     return () => { window.removeEventListener('weshbien:wallpaper-change', apply); observer.disconnect() }
   }, [])
 
@@ -50,7 +56,7 @@ export default function AnimatedBackground() {
       {wallpaper === 'matrix' && <div className="wb-matrix-rain" aria-hidden="true">
         {['010101110010101101001011010101','101101001010110101101001010110','001011010110010101101011001010','110010101101001011010110101101','010110100101101101001010110101','101001011010110010101101001011','011010110101001011010110100101','100101101001011010110101001011'].map((code, index) => <span key={index}>{code}</span>)}
       </div>}
-      {videoSource && <video key={videoSource} className="wb-wallpaper-video" autoPlay muted loop playsInline preload="auto" aria-hidden="true">
+      {videoSource && <video key={videoSource} className="wb-wallpaper-video" autoPlay muted loop playsInline preload="metadata" disablePictureInPicture aria-hidden="true">
         <source src={videoSource} type="video/mp4" />
       </video>}
       <style jsx global>{`
