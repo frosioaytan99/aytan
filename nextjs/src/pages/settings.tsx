@@ -121,6 +121,19 @@ const appThemes = [
   {id:'rouge',name:'Rouge passion',category:'Audacieux',accent:'#dc2626',bg:'#fff5f5',surface:'#ffffff',text:'#401d1d',muted:'#987575',border:'#f3d7d7',preview:'linear-gradient(135deg,#450a0a,#dc2626,#fca5a5)'}
 ]
 
+const wallpaperVideoSources: Record<string, string> = {
+  ocean: 'https://videos.pexels.com/video-files/33734611/14323344_3840_2160_60fps.mp4',
+  forest: 'https://videos.pexels.com/video-files/31346766/13378120_3840_2160_60fps.mp4',
+  sunset: 'https://videos.pexels.com/video-files/20583506/20583506-uhd_3840_2160_30fps.mp4',
+  stars: 'https://videos.pexels.com/video-files/29628759/12749515_3840_2160_30fps.mp4',
+}
+const wallpaperVideoByTheme: Record<string, string> = {
+  ocean:'ocean',beach:'ocean',waterfall:'ocean',deepsea:'ocean',coral:'ocean',lagoon:'ocean',arctic:'ocean',glacier:'ocean',waves:'ocean',ripple:'ocean',
+  forest:'forest',jungle:'forest',emerald:'forest',bamboo:'forest',moss:'forest',meadow:'forest',canyon:'forest',spring:'forest',
+  sunset:'sunset',desert:'sunset',volcano:'sunset',fire:'sunset',autumn:'sunset',dawn:'sunset',dusk:'sunset',savanna:'sunset',
+  aurora:'stars',space:'stars',cosmos:'stars',stars:'stars',moon:'stars',nebula:'stars',galaxy:'stars',blackhole:'stars',comet:'stars',meteor:'stars',stardust:'stars',eclipse:'stars',planet:'stars',
+}
+
 const darkWallpapers = [
   { id: 'cosmos', name: 'Cosmos nocturne', group: 'Espace', colors: 'linear-gradient(135deg,#020617,#312e81,#a855f7)' },
   { id: 'rain', name: 'Pluie sur la ville', group: 'Ville', colors: 'linear-gradient(135deg,#020617,#164e63,#64748b)' },
@@ -209,7 +222,7 @@ export default function SettingsPage() {
     <div className="wallpaper-heading"><div><span>PERSONNALISATION</span><h2>Thèmes complets & vidéos 4K</h2><p>Choisis une ambiance : le fond, les couleurs, les boutons, les cartes et les menus changent ensemble.</p></div><b>100 thèmes</b></div>
     <div className="wallpaper-grid">
       {wallpapers.map(item => <button type="button" key={item.id} onClick={() => chooseWallpaper(item.id)} className={'wallpaper-option' + (wallpaper === item.id ? ' selected' : '')} aria-pressed={wallpaper === item.id}>
-        <span className="wallpaper-preview" style={{ background: item.colors }}><i/><i/><i/><em>VIDÉO 4K</em></span>
+        <span className="wallpaper-preview" style={{ background: item.colors }}>{wallpaperVideoByTheme[item.id] && <video className="wallpaper-preview-video" src={wallpaperVideoSources[wallpaperVideoByTheme[item.id]]} autoPlay muted loop playsInline preload="metadata" aria-hidden="true" />}<i/><i/><i/><em>{wallpaperVideoByTheme[item.id] ? 'APERÇU VIDÉO' : 'FOND ANIMÉ'}</em></span>
         <span className="wallpaper-option-copy"><strong>{item.name}</strong><small>{item.group}</small></span>
         <span className="wallpaper-check">{wallpaper === item.id ? '✓' : '+'}</span>
       </button>)}
@@ -218,7 +231,7 @@ export default function SettingsPage() {
     <div className="wallpaper-heading dark-wallpaper-heading"><div><span>MODE SOMBRE</span><h2>Ambiances nocturnes & vidéos 4K</h2><p>Ces fonds sont réservés au mode sombre. Ton thème clair garde son propre fond.</p></div><b>8 ambiances</b></div>
     <div className="wallpaper-grid">
       {darkWallpapers.map(item => <button type="button" key={item.id} onClick={() => chooseDarkWallpaper(item.id)} className={'wallpaper-option' + (darkWallpaper === item.id ? ' selected' : '')} aria-pressed={darkWallpaper === item.id}>
-        <span className="wallpaper-preview" style={{ background: item.colors }}><i/><i/><i/><em>4K · NUIT</em></span>
+        <span className="wallpaper-preview" style={{ background: item.colors }}>{wallpaperVideoByTheme[item.id] && <video className="wallpaper-preview-video" src={wallpaperVideoSources[wallpaperVideoByTheme[item.id]]} autoPlay muted loop playsInline preload="metadata" aria-hidden="true" />}<i/><i/><i/><em>{wallpaperVideoByTheme[item.id] ? 'APERÇU VIDÉO' : 'FOND ANIMÉ'}</em></span>
         <span className="wallpaper-option-copy"><strong>{item.name}</strong><small>{item.group}</small></span>
         <span className="wallpaper-check">{darkWallpaper === item.id ? '✓' : '+'}</span>
       </button>)}
@@ -268,6 +281,8 @@ export default function SettingsPage() {
     .wallpaper-option{position:relative;display:flex;flex-direction:column;gap:10px;min-width:0;padding:9px;border:2px solid var(--border,#e5e1ed);border-radius:18px;background:var(--card,#fff);color:var(--text,#29263a);text-align:left;cursor:pointer;overflow:hidden}
     .wallpaper-option.selected{border-color:var(--accent,#7c3aed);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent,#7c3aed) 15%,transparent)}
     .wallpaper-preview{position:relative;display:block;overflow:hidden;height:110px;border-radius:12px;background-size:200% 200%;animation:wallpaperPreviewMove 8s ease-in-out infinite alternate}
+    .wallpaper-preview-video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;pointer-events:none}
+    .wallpaper-preview>i,.wallpaper-preview>em{z-index:1}
     .wallpaper-preview i{position:absolute;width:80px;height:80px;border-radius:50%;filter:blur(18px);background:#ffffff66;animation:wallpaperOrb 7s ease-in-out infinite alternate}
     .wallpaper-preview i:nth-child(1){left:8%;top:20%}.wallpaper-preview i:nth-child(2){right:10%;top:10%;animation-delay:-2s}.wallpaper-preview i:nth-child(3){left:45%;bottom:-30%;animation-delay:-4s}
     .wallpaper-preview em{position:absolute;right:8px;bottom:8px;padding:5px 8px;border-radius:20px;background:#10101cbb;color:#fff;font-size:9px;font-style:normal;font-weight:900;letter-spacing:.7px;backdrop-filter:blur(8px)}
