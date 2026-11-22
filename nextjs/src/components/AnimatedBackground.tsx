@@ -1,15 +1,14 @@
 import React, { useEffect, useState } from 'react'
 
 const videoByTheme: Record<string, string> = {
-  aurora: 'stars', ocean: 'ocean', sunset: 'sunset', forest: 'forest',
-  space: 'stars', neon: 'stars', gold: 'sunset', ice: 'ocean', pink: 'sunset',
-  mountain: 'sunset', beach: 'ocean', waterfall: 'forest', desert: 'sunset',
-  volcano: 'sunset', jungle: 'forest', lavender: 'sunset', cherry: 'sunset',
-  rain: 'ocean', storm: 'stars', fire: 'sunset', smoke: 'stars', clouds: 'sunset',
-  dream: 'stars', minimal: 'stars', marble: 'stars', crystal: 'ocean',
-  copper: 'sunset', silver: 'stars', emerald: 'forest', ruby: 'sunset',
-  sapphire: 'ocean', cosmos: 'stars', moon: 'stars', stars: 'stars',
-  matrix: 'matrix', laser: 'stars', rainbow: 'sunset', electric: 'ocean',
+  ocean: 'ocean',
+  forest: 'forest',
+  sunset: 'sunset',
+  aurora: 'stars',
+  space: 'stars',
+  cosmos: 'stars',
+  stars: 'stars',
+  moon: 'stars',
 }
 
 const videoSources: Record<string, string> = {
@@ -46,7 +45,7 @@ export default function AnimatedBackground() {
     return () => { window.removeEventListener('weshbien:wallpaper-change', apply); observer.disconnect() }
   }, [])
 
-  const videoGroup = wallpaper === 'cyber' ? '' : (videoByTheme[wallpaper] || 'stars')
+  const videoGroup = videoByTheme[wallpaper] || ''
   const videoSource = videoEnabled ? videoSources[videoGroup] : ''
 
   return (
@@ -262,6 +261,20 @@ body[data-wallpaper="glitch"]::before{background:radial-gradient(ellipse at 22% 
           from{transform:translate3d(0,15%,0)}
           to{transform:translate3d(-18px,-38%,0)}
         }
+        /* Les particules étoilées ne doivent apparaître que sur les fonds spatiaux. */
+        body::after { opacity:0!important; }
+        body[data-wallpaper="aurora"]::after,
+        body[data-wallpaper="space"]::after,
+        body[data-wallpaper="cosmos"]::after,
+        body[data-wallpaper="stars"]::after,
+        body[data-wallpaper="moon"]::after,
+        body[data-wallpaper="nebula"]::after,
+        body[data-wallpaper="galaxy"]::after,
+        body[data-wallpaper="blackhole"]::after,
+        body[data-wallpaper="comet"]::after,
+        body[data-wallpaper="meteor"]::after,
+        body[data-wallpaper="stardust"]::after,
+        body[data-wallpaper="eclipse"]::after { opacity:.2!important; }
         @media(prefers-reduced-motion:reduce){body::before,body::after{animation:none!important}.wb-wallpaper-video,.wb-matrix-rain span{display:none!important}}
       `}</style>
     </>
