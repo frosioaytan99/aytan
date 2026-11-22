@@ -8,6 +8,7 @@ import type { AppProps } from 'next/app'
 import { supabase } from '../lib/supabaseClient'
 import MemberAvatar from '../components/MemberAvatar'
 import AnimatedBackground from '../components/AnimatedBackground'
+import PushNotifications from '../components/PushNotifications'
 
 function NavIcon({name}:{name:string}) {
  const common={width:22,height:22,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:1.8,strokeLinecap:"round" as const,strokeLinejoin:"round" as const, "aria-hidden":true as const}
@@ -241,6 +242,7 @@ export default function App({ Component, pageProps }: AppProps) {
     <Analytics />
     <AnimatedBackground />
     <div className="global-tools global-tools-top">
+      {signedIn && <PushNotifications />}
       {guestName && <span className="guest-name-label">{guestName} · Consultation seule</span>}
       <button type="button" onClick={toggleTheme} aria-label="Changer le thème">{theme === 'dark' ? '☀️ Mode clair' : '🌙 Mode sombre'}</button>
     </div>
