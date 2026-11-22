@@ -12,6 +12,7 @@ export default function Home() {
         <title>Weshbien2 — Réseau social, communauté et discussions</title>
         <meta name="description" content="Rejoins Weshbien2, une communauté pour découvrir des profils, partager des moments, publier des photos et discuter dans un espace convivial." />
         <meta name="robots" content="index,follow,max-image-preview:large" />
+        <meta name="google-site-verification" content="HyKeI1FceH4iGYuGiDdCkeu0BcnbChrLE0ZOfWwgb7o" />
         <link rel="canonical" href="https://weshbien2-production.up.railway.app/" />
         <meta property="og:locale" content="fr_FR" />
         <meta property="og:type" content="website" />
