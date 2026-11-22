@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { supabase } from '../lib/supabaseClient'
 
 const wallpapers = [
+  { id: 'hearts', name: 'Pluie de cœurs', group: 'Romantique', colors: 'linear-gradient(135deg,#240817,#be185d,#fb7185)' },
   { id: 'aurora', name: 'Aurore', group: 'Ambiance', colors: 'linear-gradient(135deg,#312e81,#0f766e,#be185d)' },
   { id: 'ocean', name: 'Océan profond', group: 'Nature', colors: 'linear-gradient(135deg,#041b3a,#075985,#082f49)' },
   { id: 'sunset', name: 'Coucher de soleil', group: 'Nature', colors: 'linear-gradient(135deg,#31104a,#a83279,#f77f5b)' },
@@ -135,6 +136,7 @@ const wallpaperVideoByTheme: Record<string, string> = {
 }
 
 const darkWallpapers = [
+  { id: 'hearts', name: 'Pluie de cœurs', group: 'Romantique', colors: 'linear-gradient(135deg,#180611,#701a3d,#be185d)' },
   { id: 'cosmos', name: 'Cosmos nocturne', group: 'Espace', colors: 'linear-gradient(135deg,#020617,#312e81,#a855f7)' },
   { id: 'rain', name: 'Pluie sur la ville', group: 'Ville', colors: 'linear-gradient(135deg,#020617,#164e63,#64748b)' },
   { id: 'ocean', name: 'Océan de nuit', group: 'Nature', colors: 'linear-gradient(135deg,#020b20,#075985,#0e7490)' },
