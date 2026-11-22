@@ -20,6 +20,16 @@ export default function ImportAmisPage() {
     }
   }
 
+  async function loadCsvFile(e: any) {
+    const file = e.target.files?.[0] as File | undefined
+    if (!file) return
+    if (file.size > 2 * 1024 * 1024) { setMessage('Le fichier est trop volumineux (maximum 2 Mo).'); e.target.value = ''; return }
+    try {
+      setRaw(await file.text())
+      setMessage('Fichier chargé. Vérifie la liste puis appuie sur « Rechercher mes amis ».')
+    } catch { setMessage('Impossible de lire ce fichier. Essaie avec un fichier CSV ou TXT.') }
+    e.target.value = ''
+  }
   function copyInvitation() {
     const invitation = 'Salut ! Je suis sur Weshbien2, le nouveau site pour retrouver la communauté. Rejoins-nous ici : https://weshbien2-production.up.railway.app/auth\nCrée ton propre compte, puis recherche mon pseudo pour me retrouver. Ne partage jamais ton ancien mot de passe.'
     void copyText(invitation, 'Message d’invitation copié. Tu peux l’envoyer à tes anciens amis !')
@@ -67,7 +77,11 @@ export default function ImportAmisPage() {
         <p><small>Limite : l’extracteur ne lit que les liens de profils visibles dans la page ouverte. Il ne récupère ni mots de passe, ni messages, ni données privées. Vérifie le fichier avant import.</small></p>
       </section>
       <form onSubmit={searchFriends} className="card" style={{ padding: 18 }}>
-        <label htmlFor="old-friends-list">Liste des pseudos</label>
+        <h2>Importer facilement ton fichier</h2>
+        <label htmlFor="friends-csv-file">1. Choisis le fichier CSV téléchargé depuis Weshbien.com</label>
+        <input id="friends-csv-file" type="file" accept=".csv,.txt,text/csv,text/plain" onChange={loadCsvFile} style={{ display: 'block', width: '100%', margin: '10px 0 16px' }} />
+        <p style={{ textAlign: 'center', margin: '8px 0' }}>ou colle directement les pseudos ci-dessous</p>
+        <label htmlFor="old-friends-list">2. Liste des pseudos</label>
         <textarea id="old-friends-list" value={raw} onChange={e => setRaw(e.target.value)} rows={8} placeholder={'username,display_name,avatar_url\nOriana66,Oriana,\nCharli012,Charlie,\n'} style={{ width: '100%', marginTop: 10, padding: 12, borderRadius: 12 }} />
         <button type="submit" disabled={busy} style={{ marginTop: 12 }}>{busy ? 'Recherche…' : 'Rechercher mes amis'}</button>
       </form>
