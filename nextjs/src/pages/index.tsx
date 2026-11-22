@@ -12,14 +12,13 @@ export default function Home() {
         <title>Weshbien2 — Réseau social, communauté et discussions</title>
         <meta name="description" content="Rejoins Weshbien2, une communauté pour découvrir des profils, partager des moments, publier des photos et discuter dans un espace convivial." />
         <meta name="robots" content="index,follow,max-image-preview:large" />
-        <meta name="google-site-verification" content="5Bgr1zybvLtaN7wTU4Lkk4RV-wKJMrmya1_f68j9Ejk" />
-        <link rel="canonical" href="https://aytan-six.vercel.app/" />
+        <link rel="canonical" href="https://weshbien2-production.up.railway.app/" />
         <meta property="og:locale" content="fr_FR" />
         <meta property="og:type" content="website" />
         <meta property="og:site_name" content="Weshbien2" />
         <meta property="og:title" content="Weshbien2 — Des gens, des histoires, du lien" />
         <meta property="og:description" content="Découvre une communauté, partage tes moments et échange avec des personnes." />
-        <meta property="og:url" content="https://aytan-six.vercel.app/" />
+        <meta property="og:url" content="https://weshbien2-production.up.railway.app/" />
         <meta name="twitter:card" content="summary" />
         <meta name="twitter:title" content="Weshbien2 — Des gens, des histoires, du lien" />
         <meta name="twitter:description" content="Découvre une communauté, partage tes moments et échange avec des personnes dans un espace convivial." />
@@ -30,7 +29,7 @@ export default function Home() {
               "@context": "https://schema.org",
               "@type": "WebSite",
               "name": "Weshbien2",
-              "url": "https://aytan-six.vercel.app/",
+              "url": "https://weshbien2-production.up.railway.app/",
               "description": "Un réseau social pour découvrir une communauté, partager des moments et échanger dans un espace convivial.",
               "inLanguage": "fr-FR"
             })
