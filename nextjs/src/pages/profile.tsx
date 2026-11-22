@@ -8,7 +8,7 @@ import { isAllowedCommunityImage } from '../lib/communityMedia'
 import { uploadModeratedCommunityImage } from '../lib/uploadModeratedCommunityImage'
 import { calculateCompatibility } from '../lib/compatibility'
 
-type ProfileData = { id:string; display_name:string|null; username:string|null; bio:string|null; interests:string|null; avatar_url?:string|null; is_private:boolean|null; age?:number|null; city?:string|null; favorite_music?:string|null; hobbies?:string|null; gallery_urls?:string[]|null; last_seen_at?:string|null }
+type ProfileData = { id:string; display_name:string|null; username:string|null; bio:string|null; interests:string|null; avatar_url?:string|null; is_private:boolean|null; age?:number|null; city?:string|null; favorite_music?:string|null; hobbies?:string|null; gender?:string|null; gallery_urls?:string[]|null; last_seen_at?:string|null }
 type FriendRequest = { id:string; sender_id:string; recipient_id:string; status:'pending'|'accepted'|'declined' }
 
 export default function ProfilePage() {
@@ -25,6 +25,7 @@ export default function ProfilePage() {
  const [city,setCity]=useState('')
  const [favoriteMusic,setFavoriteMusic]=useState('')
  const [hobbies,setHobbies]=useState('')
+ const [gender,setGender]=useState('')
  const [galleryUrls,setGalleryUrls]=useState<string[]>([])
  const [profilePhotoUrls,setProfilePhotoUrls]=useState<string[]>([])
  const [galleryBusy,setGalleryBusy]=useState(false)
@@ -70,17 +71,17 @@ export default function ProfilePage() {
    if(!cancelled)setFriendCount(friendCountResult.count||0)
    const {data:{session}}=await supabase.auth.getSession()
    if(session?.access_token){const roleResponse=await fetch('/api/member-role?user_id='+encodeURIComponent(target),{headers:{Authorization:'Bearer '+session.access_token},cache:'no-store'});const rolePayload=await roleResponse.json().catch(()=>null);setProfileRole(roleResponse.ok&&['admin','moderator'].includes(rolePayload?.role)?rolePayload.role:'member')}else setProfileRole('member')
-   const {data,error}=await supabase.from('profiles').select('id,display_name,username,bio,interests,avatar_url,is_private,age,city,favorite_music,hobbies,gallery_urls,last_seen_at').eq('id',target).maybeSingle()
+   const {data,error}=await supabase.from('profiles').select('id,display_name,username,bio,interests,avatar_url,is_private,age,city,favorite_music,hobbies,gender,gallery_urls,last_seen_at').eq('id',target).maybeSingle()
    if(cancelled)return
    if(error){setProfile(null);setStatus('Impossible de charger ce profil : '+error.message)}
    else if(data){
     if(target!==user.id){const {data:ownProfile}=await supabase.from('profiles').select('interests,hobbies,favorite_music,city').eq('id',user.id).maybeSingle();setCompatibility(ownProfile?calculateCompatibility(ownProfile,data):null)}
-    setProfile(data as ProfileData);setName(data.display_name||'');setUsername(data.username||'');setBio(data.bio||'');setInterests(data.interests||'');setAvatarUrl(data.avatar_url||'');setPrivateProfile(!!data.is_private);setAge(data.age?String(data.age):'');setCity(data.city||'');setFavoriteMusic(data.favorite_music||'');setHobbies(data.hobbies||'');setGalleryUrls(data.gallery_urls||[])
+    setProfile(data as ProfileData);setName(data.display_name||'');setUsername(data.username||'');setBio(data.bio||'');setInterests(data.interests||'');setAvatarUrl(data.avatar_url||'');setPrivateProfile(!!data.is_private);setAge(data.age?String(data.age):'');setCity(data.city||'');setFavoriteMusic(data.favorite_music||'');setHobbies(data.hobbies||'');setGender(data.gender||'');setGalleryUrls(data.gallery_urls||[])
     const {data:photoPosts}=await supabase.from('posts').select('image_url,image_urls').eq('author_id',target).order('created_at',{ascending:false}).limit(200)
     const postPhotoUrls=(photoPosts||[]).flatMap((post:any)=>post.image_urls?.length?post.image_urls:(post.image_url?[post.image_url]:[])).filter((url:any)=>typeof url==='string'&&url)
     setProfilePhotoUrls([...new Set([...(data.gallery_urls||[]),...postPhotoUrls])])
     if(target!==user.id){await loadFriendState(user.id,target);const likes=await supabase.from('profile_likes').select('id',{count:'exact',head:true}).eq('to_user_id',target);const mine=await supabase.from('profile_likes').select('id').eq('from_user_id',user.id).eq('to_user_id',target).maybeSingle();setLikeCount(likes.count||0);setLiked(!!mine.data);const follows=await supabase.from('profile_follows').select('id',{count:'exact',head:true}).eq('followed_id',target);const mineFollow=await supabase.from('profile_follows').select('id').eq('follower_id',user.id).eq('followed_id',target).maybeSingle();setFollowerCount(follows.count||0);setFollowing(!!mineFollow.data)}
-   }else{setProfile(null);setName('');setUsername('');setBio('');setInterests('');setGalleryUrls([]);setProfilePhotoUrls([]);setAge('');setCity('');setFavoriteMusic('');setHobbies('');setPrivateProfile(true);setStatus(target===user.id?'Ton profil n’a pas encore été créé. Tu peux le compléter ci-dessous.':'Ce profil est introuvable, privé ou indisponible.')}
+   }else{setProfile(null);setName('');setUsername('');setBio('');setInterests('');setGalleryUrls([]);setProfilePhotoUrls([]);setAge('');setCity('');setFavoriteMusic('');setHobbies('');setGender('');setPrivateProfile(true);setStatus(target===user.id?'Ton profil n’a pas encore été créé. Tu peux le compléter ci-dessous.':'Ce profil est introuvable, privé ou indisponible.')}
    if(!cancelled)setLoading(false)
   }
   loadProfile()
@@ -141,7 +142,7 @@ export default function ProfilePage() {
   setStatus('')
   const parsedAge=age.trim()===''?null:Number(age)
   if(parsedAge!==null&&(!Number.isInteger(parsedAge)||parsedAge<13||parsedAge>26)){setStatus('L’âge doit être compris entre 13 et 26 ans.');return}
-  const {data,error}=await supabase.from('profiles').upsert({id:uid,display_name:name.trim(),username:username.trim().toLowerCase(),bio:bio.trim(),interests:interests.trim(),avatar_url:avatarUrl||null,is_private:privateProfile,age:parsedAge,city:city.trim(),favorite_music:favoriteMusic.trim(),hobbies:hobbies.trim(),gallery_urls:galleryUrls},{onConflict:'id'}).select('id,display_name,username,bio,interests,avatar_url,is_private,age,city,favorite_music,hobbies,gallery_urls').single()
+  const {data,error}=await supabase.from('profiles').upsert({id:uid,display_name:name.trim(),username:username.trim().toLowerCase(),bio:bio.trim(),interests:interests.trim(),avatar_url:avatarUrl||null,is_private:privateProfile,age:parsedAge,city:city.trim(),favorite_music:favoriteMusic.trim(),hobbies:hobbies.trim(),gender:gender||null,gallery_urls:galleryUrls},{onConflict:'id'}).select('id,display_name,username,bio,interests,avatar_url,is_private,age,city,favorite_music,hobbies,gender,gallery_urls').single()
   if(error){setStatus('Enregistrement impossible : '+error.message);return}
   setProfile(data as ProfileData);setStatus('Profil enregistré !')
  }
@@ -237,6 +238,7 @@ export default function ProfilePage() {
      <label>Nom affiché<input maxLength={50} value={name} onChange={e=>setName(e.target.value)} placeholder="Ton nom affiché"/></label>
      <label>Pseudo<input required pattern="[a-zA-Z0-9_]{3,24}" value={username} onChange={e=>setUsername(e.target.value)} placeholder="pseudo (3 à 24 caractères)"/></label>
      <label>Âge (obligatoire)<input type="number" min="13" max="26" required value={age} onChange={e=>setAge(e.target.value)} placeholder="Ton âge"/></label>
+     <label>Genre (facultatif)<select value={gender} onChange={e=>setGender(e.target.value)}><option value="">Ne pas préciser</option><option>Homme</option><option>Femme</option><option>Homme trans</option><option>Femme trans</option><option>Transgenre</option><option>Non-binaire</option><option>Genderfluid</option><option>Agenre</option><option>Bigenre</option><option>Demigenre</option><option>Pangenre</option><option>Androgyne</option><option>Neutrois</option><option>Queer</option><option>En questionnement</option><option>Autre</option><option>Préfère ne pas préciser</option></select></label>
      <label>Ville (facultatif)<input maxLength={80} value={city} onChange={e=>setCity(e.target.value)} placeholder="Ta ville"/></label>
      <label>À propos de toi<textarea maxLength={300} value={bio} onChange={e=>setBio(e.target.value)} placeholder="Présente-toi en quelques mots…"/></label>
      <label>Centres d’intérêt<input maxLength={180} value={interests} onChange={e=>setInterests(e.target.value)} placeholder="Musique, sport, jeux vidéo…"/></label>
@@ -253,7 +255,7 @@ export default function ProfilePage() {
      {!blocked&&profile.age!==undefined&&profile.age!==null&&profile.age>=18&&<button type="button" className="profile-add-friend-button" disabled={friendBusy||coupleStatus==='pending'} onClick={requestCouple}>{coupleStatus==='pending'?'Demande envoyée 💞':'💞 Proposer d’être en couple'}</button>}
      {!blocked&&<Link className="profile-add-friend-button" href={'/ask-question?to='+encodeURIComponent(profile.id)}>❓ Poser une question</Link>}
      <div className="profile-public-tabs" role="tablist" aria-label="Sections du profil"><button type="button" role="tab" aria-selected={activeProfileTab==='about'} className={activeProfileTab==='about'?'active':''} onClick={()=>setActiveProfileTab('about')}>À propos</button><button type="button" role="tab" aria-selected={activeProfileTab==='photos'} className={activeProfileTab==='photos'?'active':''} onClick={()=>setActiveProfileTab('photos')}>Photos ({profilePhotoUrls.length})</button></div>
-     {activeProfileTab==='about'&&<section id="profile-about" className="profile-about-section"><h3>À propos</h3><p>{profile.bio||'Ce membre n’a pas encore ajouté de présentation.'}</p><div className="profile-details-grid">{profile.age&&<p><strong>Âge</strong><span>{profile.age} ans</span></p>}{profile.city&&<p><strong>Ville</strong><span>{profile.city}</span></p>}{profile.interests&&<p><strong>Centres d’intérêt</strong><span>{profile.interests}</span></p>}{profile.hobbies&&<p><strong>Loisirs et passions</strong><span>{profile.hobbies}</span></p>}{profile.favorite_music&&<p><strong>Musique préférée</strong><span>{profile.favorite_music}</span></p>}</div>{profile.last_seen_at&&<p className="profile-last-seen"><strong>Dernière connexion :</strong> {new Date(profile.last_seen_at).toLocaleString('fr-FR',{dateStyle:'medium',timeStyle:'short'})}</p>}</section>}
+     {activeProfileTab==='about'&&<section id="profile-about" className="profile-about-section"><h3>À propos</h3><p>{profile.bio||'Ce membre n’a pas encore ajouté de présentation.'}</p><div className="profile-details-grid">{profile.age&&<p><strong>Âge</strong><span>{profile.age} ans</span></p>}{profile.gender&&<p><strong>Genre</strong><span>{profile.gender}</span></p>}{profile.city&&<p><strong>Ville</strong><span>{profile.city}</span></p>}{profile.interests&&<p><strong>Centres d’intérêt</strong><span>{profile.interests}</span></p>}{profile.hobbies&&<p><strong>Loisirs et passions</strong><span>{profile.hobbies}</span></p>}{profile.favorite_music&&<p><strong>Musique préférée</strong><span>{profile.favorite_music}</span></p>}</div>{profile.last_seen_at&&<p className="profile-last-seen"><strong>Dernière connexion :</strong> {new Date(profile.last_seen_at).toLocaleString('fr-FR',{dateStyle:'medium',timeStyle:'short'})}</p>}</section>}
      {activeProfileTab==='photos'&&<section id="profile-photos" className="profile-gallery-view"><h3>Ses photos</h3>{profilePhotoUrls.length>0?<div className="profile-gallery-grid">{profilePhotoUrls.map(url=><CommunityImage key={url} src={url} alt="Photo du membre"/>)}</div>:<p className="profile-empty-photos">Ce membre n’a pas encore ajouté de photos.</p>}</section>}<p className="profile-likes-count">♡ {likeCount} {likeCount===1?'like':'likes'}</p>
      {!blocked&&<button type="button" className="profile-like-button" disabled={friendBusy} onClick={toggleLike}>{liked?'♥ Tu aimes ce profil':'♡ J’aime ce profil'}</button>}{blocked&&<p className="notice">Cette personne est bloquée. Elle ne peut plus t’envoyer de messages.</p>}{friendRequest?.status==='accepted'&&<button type="button" className="friend-secondary profile-remove-friend" disabled={friendBusy} onClick={removeFriend}>Retirer des amis</button>}
      <button type="button" className={blocked?'friend-secondary':'danger-action'} disabled={friendBusy} onClick={toggleBlock}>{blocked?'Débloquer cette personne':'Bloquer cette personne'}</button>
