@@ -98,10 +98,21 @@ export default function AuthPage() {
         setMessage('Inscription presque terminée ! Ouvre le lien envoyé par e-mail pour confirmer ton adresse et activer ton compte.')
       }
     } else {
-      const { error } = await supabase.auth.signInWithPassword({ email: cleanEmail, password })
+      const { data: loginData, error } = await supabase.auth.signInWithPassword({ email: cleanEmail, password })
       if (error) {
         setMessage(`Connexion impossible : ${error.message}`)
       } else {
+        const accessToken = loginData.session?.access_token
+        if (accessToken) {
+          const suspensionResponse = await fetch('/api/account-suspension', { headers: { Authorization: 'Bearer ' + accessToken }, cache: 'no-store' })
+          const suspension = await suspensionResponse.json().catch(() => null)
+          if (suspensionResponse.ok && suspension?.suspended) {
+            await supabase.auth.signOut()
+            setMessage('Connexion refusée : ton compte est suspendu. Motif : ' + (suspension.reason || 'Motif non précisé.') + ' Si tu penses qu’il s’agit d’une erreur, contacte la modération.')
+            setLoading(false)
+            return
+          }
+        }
         const { data: { user } } = await supabase.auth.getUser()
         if (user) {
           const savedUsername = String(user.user_metadata?.username || '').trim().toLowerCase()
