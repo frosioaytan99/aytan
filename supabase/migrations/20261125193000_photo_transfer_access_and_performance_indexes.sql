@@ -36,3 +36,32 @@ begin
 end $$;
 create index if not exists messages_sender_recipient_created_idx on public.messages(sender,recipient,created_at desc);
 create index if not exists messages_recipient_sender_created_idx on public.messages(recipient,sender,created_at desc);
+
+-- Keep the entire Individuel space adult-only and require admin approval for anonymous transfers.
+
+drop policy if exists anonymous_individual_posts_require_transfer_approval on public.individual_posts;
+drop policy if exists individual_posts_adult_access_and_transfer_approval on public.individual_posts;
+create policy individual_posts_adult_access_and_transfer_approval
+  on public.individual_posts as restrictive
+  for insert to authenticated
+  with check (
+    exists (
+      select 1 from public.profiles p
+      where p.id=(select auth.uid()) and p.age>=18
+    )
+    and (
+      is_anonymous=false
+      or exists (
+        select 1 from public.photo_transfer_access a
+        where a.user_id=(select auth.uid()) and a.status='approved'
+      )
+    )
+  );
+drop policy if exists individual_posts_adults_only_read on public.individual_posts;
+create policy individual_posts_adults_only_read
+  on public.individual_posts as restrictive
+  for select to authenticated
+  using (
+    exists (select 1 from public.profiles p where p.id=(select auth.uid()) and p.age>=18)
+    or exists (select 1 from public.user_roles r where r.user_id=(select auth.uid()) and r.role in ('admin','moderator'))
+  );
