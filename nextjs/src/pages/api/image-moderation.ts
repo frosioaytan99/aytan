@@ -93,7 +93,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         flagged: true,
         categories: { trusted_bypass: true, admin_bypass: isAdmin },
         category_scores: {},
-        decision: isAdmin ? 'admin_bypass' : 'trusted_bypass',
+        decision: 'automatic',
         context: uploadContext,
       })
       if (logError) {
