@@ -6,6 +6,8 @@ export const config = {
   api: { bodyParser: { sizeLimit: '12mb' } },
 }
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+
 const MIME_EXTENSIONS: Record<string, string> = {
   'image/jpeg': 'jpg',
   'image/png': 'png',
@@ -49,6 +51,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (authData.user.is_anonymous) return res.status(403).json({ error: 'guest_uploads_not_allowed' })
 
     const adminDb = createClient(url, service, { auth: { persistSession: false, autoRefreshToken: false } })
+    const purpose = req.body?.purpose === 'private_message' ? 'private_message' : null
+    const recipientId = typeof req.body?.recipient_id === 'string' ? req.body.recipient_id.trim() : ''
+    let uploadContext: Record<string, any> = {}
+    if (purpose === 'private_message') {
+      if (!UUID_RE.test(recipientId) || recipientId === authData.user.id) return res.status(400).json({ error: 'invalid_message_recipient' })
+      const { data: friendship, error: friendshipError } = await adminDb.from('friend_requests')
+        .select('id').eq('status', 'accepted')
+        .or(`and(sender_id.eq.${authData.user.id},recipient_id.eq.${recipientId}),and(sender_id.eq.${recipientId},recipient_id.eq.${authData.user.id})`)
+        .maybeSingle()
+      if (friendshipError) return res.status(503).json({ error: 'friendship_check_failed' })
+      if (!friendship) return res.status(403).json({ error: 'messages_require_friendship' })
+      const { data: block, error: blockError } = await adminDb.from('blocks').select('blocker_id')
+        .or(`and(blocker_id.eq.${authData.user.id},blocked_id.eq.${recipientId}),and(blocker_id.eq.${recipientId},blocked_id.eq.${authData.user.id})`)
+        .maybeSingle()
+      if (blockError) return res.status(503).json({ error: 'block_check_failed' })
+      if (block) return res.status(403).json({ error: 'messaging_blocked' })
+      uploadContext = { purpose, recipient_id: recipientId }
+    }
     const { data: settings, error: settingsError } = await adminDb
       .from('ai_moderation_settings').select('enabled').eq('id', true).single()
     if (settingsError || !settings) return res.status(503).json({ error: 'moderation_settings_unavailable' })
@@ -74,6 +94,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         categories: { trusted_bypass: true, admin_bypass: isAdmin },
         category_scores: {},
         decision: isAdmin ? 'admin_bypass' : 'trusted_bypass',
+        context: uploadContext,
       })
       if (logError) {
         await adminDb.storage.from('community-private').remove([path])
@@ -98,6 +119,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         categories: {},
         category_scores: {},
         decision: 'automatic',
+        context: uploadContext,
       })
       if (logError) {
         await adminDb.storage.from('community-private').remove([path])
@@ -205,6 +227,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       categories,
       category_scores: scores,
       decision: 'automatic',
+      context: uploadContext,
     })
     if (logError) {
       await adminDb.storage.from('community-private').remove([path])
