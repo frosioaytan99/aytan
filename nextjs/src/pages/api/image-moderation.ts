@@ -53,6 +53,30 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       .from('ai_moderation_settings').select('enabled').eq('id', true).single()
     if (settingsError || !settings) return res.status(503).json({ error: 'moderation_settings_unavailable' })
 
+    // Explicitly trusted accounts may bypass the automatic decision, but every image is still stored privately for moderator review.
+    const { data: bypassGrant } = await adminDb.from('photo_moderation_bypass_users').select('user_id').eq('user_id', authData.user.id).maybeSingle()
+    if (bypassGrant) {
+      const ext = MIME_EXTENSIONS[mime]
+      const path = `${authData.user.id}/image-${Date.now()}-${Math.random().toString(36).slice(2, 9)}.${ext}`
+      const { error: uploadError } = await adminDb.storage.from('community-private').upload(path, bytes, { contentType: mime, upsert: false })
+      if (uploadError) return res.status(500).json({ error: 'image_evidence_storage_failed' })
+      const { error: logError } = await adminDb.from('ai_moderation_logs').insert({
+        user_id: authData.user.id,
+        content: '[Photo envoyée avec autorisation de contournement IA]',
+        image_path: path,
+        allowed: true,
+        flagged: false,
+        categories: { trusted_bypass: true },
+        category_scores: {},
+        decision: 'trusted_bypass',
+      })
+      if (logError) {
+        await adminDb.storage.from('community-private').remove([path])
+        return res.status(500).json({ error: 'moderation_log_save_failed' })
+      }
+      return res.status(200).json({ image_url: 'private-media:' + path, bypassed: true })
+    }
+
     // Private-message photos must fail closed: never send them while AI moderation is paused.
     if (!settings.enabled && (req.body?.purpose === 'private_message' || mime === 'image/gif')) {
       return res.status(503).json({ error: 'photo_moderation_paused', message: 'La vérification IA des photos et GIF est temporairement indisponible. Le fichier n’a pas été envoyé.' })
