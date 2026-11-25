@@ -65,7 +65,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         content: '[Photo envoyée avec autorisation de contournement IA]',
         image_path: path,
         allowed: true,
-        flagged: false,
+        flagged: true,
         categories: { trusted_bypass: true },
         category_scores: {},
         decision: 'trusted_bypass',
