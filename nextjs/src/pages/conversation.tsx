@@ -202,17 +202,24 @@ export default function ConversationPage(){
  function captureCameraPhoto(){
   const video=cameraVideoRef.current
   if(!video||!video.videoWidth||!video.videoHeight){setStatus('La caméra n’est pas encore prête.');return}
+  // Downscale camera frames before moderation/upload: some phones produce
+  // very large JPEGs that exceed the API's base64 request limit.
+  const maxDimension=1600
+  const scale=Math.min(1,maxDimension/Math.max(video.videoWidth,video.videoHeight))
   const canvas=document.createElement('canvas')
-  canvas.width=video.videoWidth;canvas.height=video.videoHeight
+  canvas.width=Math.max(1,Math.round(video.videoWidth*scale))
+  canvas.height=Math.max(1,Math.round(video.videoHeight*scale))
   const context=canvas.getContext('2d')
   if(!context){setStatus('Capture impossible.');return}
   context.drawImage(video,0,0,canvas.width,canvas.height)
+  setStatus('Préparation de la photo…')
   canvas.toBlob(blob=>{
-   if(!blob){setStatus('La photo n’a pas pu être créée.');return}
-   const file=new File([blob],'photo-'+Date.now()+'.jpg',{type:'image/jpeg'})
+   if(!blob){setStatus('La photo n’a pas pu être créée. Réessaie.');return}
+   if(blob.size>8*1024*1024){setStatus('La photo est trop volumineuse. Réessaie.');return}
+   const file=new File([blob],'photo-'+Date.now()+'.jpg',{type:'image/jpeg',lastModified:Date.now()})
    setCameraOpen(false)
    void sendAttachment(file,'image')
-  },'image/jpeg',0.9)
+  },'image/jpeg',0.82)
  }
 
  function addSpotifyLink(){
