@@ -17,6 +17,7 @@ export default function ProfilePage() {
  const [me,setMe]=useState(false)
  const [profile,setProfile]=useState<ProfileData|null>(null)
  const [profileRole,setProfileRole]=useState<'admin'|'moderator'|'member'>('member')
+ const [profileBadges,setProfileBadges]=useState<Array<{id:string;name:string;description:string;emoji:string}>>([])
  const [name,setName]=useState('')
  const [username,setUsername]=useState('')
  const [bio,setBio]=useState('')
@@ -71,6 +72,8 @@ export default function ProfilePage() {
    const {data:{session}}=await supabase.auth.getSession()
    if(session?.access_token){const roleResponse=await fetch('/api/member-role?user_id='+encodeURIComponent(target),{headers:{Authorization:'Bearer '+session.access_token},cache:'no-store'});const rolePayload=await roleResponse.json().catch(()=>null);setProfileRole(roleResponse.ok&&['admin','moderator'].includes(rolePayload?.role)?rolePayload.role:'member')}else setProfileRole('member')
    const {data,error}=await supabase.from('profiles').select('id,display_name,username,bio,interests,avatar_url,is_private,age,city,favorite_music,hobbies,gender,gallery_urls,last_seen_at').eq('id',target).maybeSingle()
+   const {data:badgeRows}=await supabase.from('user_badges').select('badge_id,badges(id,name,description,emoji)').eq('user_id',target)
+   if(!cancelled)setProfileBadges((badgeRows||[]).map((row:any)=>Array.isArray(row.badges)?row.badges[0]:row.badges).filter(Boolean))
    if(cancelled)return
    if(error){setProfile(null);setStatus('Impossible de charger ce profil : '+error.message)}
    else if(data){
