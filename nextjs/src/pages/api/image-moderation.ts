@@ -77,12 +77,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(200).json({ image_url: 'private-media:' + path, bypassed: true })
     }
 
-    // Private-message photos must fail closed: never send them while AI moderation is paused.
-    if (!settings.enabled && (req.body?.purpose === 'private_message' || mime === 'image/gif')) {
-      return res.status(503).json({ error: 'photo_moderation_paused', message: 'La vérification IA des photos et GIF est temporairement indisponible. Le fichier n’a pas été envoyé.' })
-    }
-
-    // Accept other uploads while AI moderation is paused, store them privately, and log them for moderator review.
+    // While AI moderation is paused, accept photos and GIFs without automatic analysis.
+    // Keep originals in private storage and log them for later moderator review.
     if (!settings.enabled) {
       const ext = MIME_EXTENSIONS[mime]
       const path = `${authData.user.id}/image-${Date.now()}-${Math.random().toString(36).slice(2, 9)}.${ext}`
