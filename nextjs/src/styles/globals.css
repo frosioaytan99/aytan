@@ -2162,3 +2162,47 @@ p,h1,h2,h3,h4,h5,h6,a,button,label,small,span{overflow-wrap:anywhere}
 .profile-photo-lightbox{position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.94);display:flex;align-items:center;justify-content:center;padding:56px 16px 24px;cursor:zoom-out}
 .profile-photo-lightbox-image{display:block;max-width:min(96vw,1200px);max-height:88vh;width:auto;height:auto;object-fit:contain;border-radius:8px}
 .profile-photo-lightbox-close{position:absolute;top:12px;right:16px;width:44px;height:44px;border:0;border-radius:50%;background:rgba(255,255,255,.16);color:#fff;font-size:32px;line-height:1;cursor:pointer}
+
+
+/* Menu desktop complet : toutes les rubriques mobiles sont aussi accessibles sur ordinateur */
+@media(min-width:651px){
+  .desktop-community-header{gap:clamp(10px,1.5vw,22px)}
+  .desktop-community-nav{overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:thin}
+  .desktop-nav-more-wrap{position:relative}
+  .desktop-header-actions .desktop-all-features-button{
+    width:auto;min-width:42px;padding:0 12px;display:flex;align-items:center;justify-content:center;gap:7px;
+    white-space:nowrap;font-size:13px;font-weight:800;border-radius:12px;
+  }
+  .desktop-feature-menu{
+    position:absolute;right:0;top:calc(100% + 14px);z-index:1000;
+    width:min(620px,calc(100vw - 36px));max-height:min(72vh,680px);overflow:auto;
+    padding:18px;border:1px solid var(--line);border-radius:18px;
+    background:var(--paper,#fff);color:var(--ink);box-shadow:0 18px 55px #17122b30;
+  }
+  .desktop-feature-menu>strong{display:block;margin:0 0 12px;font-size:15px}
+  .desktop-feature-menu-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px}
+  .desktop-feature-menu-grid>a{
+    display:flex;align-items:center;gap:8px;min-width:0;padding:11px 9px;
+    border-radius:10px;color:var(--ink);font-size:12px;font-weight:700;text-decoration:none;
+  }
+  .desktop-feature-menu-grid>a>span{width:20px;flex:0 0 20px;color:var(--purple);text-align:center;font-size:16px}
+  .desktop-feature-menu-grid>a:hover,.desktop-feature-menu-grid>a.active{background:color-mix(in srgb,var(--purple) 11%,transparent);color:var(--purple)}
+  .desktop-feature-menu-grid .desktop-nav-count{margin-left:auto;flex:0 0 auto}
+  .desktop-header-actions .desktop-icon-link{position:relative;text-decoration:none}
+  .desktop-header-actions .desktop-icon-link i{
+    position:absolute;top:-5px;right:-5px;min-width:16px;height:16px;padding:0 4px;
+    display:grid;place-items:center;border:1px solid var(--paper,#fff);border-radius:20px;
+    background:#d52be5;color:white;font-size:9px;font-style:normal;font-weight:800;
+  }
+}
+@media(min-width:651px) and (max-width:900px){
+  .desktop-header-actions .desktop-all-features-button span{display:none}
+  .desktop-community-header{gap:9px}
+}
+@media(min-width:651px) and (max-width:720px){
+  .desktop-community-nav{gap:8px}
+  .desktop-community-nav a{font-size:10px}
+  .desktop-feature-menu-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+html[data-theme="dark"] .desktop-feature-menu{background:#201d2e;border-color:#353047;color:#f0edff}
+html[data-theme="dark"] .desktop-feature-menu-grid>a{color:#f0edff}
