@@ -2154,3 +2154,11 @@ p,h1,h2,h3,h4,h5,h6,a,button,label,small,span{overflow-wrap:anywhere}
   .global-tools a,.global-tools button{padding:8px 9px;font-size:9px}
   .auth-card{padding:18px!important}
 }
+
+
+/* Visionneuse plein écran des photos de profil */
+.profile-photo-open{display:block;width:100%;padding:0;border:0;background:transparent;cursor:zoom-in;border-radius:16px;overflow:hidden}
+.profile-photo-open img{display:block;width:100%;height:100%;object-fit:cover}
+.profile-photo-lightbox{position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.94);display:flex;align-items:center;justify-content:center;padding:56px 16px 24px;cursor:zoom-out}
+.profile-photo-lightbox-image{display:block;max-width:min(96vw,1200px);max-height:88vh;width:auto;height:auto;object-fit:contain;border-radius:8px}
+.profile-photo-lightbox-close{position:absolute;top:12px;right:16px;width:44px;height:44px;border:0;border-radius:50%;background:rgba(255,255,255,.16);color:#fff;font-size:32px;line-height:1;cursor:pointer}
