@@ -36,8 +36,10 @@ export default function ModerationTeam() {
         <div className="moderation-team-grid">
           {members.map(member => <Link href={'/profile?id=' + member.id} className="card moderation-team-member" key={member.id}>
             <MemberAvatar userId={member.id} name={member.display_name || member.username || 'Membre'} avatarUrl={member.avatar_url} className="avatar large" />
-            <div><strong>{member.display_name || member.username || 'Membre'}</strong><p>@{member.username || 'membre'}</p>
-              <span className={'moderation-role-pill ' + member.role}>{member.role === 'admin' ? '🛡️ Administrateur' : '🔧 Modérateur'}</span>
+            <div style={{display:'flex',alignItems:'center',flexWrap:'wrap',columnGap:10,rowGap:4,minWidth:0}}>
+              <strong>{member.display_name || member.username || 'Membre'}</strong>
+              <span className={'moderation-role-pill ' + member.role} style={{display:'inline-flex',alignItems:'center',whiteSpace:'nowrap',margin:0}}>{member.role === 'admin' ? '🛡️ Administrateur' : '🔧 Modérateur'}</span>
+              <p style={{flexBasis:'100%',margin:'2px 0 0'}}>@{member.username || 'membre'}</p>
             </div>
           </Link>)}
         </div>}
