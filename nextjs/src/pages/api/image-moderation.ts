@@ -54,8 +54,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (settingsError || !settings) return res.status(503).json({ error: 'moderation_settings_unavailable' })
 
     // Private-message photos must fail closed: never send them while AI moderation is paused.
-    if (!settings.enabled && req.body?.purpose === 'private_message') {
-      return res.status(503).json({ error: 'photo_moderation_paused', message: 'La vérification IA des photos est temporairement indisponible. La photo n’a pas été envoyée.' })
+    if (!settings.enabled && (req.body?.purpose === 'private_message' || mime === 'image/gif')) {
+      return res.status(503).json({ error: 'photo_moderation_paused', message: 'La vérification IA des photos et GIF est temporairement indisponible. Le fichier n’a pas été envoyé.' })
     }
 
     // Accept other uploads while AI moderation is paused, store them privately, and log them for moderator review.
