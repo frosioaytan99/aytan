@@ -67,16 +67,16 @@ export default function AdminPage(){
    const bypassPayload=await bypassResponse.json().catch(()=>null)
    if(bypassResponse.ok&&Array.isArray(bypassPayload?.users))setPhotoBypass(bypassPayload.users.map((item:any)=>item.user_id))
    else setStatus('Lecture des autorisations photo impossible : '+(bypassPayload?.error||'erreur serveur'))
-   const transferResponse=await fetch('/api/admin/photo-transfer-access',{headers:{Authorization:'Bearer '+session.access_token},cache:'no-store'})
-   const transferPayload=await transferResponse.json().catch(()=>null)
-   if(transferResponse.ok&&Array.isArray(transferPayload?.requests))setTransferAccess(transferPayload.requests)
-   else setStatus('Lecture des demandes de transfert impossible : '+(transferPayload?.error||'erreur serveur'))
 if(session.user.id==='928fbdab-d471-4bfd-a98e-21d05f86a825'){
     const emailResponse=await fetch('/api/admin/email-controls',{headers:{Authorization:'Bearer '+session.access_token}})
     const emailPayload=await emailResponse.json().catch(()=>null)
     if(emailResponse.ok){setEmails(emailPayload.emails||{});setBlockedEmails(emailPayload.blocked||[])}else{setStatus('Lecture des adresses e-mail impossible : '+(emailPayload?.error||'erreur serveur'))}
    }
   }
+  const transferResponse=await fetch('/api/admin/photo-transfer-access',{headers:{Authorization:'Bearer '+session.access_token},cache:'no-store'})
+  const transferPayload=await transferResponse.json().catch(()=>null)
+  if(transferResponse.ok&&Array.isArray(transferPayload?.requests))setTransferAccess(transferPayload.requests)
+  else setStatus('Lecture des demandes de transfert impossible : '+(transferPayload?.error||'erreur serveur'))
  }
 
  useEffect(()=>{(async()=>{
