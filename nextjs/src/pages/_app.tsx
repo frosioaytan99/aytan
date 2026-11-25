@@ -231,6 +231,21 @@ export default function App({ Component, pageProps }: AppProps) {
       if (unreadRefreshTimer) clearInterval(unreadRefreshTimer)
     }
   }, [])
+  useEffect(() => {
+    const protectHiddenScreen = () => {
+      document.documentElement.dataset.privacyHidden = document.visibilityState === 'hidden' ? 'true' : 'false'
+    }
+    document.addEventListener('visibilitychange', protectHiddenScreen)
+    window.addEventListener('pagehide', protectHiddenScreen)
+    window.addEventListener('pageshow', protectHiddenScreen)
+    protectHiddenScreen()
+    return () => {
+      document.removeEventListener('visibilitychange', protectHiddenScreen)
+      window.removeEventListener('pagehide', protectHiddenScreen)
+      window.removeEventListener('pageshow', protectHiddenScreen)
+      delete document.documentElement.dataset.privacyHidden
+    }
+  }, [])
   function toggleTheme() {
     const next = theme === 'dark' ? 'light' : 'dark'
     setTheme(next); document.documentElement.dataset.theme = next
@@ -239,6 +254,7 @@ export default function App({ Component, pageProps }: AppProps) {
   return <>
     <Head><meta name="google-site-verification" content="MiAGQqrXcSge5uV8DQyKa41fieTb7QCnMuOUDyTwAF8" /><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" /><link rel="manifest" href="/manifest.json" /><meta name="theme-color" content="#7c3aed" /></Head>
     <AnimatedBackground />
+    {signedIn && router.pathname === '/conversation' && <div className="private-chat-watermark" aria-hidden="true"><span>WESHBIEN2 • MESSAGE PRIVÉ • NE PAS DIFFUSER</span></div>}
     <div className="global-tools global-tools-top">
       {signedIn && <PushNotifications />}
       {guestName && <span className="guest-name-label">{guestName} · Consultation seule</span>}
