@@ -7,7 +7,7 @@ import CommunityImage from '../components/CommunityImage'
 import { isAllowedCommunityImage, communityImageExtension } from '../lib/communityMedia'
 
 type Comment = { id:string; post_id:string; author_id:string; body:string; created_at:string; profile?:any }
-type Post = { id:string; author_id:string; body:string; image_urls:string[]; created_at:string; profile?:any; likes:number; liked:boolean; comments:Comment[] }
+type Post = { id:string; author_id:string; body:string; image_urls:string[]; created_at:string; is_anonymous?:boolean; profile?:any; likes:number; liked:boolean; comments:Comment[] }
 
 export default function IndividualPage() {
   const [accepted,setAccepted]=useState(false)
@@ -163,7 +163,7 @@ export default function IndividualPage() {
             </form>
             {status&&<p className="notice" role="status">{status}</p>}
             {loading?<div className="card empty">Chargement de l’espace Individuel…</div>:posts.length===0?<div className="card empty"><h3>Pas encore de publication</h3><p>Les publications de cet espace apparaîtront ici, indépendamment du fil classique.</p></div>:posts.map(p=><article className="card post" key={p.id}>
-              <div className="post-author"><Link href={'/profile?id='+p.author_id} className="post-profile-link"><MemberAvatar userId={p.author_id} name={p.profile?.display_name||p.profile?.username} avatarUrl={p.profile?.avatar_url} className="avatar"/><div><b>{p.profile?.display_name||p.profile?.username||'Membre'}</b><small>@{p.profile?.username||'membre'}</small></div></Link><small>{new Date(p.created_at).toLocaleString('fr-FR')}</small></div>
+              <div className="post-author">{p.is_anonymous?<div className="post-profile-link"><span className="avatar" aria-hidden="true">👤</span><div><b>Membre anonyme</b><small>Identité masquée aux membres</small></div></div>:<Link href={'/profile?id='+p.author_id} className="post-profile-link"><MemberAvatar userId={p.author_id} name={p.profile?.display_name||p.profile?.username} avatarUrl={p.profile?.avatar_url} className="avatar"/><div><b>{p.profile?.display_name||p.profile?.username||'Membre'}</b><small>@{p.profile?.username||'membre'}</small></div></Link>}<small>{new Date(p.created_at).toLocaleString('fr-FR')}</small></div>
               {p.body&&<p className="post-body">{p.body}</p>}
               {(p.image_urls||[]).map((url,index)=><CommunityImage key={url} className="post-image individual-post-image" style={{display:'block',width:'100%',maxWidth:'280px',height:'180px',maxHeight:'180px',objectFit:'contain',margin:'10px auto'}} src={url} alt={'Image '+(index+1)+' de la publication'}/>)}
               <div className="post-actions">{canModerate&&<button type="button" disabled={deleting===p.id} onClick={()=>deletePost(p)} style={{color:'#b42318',fontWeight:800}}>{deleting===p.id?'Suppression…':'🗑️ Supprimer (modération)'}</button>}<button type="button" onClick={()=>toggleLike(p)}>{p.liked?'♥':'♡'} {p.likes} J’aime</button><span>{p.comments.length} commentaire{p.comments.length>1?'s':''}</span><button type="button" onClick={()=>reportPost(p.id)}>⚑ Signaler</button></div>
