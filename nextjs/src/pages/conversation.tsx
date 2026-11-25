@@ -161,7 +161,7 @@ export default function ConversationPage(){
   if(file.size>max){setStatus(type==='image'?'Photo trop volumineuse (8 Mo maximum).':type==='video'?'Vidéo trop volumineuse (50 Mo maximum).':'Fichier audio trop volumineux (15 Mo maximum).');return}
   setUploading(true);setStatus(type==='image'?'Vérification de la photo par l’IA…':'Envoi du fichier…')
   if(type==='image'){
-   try{await uploadModeratedCommunityImage(file,'private_message')}
+   try{await uploadModeratedCommunityImage(file,'private_message',other)}
    catch(error:any){setUploading(false);setStatus(error?.message||'La photo a été refusée ou n’a pas pu être vérifiée.');return}
   }
   setStatus('Envoi du fichier…')
