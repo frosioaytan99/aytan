@@ -2,6 +2,7 @@ import { useEffect,useMemo,useRef,useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { supabase } from '../lib/supabaseClient'
+import { uploadModeratedCommunityImage } from '../lib/uploadModeratedCommunityImage'
 import MemberAvatar from '../components/MemberAvatar'
 import { uploadModeratedCommunityImage } from '../lib/uploadModeratedCommunityImage'
 type Msg={id:string;sender:string;recipient:string;subject:string|null;body:string|null;created_at:string;is_read:boolean;reply_to_id?:string|null;attachment_path?:string|null;attachment_type?:'image'|'audio'|'video'|null;attachment_url?:string|null}
@@ -165,27 +166,20 @@ export default function ConversationPage(){
 
  async function sharePhotoTo18(m:Msg){
   if(!uid||m.sender!==uid||m.attachment_type!=='image'||!m.attachment_path||publishing18)return
-  setStatus('Vérification de ton âge pour la publication anonyme…')
-  let uploadedPath=''
+  const confirmed=window.confirm('Transférer cette photo vers le fil public de Weshbien2, accessible à tous les âges, sous le nom « Membre anonyme » ? Confirme que tu as le droit de partager cette image et que toutes les personnes reconnaissables ont donné leur accord. Les modérateurs pourront toujours voir le compte auteur.')
+  if(!confirmed){setStatus('Transfert annulé.');return}
+  setPublishing18(m.id);setStatus('Préparation du transfert anonyme…')
   try{
-   const {data:ownProfile,error:profileError}=await supabase.from('profiles').select('age').eq('id',uid).maybeSingle()
-   if(profileError)throw new Error('Impossible de vérifier ton âge : '+profileError.message)
-   if(Number(ownProfile?.age)<18||!ownProfile?.age){setStatus('Cette fonction est réservée aux membres dont le profil indique 18 ans ou plus. Complète ou corrige ton âge dans ton profil.');return}
-   const confirmed=window.confirm('Publier cette photo dans l’espace Individuel sous le nom « Membre anonyme » ? Confirme que tu as le droit de partager cette image et que toutes les personnes reconnaissables ont donné leur accord. Les modérateurs pourront toujours voir le compte auteur.')
-   if(!confirmed){setStatus('Publication annulée.');return}
-   setPublishing18(m.id);setStatus('Préparation de la publication anonyme…')
    const {data:file,error:downloadError}=await supabase.storage.from('chat-attachments').download(m.attachment_path)
    if(downloadError||!file)throw downloadError||new Error('Photo introuvable dans la conversation.')
-   const ext=file.type==='image/png'?'png':file.type==='image/webp'?'webp':file.type==='image/gif'?'gif':'jpg'
-   uploadedPath=uid+'/individual/'+Date.now()+'-'+Math.random().toString(36).slice(2,10)+'.'+ext
-   const {error:uploadError}=await supabase.storage.from('community-private').upload(uploadedPath,file,{contentType:file.type||'image/jpeg',upsert:false})
-   if(uploadError)throw uploadError
-   const {error:insertError}=await supabase.from('individual_posts').insert({author_id:uid,body:'',image_urls:['private-media:'+uploadedPath],is_anonymous:true})
+   const safeType=file.type||'image/jpeg'
+   const safeFile=new File([file],'photo-transferee.'+(safeType==='image/png'?'png':safeType==='image/webp'?'webp':safeType==='image/gif'?'gif':'jpg'),{type:safeType})
+   const imageUrl=await uploadModeratedCommunityImage(safeFile)
+   const {error:insertError}=await supabase.from('posts').insert({author_id:uid,body:'',image_url:imageUrl,image_urls:[imageUrl],is_anonymous:true})
    if(insertError)throw insertError
-   setStatus('Photo publiée anonymement dans l’espace Individuel. Les modérateurs conservent l’accès au compte auteur.')
+   setStatus('Photo transférée anonymement vers le fil public. La photo passe par la modération et les modérateurs conservent l’accès au compte auteur.')
   }catch(error:any){
-   if(uploadedPath)await supabase.storage.from('community-private').remove([uploadedPath])
-   setStatus(error?.message||'La publication n’a pas pu être envoyée.')
+   setStatus(error?.message||'Le transfert n’a pas pu être envoyé.')
   }finally{setPublishing18('')}
  }
  async function startVoiceRecording(){
