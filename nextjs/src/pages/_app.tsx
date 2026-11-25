@@ -261,27 +261,18 @@ export default function App({ Component, pageProps }: AppProps) {
       <button type="button" onClick={toggleTheme} aria-label="Changer le thème">{theme === 'dark' ? '☀️ Mode clair' : '🌙 Mode sombre'}</button>
     </div>
     {memberPage && signedIn && <>
-      <header className="desktop-community-header">
+      <aside className="desktop-community-header" aria-label="Menu principal">
         <Link prefetch={false} href="/feed" className="desktop-brand" aria-label="Weshbien2, accueil"><span className="brand-mark">w</span><span>weshbien2.</span></Link>
+        <div className="desktop-menu-caption">MENU PRINCIPAL</div>
         <nav className="desktop-community-nav" aria-label="Navigation principale">
-          {navItems.filter(([label])=>['Accueil','Explorer','Stories','En ligne','Communautés','Forum','Questions','Messages'].includes(label)).map(([label,href,icon])=><Link prefetch={false} key={label} href={href} className={router.pathname===href?'active':''}><span aria-hidden="true">{icon}</span>{label}{label==='Messages'&&unreadMessages>0&&<b className="desktop-nav-count">{unreadMessages>99?'99+':unreadMessages}</b>}</Link>)}
+          {navItems.map(([label,href,icon])=><Link prefetch={false} key={label} href={href} className={router.pathname===href?'active':''}><span aria-hidden="true">{icon}</span><span className="desktop-nav-label">{label}</span>{label==='Messages'&&unreadMessages>0&&<b className="desktop-nav-count">{unreadMessages>99?'99+':unreadMessages}</b>}{label==='Notifications'&&unread>0&&<b className="desktop-nav-count">{unread>99?'99+':unread}</b>}</Link>)}
         </nav>
         <div className="desktop-header-actions">
-          <div className="desktop-nav-more-wrap">
-            <button type="button" className="desktop-all-features-button" onClick={()=>setMenuOpen(value=>!value)} aria-expanded={menuOpen} aria-label="Afficher toutes les fonctionnalités">☷ <span>Tout le menu</span></button>
-            {menuOpen && <div className="desktop-feature-menu" role="menu">
-              <strong>Toutes les fonctionnalités</strong>
-              <div className="desktop-feature-menu-grid">
-                {navItems.map(([label,href,icon])=><Link prefetch={false} role="menuitem" key={label} href={href} className={router.pathname===href?'active':''} onClick={()=>setMenuOpen(false)}><span aria-hidden="true">{icon}</span>{label}{label==='Messages'&&unreadMessages>0&&<b className="desktop-nav-count">{unreadMessages>99?'99+':unreadMessages}</b>}{label==='Notifications'&&unread>0&&<b className="desktop-nav-count">{unread>99?'99+':unread}</b>}</Link>)}
-              </div>
-            </div>}
-          </div>
-          <Link prefetch={false} href="/notifications" className="desktop-icon-link" aria-label="Notifications" title="Notifications">♧{unread>0&&<i>{unread>99?'99+':unread}</i>}</Link>
-          <Link prefetch={false} href="/inbox" className="desktop-icon-link" aria-label="Messages" title="Messages">✉{unreadMessages>0&&<i>•</i>}</Link>
-          <button type="button" onClick={toggleTheme} aria-label="Changer le thème" title="Changer le thème">{theme==='dark'?'☀️':'🌙'}</button>
-          <Link prefetch={false} href="/profile" className="desktop-profile-link" aria-label="Mon profil" title="Mon profil">{currentUserId?<MemberAvatar userId={currentUserId} name="Mon profil" avatarUrl={avatarUrl} className="account-avatar-image"/>:<NavIcon name="profile"/>}</Link>
+          <Link prefetch={false} href="/profile" className="desktop-profile-link" aria-label="Mon profil" title="Mon profil">{currentUserId?<MemberAvatar userId={currentUserId} name="Mon profil" avatarUrl={avatarUrl} className="account-avatar-image"/>:<NavIcon name="profile"/>}<span>Mon profil</span></Link>
+          <Link prefetch={false} href="/settings" className="desktop-settings-link">⚙️ <span>Paramètres</span></Link>
+          <button type="button" onClick={toggleTheme} aria-label="Changer le thème" title="Changer le thème">{theme==='dark'?'☀️':'🌙'} <span>{theme==='dark'?'Mode clair':'Mode sombre'}</span></button>
         </div>
-      </header>
+      </aside>eader>
       <header className="mobile-community-header">
         <button type="button" className="mobile-menu-trigger" onClick={() => setMenuOpen(true)} aria-label="Ouvrir le menu">☰</button>
         <Link prefetch={false} href="/feed" className="mobile-brand"><span className="brand-mark">w</span></Link>{guestName && <span className="guest-name-label">{guestName}</span>}<span className="mobile-header-spacer" />
