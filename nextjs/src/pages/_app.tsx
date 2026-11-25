@@ -262,17 +262,6 @@ export default function App({ Component, pageProps }: AppProps) {
           </div>}
         </div>
       </header>
-      <header className="desktop-community-header">
-        <Link prefetch={false} href="/feed" className="desktop-brand"><span className="brand-mark">w</span><span>weshbien2.</span></Link>
-        <nav className="desktop-community-nav" aria-label="Navigation principale">
-          {navItems.map(([label, href]) => <Link prefetch={false} key={label} href={href} className={router.pathname === href ? 'active' : ''}>{label}{label === 'Notifications' && unread > 0 ? <b className="desktop-nav-count">{unread > 99 ? '99+' : unread}</b> : null}{label === 'Messages' && unreadMessages > 0 ? <b className="desktop-nav-count">{unreadMessages > 99 ? '99+' : unreadMessages}</b> : null}</Link>)}
-        </nav>
-        <div className="desktop-header-actions">
-          <button type="button" onClick={toggleTheme} aria-label="Changer le thème">{theme === 'dark' ? '☀️' : '🌙'}</button>
-          <Link prefetch={false} href="/profile" className="desktop-profile-link"><MemberAvatar userId={currentUserId} name="Mon profil" avatarUrl={avatarUrl} className="account-avatar-image"/></Link>
-          <button type="button" onClick={async () => { await supabase.auth.signOut(); await router.replace('/auth') }} aria-label="Déconnexion">↪</button>
-        </div>
-      </header>
       <nav className="mobile-bottom-nav" aria-label="Navigation mobile">
         <Link prefetch={false} className={router.pathname === '/feed' ? 'selected' : ''} href="/feed"><span><NavIcon name="home"/></span>Accueil</Link>
         <Link prefetch={false} className={router.pathname === '/explore' ? 'selected' : ''} href="/explore"><span><NavIcon name="explore"/></span>Explorer</Link>
