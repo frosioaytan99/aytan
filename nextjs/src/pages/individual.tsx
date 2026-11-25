@@ -11,6 +11,8 @@ type Post = { id:string; author_id:string; body:string; image_urls:string[]; cre
 
 export default function IndividualPage() {
   const [accepted,setAccepted]=useState(false)
+  const [ageCheckDone,setAgeCheckDone]=useState(false)
+  const [adultRestricted,setAdultRestricted]=useState(false)
   const [activeTab,setActiveTab]=useState<'fil'|'reglement'>('fil')
   const [posts,setPosts]=useState<Post[]>([])
   const [userId,setUserId]=useState('')
@@ -33,15 +35,35 @@ export default function IndividualPage() {
     const {data,error}=await supabase.from('individual_posts').select('*').order('created_at',{ascending:false}).limit(50)
     if(error){setStatus('Impossible de charger le fil : '+error.message);setLoading(false);return}
     const rows=data||[],ids=rows.map((p:any)=>p.id)
-    const {data:likes}=ids.length?await supabase.from('individual_post_likes').select('post_id,user_id').in('post_id',ids):{data:[]}
-    const {data:comments}=ids.length?await supabase.from('individual_post_comments').select('id,post_id,author_id,body,created_at').in('post_id',ids).order('created_at',{ascending:true}):{data:[]}
+    const [likesResult,commentsResult]=await Promise.all([
+      ids.length?supabase.from('individual_post_likes').select('post_id,user_id').in('post_id',ids):Promise.resolve({data:[]}),
+      ids.length?supabase.from('individual_post_comments').select('id,post_id,author_id,body,created_at').in('post_id',ids).order('created_at',{ascending:true}):Promise.resolve({data:[]})
+    ])
+    const likes=likesResult.data,comments=commentsResult.data
     const authorIds=[...new Set([...rows.map((p:any)=>p.author_id),...(comments||[]).map((c:any)=>c.author_id)])]
     const {data:profiles}=authorIds.length?await supabase.from('profiles').select('id,username,display_name,avatar_url').in('id',authorIds):{data:[]}
     setPosts(rows.map((p:any)=>({...p,profile:profiles?.find((x:any)=>x.id===p.author_id),likes:likes?.filter((x:any)=>x.post_id===p.id).length||0,liked:!!likes?.some((x:any)=>x.post_id===p.id&&x.user_id===user.id),comments:(comments||[]).filter((c:any)=>c.post_id===p.id).map((c:any)=>({...c,profile:profiles?.find((x:any)=>x.id===c.author_id)}))})))
     setLoading(false)
   }
 
-  useEffect(()=>{if(accepted)void loadFeed()},[accepted])
+  useEffect(()=>{
+    let active=true
+    ;(async()=>{
+      const {data:{user}}=await supabase.auth.getUser()
+      if(!user){window.location.href='/auth';return}
+      const [{data:profile},{data:role}]=await Promise.all([
+        supabase.from('profiles').select('age').eq('id',user.id).maybeSingle(),
+        supabase.from('user_roles').select('role').eq('user_id',user.id).maybeSingle()
+      ])
+      if(!active)return
+      const staff=role?.role==='admin'||role?.role==='moderator'
+      setUserId(user.id);setCanModerate(staff)
+      setAdultRestricted(!staff&&Number(profile?.age)<18)
+      setAgeCheckDone(true)
+    })()
+    return()=>{active=false}
+  },[])
+  useEffect(()=>{if(accepted&&!adultRestricted)void loadFeed()},[accepted,adultRestricted])
 
   function acceptWarning(){
     setAccepted(true)
@@ -107,6 +129,8 @@ export default function IndividualPage() {
     setStatus(error?'Signalement impossible : '+error.message:'Signalement envoyé aux administrateurs. Merci.')
   }
 
+  if(!ageCheckDone)return <main className="app-shell" style={{maxWidth:760,margin:'0 auto',padding:'32px 18px 120px'}}><section className="card" style={{padding:24}}>Vérification de l’accès à l’espace Individuel…</section></main>
+  if(adultRestricted)return <><Head><title>Accès réservé aux adultes</title><meta name="robots" content="noindex,nofollow"/></Head><main className="app-shell" style={{maxWidth:760,margin:'0 auto',padding:'32px 18px 120px'}}><section className="card" style={{padding:28}}><h1>🔒 Espace réservé aux 18 ans et plus</h1><p>L’accès à l’espace Individuel et au transfert anonyme est réservé aux comptes adultes. L’autorisation d’un administrateur ne permet pas de contourner cette règle.</p><Link href="/feed">← Retour au fil classique</Link></section></main></>
   if(!accepted)return (
     <>
       <Head><title>Weshbien Individuel — Avertissement</title><meta name="robots" content="noindex,nofollow"/></Head>
@@ -115,7 +139,7 @@ export default function IndividualPage() {
           <div style={{fontSize:42,marginBottom:12}} aria-hidden="true">⚠️</div>
           <p style={{fontWeight:800,letterSpacing:'.08em',fontSize:12,color:'#b45309'}}>18+</p>
           <h1 style={{fontSize:'clamp(26px,5vw,36px)',margin:'8px 0 14px'}}>Conditions d’utilisation avant d’entrer</h1>
-          <p style={{fontSize:16,lineHeight:1.7}}>Cet espace est ouvert à tous les membres après lecture et acceptation des conditions. Il sert à partager des photos inhabituelles ou susceptibles de surprendre, choquer ou déranger. Contrairement au fil classique, les images n’y sont pas vérifiées automatiquement par une intelligence artificielle.</p>
+          <p style={{fontSize:16,lineHeight:1.7}}>Cet espace est réservé aux membres adultes (18 ans et plus), après lecture et acceptation des conditions. Il sert à partager des photos inhabituelles ou susceptibles de surprendre, choquer ou déranger. Contrairement au fil classique, les images n’y sont pas vérifiées automatiquement par une intelligence artificielle.</p>
           <p style={{fontSize:14,lineHeight:1.7}}>Les contenus signalés peuvent être examinés et retirés par les administrateurs.</p>
           <button type="button" onClick={acceptWarning} style={{marginTop:18,width:'100%',padding:'14px 18px',border:0,borderRadius:14,background:'#b45309',color:'#fff',fontWeight:800,cursor:'pointer'}}>J’ai lu et j’accepte les conditions</button>
           <p style={{marginTop:20,fontSize:13}}><Link href="/feed">← Retour à Weshbien classique</Link></p>
@@ -148,7 +172,7 @@ export default function IndividualPage() {
               <ul><li>Publie uniquement des images que tu as le droit de partager.</li><li>Ne divulgue pas d’adresse, de numéro, de document ou d’information privée.</li><li>Préviens clairement si une image peut choquer et évite les contenus graphiques.</li><li>Ne contourne pas les signalements et respecte les autres membres.</li></ul>
               <h3>Modération et signalements</h3>
               <p>Les images de cet espace ne sont pas vérifiées automatiquement par IA. Les protections techniques restent actives. Les membres peuvent signaler un contenu ; les administrateurs peuvent l’examiner, le retirer et prendre des mesures sur le compte en cas d’abus.</p>
-              <p><b>Important :</b> l’absence de vérification IA ne signifie pas l’absence de règles ni une autorisation de publier n’importe quel contenu. Tous les membres peuvent accéder à cet espace après avoir lu et accepté ces conditions.</p>
+              <p><b>Important :</b> l’absence de vérification IA ne signifie pas l’absence de règles ni une autorisation de publier n’importe quel contenu. Seuls les membres adultes peuvent accéder à cet espace après avoir lu et accepté ces conditions.</p>
               <button type="button" onClick={()=>setActiveTab('fil')} style={{padding:'11px 16px',border:0,borderRadius:12,background:'#6d28d9',color:'#fff',fontWeight:700}}>Retour aux publications</button>
             </section>:<>
 
