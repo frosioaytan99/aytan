@@ -17,7 +17,6 @@ export default function ProfilePage() {
  const [me,setMe]=useState(false)
  const [profile,setProfile]=useState<ProfileData|null>(null)
  const [profileRole,setProfileRole]=useState<'admin'|'moderator'|'member'>('member')
- const [profileBadges,setProfileBadges]=useState<any[]>([])
  const [profileBadges,setProfileBadges]=useState<Array<{id:string;name:string;description:string;emoji:string}>>([])
  const [name,setName]=useState('')
  const [username,setUsername]=useState('')
