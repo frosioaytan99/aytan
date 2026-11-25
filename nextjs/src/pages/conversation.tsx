@@ -4,7 +4,7 @@ import { useRouter } from 'next/router'
 import { supabase } from '../lib/supabaseClient'
 import { uploadModeratedCommunityImage } from '../lib/uploadModeratedCommunityImage'
 import MemberAvatar from '../components/MemberAvatar'
-import { uploadModeratedCommunityImage } from '../lib/uploadModeratedCommunityImage'
+
 type Msg={id:string;sender:string;recipient:string;subject:string|null;body:string|null;created_at:string;is_read:boolean;reply_to_id?:string|null;attachment_path?:string|null;attachment_type?:'image'|'audio'|'video'|null;attachment_url?:string|null}
 type Reaction={id:string;message_id:string;user_id:string;emoji:string}
 function spotifyEmbedUrl(value:string|null|undefined):string|null{
@@ -14,11 +14,14 @@ function spotifyEmbedUrl(value:string|null|undefined):string|null{
 }
 export default function ConversationPage(){
  const historyRef=useRef<HTMLDivElement|null>(null),messageInputRef=useRef<HTMLTextAreaElement|null>(null),cameraVideoRef=useRef<HTMLVideoElement|null>(null),cameraStreamRef=useRef<MediaStream|null>(null),imageInputRef=useRef<HTMLInputElement|null>(null),cameraInputRef=useRef<HTMLInputElement|null>(null),audioInputRef=useRef<HTMLInputElement|null>(null),videoInputRef=useRef<HTMLInputElement|null>(null),hasInitialScroll=useRef(false),typingChannelRef=useRef<ReturnType<typeof supabase.channel>|null>(null),typingStopTimer=useRef<ReturnType<typeof setTimeout>|null>(null),lastTypingSent=useRef(0),voiceRecorderRef=useRef<MediaRecorder|null>(null),voiceChunksRef=useRef<Blob[]>([]),signedUrlCacheRef=useRef<Map<string,{url:string;expiresAt:number}>>(new Map())
- const router=useRouter(),[uid,setUid]=useState(''),[other,setOther]=useState(''),[person,setPerson]=useState<any>(null),[publishing18,setPublishing18]=useState(''),[transferAccess,setTransferAccess]=useState<'loading'|'none'|'pending'|'approved'|'rejected'|'restricted'>('loading'),[requestingTransfer,setRequestingTransfer]=useState(false),[presenceLastSeen,setPresenceLastSeen]=useState<string|null>(null),[messages,setMessages]=useState<Msg[]>([]),[reactions,setReactions]=useState<Reaction[]>([]),[body,setBody]=useState(''),[replyTo,setReplyTo]=useState<Msg|null>(null),[busy,setBusy]=useState(false),[status,setStatus]=useState(''),[search,setSearch]=useState(''),[menuFor,setMenuFor]=useState(''),[hiddenIds,setHiddenIds]=useState<string[]>([]),[uploading,setUploading]=useState(false),[editingId,setEditingId]=useState(''),[editDraft,setEditDraft]=useState(''),[emojiOpen,setEmojiOpen]=useState(false),[otherTyping,setOtherTyping]=useState(false),[attachmentMenuOpen,setAttachmentMenuOpen]=useState(false),[recordingVoice,setRecordingVoice]=useState(false),[cameraOpen,setCameraOpen]=useState(false)
- async function load(a:string,b:string){
-  const {data,error}=await supabase.from('messages').select('id,sender,recipient,subject,body,created_at,is_read,reply_to_id,attachment_path,attachment_type').or('and(sender.eq.'+a+',recipient.eq.'+b+'),and(sender.eq.'+b+',recipient.eq.'+a+')').order('created_at',{ascending:true})
+ const router=useRouter(),[uid,setUid]=useState(''),[other,setOther]=useState(''),[person,setPerson]=useState<any>(null),[publishing18,setPublishing18]=useState(''),[transferAccess,setTransferAccess]=useState<'loading'|'none'|'pending'|'approved'|'rejected'|'restricted'>('loading'),[requestingTransfer,setRequestingTransfer]=useState(false),[hasOlderMessages,setHasOlderMessages]=useState(false),[loadingOlderMessages,setLoadingOlderMessages]=useState(false),[preserveScrollRef,previousScrollHeightRef]=[useRef(false),useRef(0)],[presenceLastSeen,setPresenceLastSeen]=useState<string|null>(null),[messages,setMessages]=useState<Msg[]>([]),[reactions,setReactions]=useState<Reaction[]>([]),[body,setBody]=useState(''),[replyTo,setReplyTo]=useState<Msg|null>(null),[busy,setBusy]=useState(false),[status,setStatus]=useState(''),[search,setSearch]=useState(''),[menuFor,setMenuFor]=useState(''),[hiddenIds,setHiddenIds]=useState<string[]>([]),[uploading,setUploading]=useState(false),[editingId,setEditingId]=useState(''),[editDraft,setEditDraft]=useState(''),[emojiOpen,setEmojiOpen]=useState(false),[otherTyping,setOtherTyping]=useState(false),[attachmentMenuOpen,setAttachmentMenuOpen]=useState(false),[recordingVoice,setRecordingVoice]=useState(false),[cameraOpen,setCameraOpen]=useState(false)
+ async function load(a:string,b:string,before?:string){
+  let query=supabase.from('messages').select('id,sender,recipient,subject,body,created_at,is_read,reply_to_id,attachment_path,attachment_type').or('and(sender.eq.'+a+',recipient.eq.'+b+'),and(sender.eq.'+b+',recipient.eq.'+a+')')
+  if(before)query=query.lt('created_at',before)
+  const {data,error}=await query.order('created_at',{ascending:false}).limit(100)
   if(error){setStatus('Impossible de charger cette conversation.');return}
-  const rows=(data||[]) as Msg[]
+  const rows=((data||[]) as Msg[]).reverse()
+  setHasOlderMessages((data||[]).length===100)
   const attachmentRows=rows.filter(m=>m.attachment_path)
   if(attachmentRows.length){
    const results=await Promise.all(attachmentRows.map(async m=>{
@@ -26,12 +29,9 @@ export default function ConversationPage(){
     if(cached&&cached.expiresAt>Date.now()+60000)return {path:m.attachment_path,url:cached.url,error:null}
     let signedUrl:string|null=null
     let lastError:any=null
-    for(let attempt=0;attempt<2&&!signedUrl;attempt++){
-     if(attempt)await new Promise(resolve=>setTimeout(resolve,300))
-     const {data:urlData,error:urlError}=await supabase.storage.from('chat-attachments').createSignedUrl(m.attachment_path!,60*60*24*7)
-     signedUrl=urlData?.signedUrl||null
-     lastError=urlError
-    }
+    const {data:urlData,error:urlError}=await supabase.storage.from('chat-attachments').createSignedUrl(m.attachment_path!,60*60*24*7)
+    signedUrl=urlData?.signedUrl||null
+    lastError=urlError
     if(signedUrl)signedUrlCacheRef.current.set(m.attachment_path!,{url:signedUrl,expiresAt:Date.now()+7*24*60*60*1000})
     return {path:m.attachment_path,url:signedUrl,error:lastError}
    }))
@@ -40,10 +40,20 @@ export default function ConversationPage(){
    if(results.some(item=>item.error||!item.url))setStatus('Une photo ou pièce jointe ne peut pas être chargée. Vérifie que vous êtes toujours amis et que personne n’a bloqué l’autre.')
    else if(status.startsWith('Une photo')||status.startsWith('Une pièce jointe'))setStatus('')
   }
-  setMessages(rows)
+  if(before)setMessages(current=>[...rows.filter(row=>!current.some(item=>item.id===row.id)),...current])
+  else setMessages(rows)
   const unreadIds=rows.filter(m=>m.recipient===a&&!m.is_read).map(m=>m.id)
   if(unreadIds.length){const {data:updated,error:readError}=await supabase.from('messages').update({is_read:true}).in('id',unreadIds).eq('recipient',a).select('id');if(!readError){setMessages(current=>current.map(m=>unreadIds.includes(m.id)?{...m,is_read:true}:m));if(typeof window!=='undefined')window.dispatchEvent(new Event('weshbien:messages-read'))}else{setStatus('Impossible de marquer les messages comme lus. Réessaie.')}}
  }
+ async function loadOlderMessages(){
+  if(!uid||!other||!messages.length||loadingOlderMessages)return
+  const el=historyRef.current
+  if(el){previousScrollHeightRef.current=el.scrollHeight;preserveScrollRef.current=true}
+  setLoadingOlderMessages(true)
+  await load(uid,other,messages[0].created_at)
+  setLoadingOlderMessages(false)
+ }
+
  useEffect(()=>{
   if(!router.isReady||typeof router.query.with!=='string')return
   let active=true
@@ -91,7 +101,7 @@ export default function ConversationPage(){
  useEffect(()=>{
   const el=historyRef.current
   if(!el)return
-  requestAnimationFrame(()=>{el.scrollTop=el.scrollHeight})
+  requestAnimationFrame(()=>{if(preserveScrollRef.current){el.scrollTop+=el.scrollHeight-previousScrollHeightRef.current;preserveScrollRef.current=false}else{el.scrollTop=el.scrollHeight}})
   hasInitialScroll.current=true
  },[visibleMessages.length])
  async function toggleReaction(m:Msg,emoji:string){
@@ -281,6 +291,7 @@ export default function ConversationPage(){
    <div className="messenger-personbar"><Link href="/inbox" className="messenger-back" aria-label="Retour">←</Link><MemberAvatar userId={other} name={person?.display_name||person?.username} avatarUrl={person?.avatar_url} className="messenger-avatar" imageSize={56}/><div className="messenger-person-copy"><strong>{person?.display_name||person?.username||'Conversation'}</strong><span>@{person?.username||'membre'} · {presenceLabel()}</span></div><Link href={'/profile?id='+other} className="messenger-more" aria-label="Options du profil">•••</Link></div>
    <div className="messenger-search"><span>⌕</span><input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Rechercher dans cette conversation…" aria-label="Rechercher dans cette conversation"/></div>
    <div ref={historyRef} className="messenger-history" aria-live="polite">
+    {hasOlderMessages&&<button type="button" disabled={loadingOlderMessages} onClick={()=>void loadOlderMessages()} style={{display:'block',margin:'10px auto',padding:'8px 14px',borderRadius:10}}>{loadingOlderMessages?'Chargement…':'Charger les messages plus anciens'}</button>}
     {visibleMessages.filter(m=>!hiddenIds.includes(m.id)).length===0?<div className="messenger-empty">{messages.length===0?'Démarre la conversation en envoyant un message.':'Aucun message à afficher.'}</div>:visibleMessages.filter(m=>!hiddenIds.includes(m.id)).map(m=><div id={'message-'+m.id} key={m.id} className={'messenger-message-row '+(m.sender===uid?'mine':'theirs')}><div className="messenger-bubble">{m.reply_to_id&&<button type="button" className="messenger-reply-link" onClick={()=>{const target=document.getElementById('message-'+m.reply_to_id);if(target){target.scrollIntoView({behavior:'smooth',block:'center'});target.classList.add('messenger-message-highlight');window.setTimeout(()=>target.classList.remove('messenger-message-highlight'),1800)}}}>↩ Réponse de : {(messages.find(x=>x.id===m.reply_to_id)?.body||messages.find(x=>x.id===m.reply_to_id)?.subject||'Voir le message d’origine').replace(/\s+/g,' ').slice(0,110)} · Voir le message</button>}{m.attachment_type==='image'&&!m.attachment_url?<div style={{padding:10,opacity:.8}}>📷 Photo envoyée mais impossible à charger. Réessaie d’ouvrir la discussion.</div>:m.attachment_type==='image'&&m.attachment_url?<a href={m.attachment_url} target="_blank" rel="noreferrer"><img src={m.attachment_url} alt="Photo envoyée" onError={async()=>{const {data,error}=await supabase.storage.from('chat-attachments').createSignedUrl(m.attachment_path!,60*60*24);if(data?.signedUrl)setMessages(current=>current.map(item=>item.id===m.id?{...item,attachment_url:data.signedUrl}:item));else setStatus('Impossible d’afficher cette photo : '+(error?.message||'accès au fichier refusé.'))}} style={{display:'block',maxWidth:'min(100%,280px)',maxHeight:360,borderRadius:12,objectFit:'contain'}}/></a>:m.attachment_type==='video'&&m.attachment_url?<div style={{width:'min(100%,320px)'}}><video controls playsInline preload="metadata" src={m.attachment_url} style={{display:'block',width:'100%',maxHeight:360,borderRadius:12,background:'#000'}}/><div style={{fontSize:12,marginTop:5}}>🎬 Vidéo</div></div>:m.attachment_type==='video'&&!m.attachment_url?<div style={{padding:10,opacity:.8}}>🎬 Vidéo envoyée mais impossible à charger. Réessaie d’ouvrir la discussion.</div>:m.attachment_type==='audio'&&m.attachment_url?<div style={{minWidth:220}}><div style={{marginBottom:8}}>{m.subject==='Vocal'?'🎙️ Message vocal':'🎵 Musique'}</div><audio controls preload="none" src={m.attachment_url} style={{maxWidth:'100%'}}/></div>:(editingId===m.id?<div className="message-edit-box"><textarea value={editDraft} onChange={e=>setEditDraft(e.target.value)} maxLength={3000}/><div>{['😀','😂','🥰','😍','😊','😉','😎','😭','😡','❤️','🔥','👍','👎','🙏','🎉','💯'].map(emoji=><button type="button" key={emoji} onClick={()=>setEditDraft(v=>v+emoji)}>{emoji}</button>)}</div><button type="button" disabled={busy||!editDraft.trim()} onClick={saveMessageEdit}>Enregistrer</button><button type="button" onClick={()=>{setEditingId('');setEditDraft('')}}>Annuler</button></div>:(spotifyEmbedUrl(m.body)?<div style={{width:'min(100%,352px)'}}><iframe title="Lecteur Spotify" src={spotifyEmbedUrl(m.body)!} width="100%" height="152" style={{border:0,borderRadius:12}} allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"/><a href={m.body||'#'} target="_blank" rel="noreferrer" style={{fontSize:12}}>Ouvrir dans Spotify ↗</a></div>:(m.body||m.subject)))}</div><div className="messenger-reactions">{['❤️','😂','😍','👍','😢','🔥','👏','😮'].map(emoji=>{const group=reactions.filter(r=>r.message_id===m.id&&r.emoji===emoji);const mine=group.some(r=>r.user_id===uid);return group.length>0||emoji==='❤️'||emoji==='😂'||emoji==='👍'?<button type="button" key={emoji} onClick={()=>toggleReaction(m,emoji)} aria-label={'Réagir avec '+emoji} title={group.map(r=>r.user_id===uid?'Toi':'Membre').join(', ')} style={{border:mine?'1px solid #7c6cff':'1px solid #8885',borderRadius:18,padding:'3px 7px',margin:'3px 3px 0 0',background:mine?'#7c6cff22':'transparent',cursor:'pointer'}}>{emoji}{group.length>0?' '+group.length:''}</button>:null})}</div><div className="messenger-meta"><time>{new Date(m.created_at).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}</time>{m.sender===uid&&<span>{m.is_read?'✓✓ Lu':'✓ Envoyé'}</span>}<button type="button" onClick={()=>setMenuFor(menuFor===m.id?'':m.id)} aria-label="Options du message">•••</button></div>{m.sender===uid&&m.attachment_type==='image'&&<div style={{margin:'6px 0 2px'}}>{transferAccess==='approved'?<button type="button" disabled={publishing18===m.id} onClick={(event)=>{event.preventDefault();event.stopPropagation();void sharePhotoTo18(m)}} style={{padding:'7px 10px',borderRadius:10,border:'1px solid #b45309',background:'transparent',color:'inherit',fontWeight:700,cursor:'pointer'}}>{publishing18===m.id?'Publication…':'↗ Envoyer dans l’espace Individuel en anonyme'}</button>:transferAccess==='pending'?<small>⌛ Demande d’accès au transfert en attente</small>:transferAccess==='restricted'?<small>🔒 Transfert réservé aux membres de 18 ans et plus</small>:<button type="button" disabled={requestingTransfer||transferAccess==='loading'} onClick={()=>void requestPhotoTransferAccess()} style={{padding:'7px 10px',borderRadius:10,border:'1px solid #8888',background:'transparent',color:'inherit',fontWeight:700,cursor:'pointer'}}>{requestingTransfer?'Demande…':transferAccess==='loading'?'Vérification…':transferAccess==='rejected'?'↻ Redemander l’accès au transfert':'Demander l’accès au transfert anonyme'}</button>}</div>}{menuFor===m.id&&<div className="messenger-message-actions"><button onClick={()=>messageAction('save',m)}>♧ Sauvegarder</button><button onClick={()=>messageAction('pin',m)}>⌖ Épingler pour moi</button><button onClick={()=>messageAction('reply',m)}>↩ Répondre</button><button onClick={()=>messageAction('forward',m)}>↪ Transférer</button>{m.sender===uid&&<button onClick={()=>messageAction('edit',m)}>✎ Modifier</button>}<button onClick={()=>messageAction('hide',m)}>▣ Supprimer pour moi</button>{m.sender===uid?<button className="danger" onClick={()=>messageAction('delete',m)}>▤ Supprimer pour tous</button>:<button className="danger" onClick={()=>messageAction('report',m)}>⚑ Signaler</button>}</div>}</div>)}
     {otherTyping&&<div className="messenger-typing" role="status" aria-live="polite">{person?.display_name||person?.username||'Cette personne'} est en train d’écrire<span className="typing-dots"><i></i><i></i><i></i></span></div>}
    </div>
