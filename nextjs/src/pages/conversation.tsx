@@ -12,8 +12,8 @@ function spotifyEmbedUrl(value:string|null|undefined):string|null{
  return match?'https://open.spotify.com/embed/'+match[1].toLowerCase()+'/'+match[2]+'?utm_source=generator':null
 }
 export default function ConversationPage(){
- const historyRef=useRef<HTMLDivElement|null>(null),imageInputRef=useRef<HTMLInputElement|null>(null),cameraInputRef=useRef<HTMLInputElement|null>(null),audioInputRef=useRef<HTMLInputElement|null>(null),videoInputRef=useRef<HTMLInputElement|null>(null),hasInitialScroll=useRef(false),typingChannelRef=useRef<ReturnType<typeof supabase.channel>|null>(null),typingStopTimer=useRef<ReturnType<typeof setTimeout>|null>(null),lastTypingSent=useRef(0),voiceRecorderRef=useRef<MediaRecorder|null>(null),voiceChunksRef=useRef<Blob[]>([]),signedUrlCacheRef=useRef<Map<string,{url:string;expiresAt:number}>>(new Map())
- const router=useRouter(),[uid,setUid]=useState(''),[other,setOther]=useState(''),[person,setPerson]=useState<any>(null),[presenceLastSeen,setPresenceLastSeen]=useState<string|null>(null),[messages,setMessages]=useState<Msg[]>([]),[reactions,setReactions]=useState<Reaction[]>([]),[body,setBody]=useState(''),[replyTo,setReplyTo]=useState<Msg|null>(null),[busy,setBusy]=useState(false),[status,setStatus]=useState(''),[search,setSearch]=useState(''),[menuFor,setMenuFor]=useState(''),[hiddenIds,setHiddenIds]=useState<string[]>([]),[uploading,setUploading]=useState(false),[editingId,setEditingId]=useState(''),[editDraft,setEditDraft]=useState(''),[emojiOpen,setEmojiOpen]=useState(false),[otherTyping,setOtherTyping]=useState(false),[attachmentMenuOpen,setAttachmentMenuOpen]=useState(false),[recordingVoice,setRecordingVoice]=useState(false)
+ const historyRef=useRef<HTMLDivElement|null>(null),cameraVideoRef=useRef<HTMLVideoElement|null>(null),cameraStreamRef=useRef<MediaStream|null>(null),imageInputRef=useRef<HTMLInputElement|null>(null),cameraInputRef=useRef<HTMLInputElement|null>(null),audioInputRef=useRef<HTMLInputElement|null>(null),videoInputRef=useRef<HTMLInputElement|null>(null),hasInitialScroll=useRef(false),typingChannelRef=useRef<ReturnType<typeof supabase.channel>|null>(null),typingStopTimer=useRef<ReturnType<typeof setTimeout>|null>(null),lastTypingSent=useRef(0),voiceRecorderRef=useRef<MediaRecorder|null>(null),voiceChunksRef=useRef<Blob[]>([]),signedUrlCacheRef=useRef<Map<string,{url:string;expiresAt:number}>>(new Map())
+ const router=useRouter(),[uid,setUid]=useState(''),[other,setOther]=useState(''),[person,setPerson]=useState<any>(null),[presenceLastSeen,setPresenceLastSeen]=useState<string|null>(null),[messages,setMessages]=useState<Msg[]>([]),[reactions,setReactions]=useState<Reaction[]>([]),[body,setBody]=useState(''),[replyTo,setReplyTo]=useState<Msg|null>(null),[busy,setBusy]=useState(false),[status,setStatus]=useState(''),[search,setSearch]=useState(''),[menuFor,setMenuFor]=useState(''),[hiddenIds,setHiddenIds]=useState<string[]>([]),[uploading,setUploading]=useState(false),[editingId,setEditingId]=useState(''),[editDraft,setEditDraft]=useState(''),[emojiOpen,setEmojiOpen]=useState(false),[otherTyping,setOtherTyping]=useState(false),[attachmentMenuOpen,setAttachmentMenuOpen]=useState(false),[recordingVoice,setRecordingVoice]=useState(false),[cameraOpen,setCameraOpen]=useState(false)
  async function load(a:string,b:string){
   const {data,error}=await supabase.from('messages').select('id,sender,recipient,subject,body,created_at,is_read,reply_to_id,attachment_path,attachment_type').or('and(sender.eq.'+a+',recipient.eq.'+b+'),and(sender.eq.'+b+',recipient.eq.'+a+')').order('created_at',{ascending:true})
   if(error){setStatus('Impossible de charger cette conversation.');return}
@@ -176,6 +176,45 @@ export default function ConversationPage(){
   }catch(error:any){setStatus(error?.name==='NotAllowedError'?'Autorise l’accès au micro pour enregistrer un vocal.':'Impossible d’accéder au micro. Vérifie les autorisations de ton navigateur.')}
  }
  function stopVoiceRecording(){if(voiceRecorderRef.current?.state==='recording')voiceRecorderRef.current.stop();voiceRecorderRef.current=null}
+ async function startCamera(){
+  setAttachmentMenuOpen(false)
+  if(!navigator.mediaDevices?.getUserMedia){setStatus('La caméra directe n’est pas disponible dans ce navigateur. Utilise Photo pour choisir une image.');return}
+  try{
+   const stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'}},audio:false})
+   cameraStreamRef.current=stream
+   setCameraOpen(true)
+   setStatus('')
+  }catch(error:any){
+   setStatus(error?.name==='NotAllowedError'?'Autorise l’accès à la caméra dans ton navigateur.':'Impossible d’ouvrir la caméra. Vérifie les autorisations du site.')
+  }
+ }
+ useEffect(()=>{
+  if(cameraOpen&&cameraVideoRef.current&&cameraStreamRef.current){
+   cameraVideoRef.current.srcObject=cameraStreamRef.current
+   void cameraVideoRef.current.play().catch(()=>setStatus('Impossible de démarrer l’aperçu caméra.'))
+  }else if(!cameraOpen&&cameraStreamRef.current){
+   cameraStreamRef.current.getTracks().forEach(track=>track.stop())
+   cameraStreamRef.current=null
+  }
+ },[cameraOpen])
+ useEffect(()=>()=>{if(cameraStreamRef.current)cameraStreamRef.current.getTracks().forEach(track=>track.stop())},[])
+ function closeCamera(){setCameraOpen(false)}
+ function captureCameraPhoto(){
+  const video=cameraVideoRef.current
+  if(!video||!video.videoWidth||!video.videoHeight){setStatus('La caméra n’est pas encore prête.');return}
+  const canvas=document.createElement('canvas')
+  canvas.width=video.videoWidth;canvas.height=video.videoHeight
+  const context=canvas.getContext('2d')
+  if(!context){setStatus('Capture impossible.');return}
+  context.drawImage(video,0,0,canvas.width,canvas.height)
+  canvas.toBlob(blob=>{
+   if(!blob){setStatus('La photo n’a pas pu être créée.');return}
+   const file=new File([blob],'photo-'+Date.now()+'.jpg',{type:'image/jpeg'})
+   setCameraOpen(false)
+   void sendAttachment(file,'image')
+  },'image/jpeg',0.9)
+ }
+
  function addSpotifyLink(){
   const value=window.prompt('Colle le lien Spotify de la musique, de l’album ou de la playlist :')
   if(!value)return
@@ -209,7 +248,7 @@ export default function ConversationPage(){
     <div className="messenger-attachment-wrap">
      <button type="button" className="messenger-plus-button" disabled={busy||uploading} onClick={()=>setAttachmentMenuOpen(value=>!value)} aria-label="Ajouter une pièce jointe" aria-expanded={attachmentMenuOpen} title="Ajouter">＋</button>
      {attachmentMenuOpen&&<div className="messenger-attachment-menu" role="menu">
-      <button type="button" role="menuitem" disabled={busy||uploading} onClick={()=>{setAttachmentMenuOpen(false);cameraInputRef.current?.click()}}>📷 <span>Prendre une photo</span></button>
+      <button type="button" role="menuitem" disabled={busy||uploading} onClick={startCamera}>📷 <span>Prendre une photo</span></button>
       <button type="button" role="menuitem" disabled={busy||uploading} onClick={()=>{setAttachmentMenuOpen(false);imageInputRef.current?.click()}}>🖼️ <span>Photo</span></button>
       <button type="button" role="menuitem" disabled={busy||uploading} onClick={()=>{setAttachmentMenuOpen(false);audioInputRef.current?.click()}}>🎵 <span>Audio</span></button>
       <button type="button" role="menuitem" disabled={busy||uploading} onClick={()=>{setAttachmentMenuOpen(false);videoInputRef.current?.click()}}>🎬 <span>Vidéo</span></button>
@@ -218,6 +257,13 @@ export default function ConversationPage(){
      </div>}
     </div>
     {replyTo&&<div className="messenger-reply-preview"><span>Réponse à : {(replyTo.body||replyTo.subject||'Message').slice(0,100)}</span><button type="button" onClick={()=>setReplyTo(null)} aria-label="Annuler la réponse">×</button></div>}{emojiOpen&&<div className="message-emoji-picker">{['😀','😂','🥰','😍','😊','😉','😎','😭','😡','❤️','🔥','👍','👎','🙏','🎉','💯','✨','🤔','🙌','💬'].map(emoji=><button type="button" key={emoji} onClick={()=>setBody(v=>v+emoji)}>{emoji}</button>)}</div>}<button type="button" onClick={()=>setEmojiOpen(v=>!v)} aria-label="Ajouter un emoji" title="Ajouter un emoji">😊</button><textarea value={body} onChange={e=>{const value=e.target.value;setBody(value);const channel=typingChannelRef.current;if(channel){const now=Date.now();if(now-lastTypingSent.current>900){lastTypingSent.current=now;channel.send({type:'broadcast',event:'typing',payload:{user_id:uid,is_typing:true}})}if(typingStopTimer.current)clearTimeout(typingStopTimer.current);typingStopTimer.current=setTimeout(()=>{channel.send({type:'broadcast',event:'typing',payload:{user_id:uid,is_typing:false}})},2200)}}} maxLength={3000} placeholder="Écris ton message…" aria-label="Écris ton message"/><button disabled={busy||uploading||!body.trim()} aria-label="Envoyer le message">{busy||uploading?'…':'➤'}</button></form>
+   {cameraOpen&&<div role="dialog" aria-modal="true" aria-label="Prendre une photo" style={{position:'fixed',inset:0,zIndex:10000,background:'#000',display:'flex',flexDirection:'column',justifyContent:'center',alignItems:'center',padding:16}}>
+    <video ref={cameraVideoRef} autoPlay playsInline muted style={{width:'100%',maxWidth:560,maxHeight:'75vh',objectFit:'contain',borderRadius:14,background:'#111'}}/>
+    <div style={{display:'flex',gap:14,marginTop:18}}>
+     <button type="button" onClick={closeCamera} style={{padding:'12px 18px',borderRadius:24}}>Annuler</button>
+     <button type="button" onClick={captureCameraPhoto} style={{padding:'12px 22px',borderRadius:24,fontWeight:700}}>📸 Capturer</button>
+    </div>
+   </div>}
   </section>
  </main>
 }
