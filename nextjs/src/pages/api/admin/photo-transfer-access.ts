@@ -16,7 +16,7 @@ export default async function handler(req:NextApiRequest,res:NextApiResponse){
   const db=createClient(url,service,{auth:{persistSession:false,autoRefreshToken:false}})
   const {data:role,error:roleError}=await db.from('user_roles').select('role').eq('user_id',data.user.id).maybeSingle()
   if(roleError)return res.status(503).json({error:'role_check_failed'})
-  if(role?.role!=='admin')return res.status(403).json({error:'admin_access_required'})
+  if(!['admin','moderator'].includes(role?.role||''))return res.status(403).json({error:'moderation_access_required'})
   if(req.method==='GET'){
    const {data:rows,error:readError}=await db.from('photo_transfer_access').select('user_id,status,requested_at,reviewed_at,reviewed_by').order('requested_at',{ascending:false}).limit(500)
    if(readError)return res.status(503).json({error:'transfer_access_read_failed'})
@@ -29,6 +29,7 @@ export default async function handler(req:NextApiRequest,res:NextApiResponse){
   const userId=typeof req.body?.user_id==='string'?req.body.user_id.trim():''
   const action=req.body?.action
   if(!UUID_RE.test(userId)||!['approve','reject','grant','revoke'].includes(action))return res.status(400).json({error:'invalid_request'})
+  if(role?.role==='moderator'&&!['approve','reject'].includes(action))return res.status(403).json({error:'admin_only_action'})
   const {data:profile,error:profileError}=await db.from('profiles').select('id,age').eq('id',userId).maybeSingle()
   if(profileError)return res.status(503).json({error:'target_check_failed'})
   if(!profile)return res.status(404).json({error:'profile_not_found'})
