@@ -52,7 +52,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       .from('ai_moderation_settings').select('enabled').eq('id', true).single()
     if (settingsError || !settings) return res.status(503).json({ error: 'moderation_settings_unavailable' })
 
-    // Accept uploads while AI moderation is paused, store them privately, and log them for moderator review.
+    // Private-message photos must fail closed: never send them while AI moderation is paused.
+    if (!settings.enabled && req.body?.purpose === 'private_message') {
+      return res.status(503).json({ error: 'photo_moderation_paused', message: 'La vérification IA des photos est temporairement indisponible. La photo n’a pas été envoyée.' })
+    }
+
+    // Accept other uploads while AI moderation is paused, store them privately, and log them for moderator review.
     if (!settings.enabled) {
       const ext = MIME_EXTENSIONS[mime]
       const path = `${authData.user.id}/image-${Date.now()}-${Math.random().toString(36).slice(2, 9)}.${ext}`
@@ -92,7 +97,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const categories = result.categories || {}
     const scores = result.category_scores || {}
-    const blocked = categories.sexual === true || categories['sexual/minors'] === true
+    const blocked = categories.sexual === true || categories['sexual/minors'] === true || categories.violence === true || categories['violence/graphic'] === true || categories['self-harm/intent'] === true || categories['self-harm/instructions'] === true
 
     // Keep the original image in the private bucket so an authorized moderator
     // can inspect exactly what the model analyzed. The path is never exposed to members.
@@ -122,7 +127,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (blocked) {
       return res.status(400).json({
         error: 'explicit_image_blocked',
-        message: 'Cette photo semble contenir du contenu sexuel explicite. Elle ne peut pas être publiée sur Weshbien2.',
+        message: 'Cette photo semble contenir du contenu sexuel, violent ou dangereux. Elle ne peut pas être envoyée sur Weshbien2.',
       })
     }
 
