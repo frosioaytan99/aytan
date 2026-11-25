@@ -5,6 +5,7 @@ import {supabase} from '../lib/supabaseClient'
 type Settings={enabled:boolean;blocked_categories:string[]}
 type AssistantSettings={enabled:boolean;max_tokens:number}
 type Log={id:string;user_id:string|null;content:string;image_url:string|null;allowed:boolean;flagged:boolean;categories:Record<string,boolean>;category_scores:Record<string,number>;decision:string;created_at:string;reviewed_at:string|null}
+type ArchivePhoto={id:string;user_id:string|null;content:string;image_url:string|null;allowed:boolean;flagged:boolean;decision:string;created_at:string;categories:Record<string,boolean>}
 const LABELS:Record<string,string>={
  harassment:'Harcèlement', 'harassment/threatening':'Menaces et harcèlement',
  hate:'Haine', 'hate/threatening':'Menaces haineuses', violence:'Violence',
@@ -28,6 +29,11 @@ export default function ModerationPage(){
  const [assistantKeyConfigured,setAssistantKeyConfigured]=useState(false)
  const [assistantStatus,setAssistantStatus]=useState('')
  const [assistantBusy,setAssistantBusy]=useState(false)
+ const [archivePhotos,setArchivePhotos]=useState<ArchivePhoto[]>([])
+ const [archivePage,setArchivePage]=useState(0)
+ const [archiveTotal,setArchiveTotal]=useState(0)
+ const [archiveLoading,setArchiveLoading]=useState(false)
+ const [archiveStatus,setArchiveStatus]=useState('')
 
  const request=useCallback(async(method:'GET'|'PATCH'|'POST',body?:any)=>{
   const {data:{session}}=await supabase.auth.getSession()
@@ -67,7 +73,34 @@ export default function ModerationPage(){
   }catch(e:any){setStatus(e.message||'Impossible de charger les réglages.')}
  },[request])
 
- useEffect(()=>{load()},[load])
+
+ async function loadArchive(page:number){
+  setArchiveLoading(true);setArchiveStatus('Chargement de l’archive…')
+  try{
+   const {data:{session}}=await supabase.auth.getSession()
+   if(!session?.access_token)throw new Error('Session expirée. Reconnecte-toi.')
+   const response=await fetch('/api/admin/ai-photo-archive?page='+page,{headers:{Authorization:'Bearer '+session.access_token},cache:'no-store'})
+   const payload=await response.json().catch(()=>null)
+   if(!response.ok)throw new Error(payload?.error||'Erreur serveur')
+   setArchivePhotos(Array.isArray(payload?.photos)?payload.photos:[])
+   setArchiveTotal(Number(payload?.total)||0)
+   setArchivePage(Number(payload?.page)||0)
+   setArchiveStatus((Number(payload?.total)||0)+' photo(s) conservée(s) dans l’archive.')
+  }catch(e:any){setArchiveStatus('Archive indisponible : '+(e.message||'erreur'));setArchivePhotos([])}
+  setArchiveLoading(false)
+ }
+ async function downloadArchivedPhoto(photo:ArchivePhoto){
+  try{
+   const {data:{session}}=await supabase.auth.getSession()
+   if(!session?.access_token)throw new Error('Session expirée. Reconnecte-toi.')
+   const response=await fetch('/api/admin/ai-photo-archive?download='+encodeURIComponent(photo.id),{headers:{Authorization:'Bearer '+session.access_token},cache:'no-store'})
+   if(!response.ok){const payload=await response.json().catch(()=>null);throw new Error(payload?.error||'Téléchargement impossible')}
+   const blob=await response.blob()
+   const url=URL.createObjectURL(blob)
+   const anchor=document.createElement('a');anchor.href=url;anchor.download='weshbien-photo-'+photo.id;document.body.appendChild(anchor);anchor.click();anchor.remove();URL.revokeObjectURL(url)
+  }catch(e:any){setArchiveStatus('Récupération impossible : '+(e.message||'erreur'))}
+ }
+ useEffect(()=>{load().then(()=>loadArchive(0))},[load])
 
  async function save(next:Settings){
   setBusy(true);setStatus('Enregistrement des réglages…')
@@ -106,7 +139,24 @@ export default function ModerationPage(){
  <div className="card profile-form"><h2>Historique des analyses</h2><p>Les 100 dernières analyses effectuées par l’IA.</p><div className="report-actions">{[['all','Tout'],['blocked','Bloqués'],['allowed','Autorisés'],['flagged','Signalés']].map(([key,label])=><button key={key} onClick={()=>setFilter(key)} aria-pressed={filter===key}>{label}</button>)}</div>
  {visible.length===0?<p>Aucune analyse dans cette catégorie.</p>:visible.map(log=><article className="report-row" key={log.id}><b>{log.allowed?'Contenu autorisé':'Contenu bloqué'}{log.flagged?' · Signalé par l’IA':''}</b><small>{new Date(log.created_at).toLocaleString('fr-FR')} · {log.user_id?'Utilisateur : '+log.user_id:'Utilisateur inconnu'}</small><p className="moderation-log-content">{log.content}</p>{log.image_url?<div style={{margin:'12px 0'}}><a href={log.image_url} target="_blank" rel="noreferrer"><img src={log.image_url} alt="Image vérifiée par l’IA" loading="lazy" style={{display:'block',width:'auto',maxWidth:'min(100%,420px)',maxHeight:360,objectFit:'contain',borderRadius:14,border:'1px solid #e5e7ef'}}/></a><small>Image privée — visible uniquement par les modérateurs connectés.</small></div>:null}<small>Catégories : {Object.entries(log.categories||{}).filter(([,v])=>v).map(([k])=>LABELS[k]||k).join(', ')||'Aucune'}</small><small>Décision : {log.decision==='automatic'?'Automatique':log.decision==='approved'?'Approuvée par un modérateur':'Rejetée par un modérateur'}</small>{log.decision==='automatic'&&<div className="report-actions"><button disabled={busy} onClick={()=>review(log,'approved')}>Marquer comme approuvé</button><button disabled={busy} onClick={()=>review(log,'rejected')}>Confirmer le blocage</button></div>}</article>)}
  </div>
- <p><small>Important : les actions de revue enregistrent la décision du modérateur dans l’historique. Elles ne republient pas automatiquement un texte déjà bloqué.</small></p>
+ <div className="card profile-form">
+  <h2>Archive des photos de Weshbien IA</h2>
+  <p>Toutes les photos et images analysées sont conservées ici, qu’elles aient été acceptées, bloquées ou approuvées ensuite par un modérateur. Cette archive est indépendante des décisions de modération.</p>
+  <small>{archiveStatus}</small>
+  {archiveLoading?<p>Chargement des photos…</p>:archivePhotos.length===0?<p>Aucune photo archivée sur cette page.</p>:archivePhotos.map(photo=><article className="report-row" key={photo.id}>
+   <b>{photo.allowed?'Acceptée':'Bloquée'}{photo.flagged?' · Signalée par l’IA':''}</b>
+   <small>{new Date(photo.created_at).toLocaleString('fr-FR')} · {photo.user_id?'Utilisateur : '+photo.user_id:'Utilisateur inconnu'}</small>
+   {photo.image_url?<div style={{margin:'12px 0'}}><a href={photo.image_url} target="_blank" rel="noreferrer"><img src={photo.image_url} alt="Photo archivée" loading="lazy" style={{display:'block',width:'auto',maxWidth:'min(100%,420px)',maxHeight:360,objectFit:'contain',borderRadius:14,border:'1px solid #e5e7ef'}}/></a></div>:<p>Aperçu temporairement indisponible.</p>}
+   <small>{photo.decision==='approved'?'Approuvée par un modérateur':photo.decision==='rejected'?'Rejetée par un modérateur':photo.decision==='trusted_bypass'?'Autorisation spéciale':photo.decision==='automatic'?'Décision automatique':photo.decision}</small>
+   <div className="report-actions"><button disabled={!photo.image_url} onClick={()=>downloadArchivedPhoto(photo)}>⬇ Récupérer la photo</button></div>
+  </article>)}
+  <div className="report-actions">
+   <button disabled={archiveLoading||archivePage===0} onClick={()=>loadArchive(archivePage-1)}>← Précédent</button>
+   <small>Page {archivePage+1} / {Math.max(1,Math.ceil(archiveTotal/25))}</small>
+   <button disabled={archiveLoading||(archivePage+1)*25>=archiveTotal} onClick={()=>loadArchive(archivePage+1)}>Suivant →</button>
+  </div>
+ </div>
+ <p><small>Important : les actions de revue enregistrent la décision du modérateur dans l’historique. Elles ne suppriment pas les photos de l’archive.</small></p>
  </>}
  </section></main>
 }
