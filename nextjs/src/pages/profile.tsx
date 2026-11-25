@@ -48,6 +48,7 @@ export default function ProfilePage() {
  const [following,setFollowing]=useState(false)
  const [followerCount,setFollowerCount]=useState(0)
  const [activeProfileTab,setActiveProfileTab]=useState<'about'|'photos'>('about')
+ const [expandedProfilePreview,setExpandedProfilePreview]=useState(false)
 
  async function loadFriendState(userId:string,targetId:string){
   const {data,error}=await supabase.from('friend_requests').select('id,sender_id,recipient_id,status').or(`and(sender_id.eq.${userId},recipient_id.eq.${targetId}),and(sender_id.eq.${targetId},recipient_id.eq.${userId})`).maybeSingle()
@@ -248,6 +249,32 @@ export default function ProfilePage() {
   <section className="profile-wrap"><small>ESPACE PERSONNEL</small><div style={{display:'flex',alignItems:'center',gap:12,flexWrap:'wrap',margin:'8px 0 14px'}}><h1 style={{margin:0}}>{me?'Mon profil':'Profil membre'}</h1>{profileRole!=='member'&&<span style={{display:'inline-flex',alignItems:'center',gap:6,padding:'5px 10px',borderRadius:999,background:profileRole==='admin'?'#fef3c7':'#dbeafe',color:profileRole==='admin'?'#92400e':'#1e40af',fontWeight:800,fontSize:13,whiteSpace:'nowrap'}}>{profileRole==='admin'?'🛡️ Administrateur':'🔧 Modérateur'}</span>}</div>
    {loading?<div className="card empty" role="status">Chargement du profil…</div>:me?(
     <form className="card profile-form" onSubmit={save}>
+     <section aria-label="Aperçu de ton profil" style={{border:'1px solid var(--border,#8884)',borderRadius:16,padding:16,marginBottom:18,background:'var(--card-bg,transparent)'}}>
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',gap:10,flexWrap:'wrap',marginBottom:12}}>
+       <div><strong>👀 Aperçu de ton compte</strong><small style={{display:'block',opacity:.75}}>Mis à jour en direct pendant tes modifications</small></div>
+       <button type="button" className="friend-secondary" onClick={()=>setExpandedProfilePreview(v=>!v)}>{expandedProfilePreview?'Réduire l’aperçu':'Voir en grand'}</button>
+      </div>
+      <div style={{display:'flex',alignItems:'center',gap:14,flexWrap:'wrap'}}>
+       <MemberAvatar userId={uid} name={name||username||'Mon profil'} avatarUrl={avatarUrl} className="avatar large profile-avatar-preview"/>
+       <div style={{minWidth:0,flex:1}}>
+        <h2 style={{margin:'0 0 4px',overflowWrap:'anywhere'}}>{name.trim()||username.trim()||'Ton nom affiché'}</h2>
+        <p style={{margin:'0 0 5px',opacity:.8}}>@{username.trim()||'ton_pseudo'}</p>
+        <small>{age?age+' ans':'Âge non renseigné'}{city.trim()?' · '+city.trim():''}</small>
+       </div>
+      </div>
+      {(bio.trim()||interests.trim()||hobbies.trim()||favoriteMusic.trim()||gender)&&<div style={{marginTop:14,display:'grid',gap:9}}>
+       {bio.trim()&&<div><strong>À propos</strong><p style={{margin:'3px 0',whiteSpace:'pre-wrap'}}>{bio}</p></div>}
+       {interests.trim()&&<div><strong>Centres d’intérêt</strong><p style={{margin:'3px 0'}}>{interests}</p></div>}
+       {hobbies.trim()&&<div><strong>Loisirs et passions</strong><p style={{margin:'3px 0'}}>{hobbies}</p></div>}
+       {favoriteMusic.trim()&&<div><strong>Musique préférée</strong><p style={{margin:'3px 0'}}>{favoriteMusic}</p></div>}
+       {gender&&<div><strong>Genre</strong><p style={{margin:'3px 0'}}>{gender}</p></div>}
+      </div>}
+      {expandedProfilePreview&&<div style={{marginTop:14}}>
+       <strong>Galerie ({galleryUrls.length})</strong>
+       {galleryUrls.length?<div className="profile-gallery-grid">{galleryUrls.map(url=><div className="profile-gallery-thumb" key={url}><CommunityImage src={url} alt="Aperçu d’une photo de ta galerie"/></div>)}</div>:<p style={{opacity:.7}}>Aucune photo dans ta galerie pour le moment.</p>}
+       <small style={{display:'block',marginTop:10}}>C’est un aperçu de ton profil avec les informations actuellement saisies. Les modifications seront visibles sur ton compte après enregistrement.</small>
+      </div>}
+     </section>
      <p className="profile-friend-count">👁 {profileViews} vue{profileViews>1?"s":""} · ♡ {friendCount} ami{friendCount>1?"s":""}</p>
      <div className="profile-photo-editor"><MemberAvatar userId={uid} name={name||username} avatarUrl={avatarUrl} className="avatar profile-avatar-preview"/><label className="photo-upload-button">📷 {photoBusy?'Envoi…':'Ajouter une photo'}<input type="file" accept="image/jpeg,image/png,image/webp,image/gif" disabled={photoBusy} onChange={e=>uploadAvatar(e.target.files?.[0])}/></label>{avatarUrl&&<button type="button" className="friend-secondary" disabled={photoBusy} onClick={removeAvatar}>🗑️ Supprimer ma photo</button>}<small>JPG, PNG, WEBP ou GIF · 8 Mo maximum</small></div>
      <label>Nom affiché<input maxLength={50} value={name} onChange={e=>setName(e.target.value)} placeholder="Ton nom affiché"/></label>
