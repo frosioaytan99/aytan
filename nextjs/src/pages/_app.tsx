@@ -272,7 +272,7 @@ export default function App({ Component, pageProps }: AppProps) {
           <Link prefetch={false} href="/settings" className="desktop-settings-link">⚙️ <span>Paramètres</span></Link>
           <button type="button" onClick={toggleTheme} aria-label="Changer le thème" title="Changer le thème">{theme==='dark'?'☀️':'🌙'} <span>{theme==='dark'?'Mode clair':'Mode sombre'}</span></button>
         </div>
-      </aside>eader>
+      </aside>
       <header className="mobile-community-header">
         <button type="button" className="mobile-menu-trigger" onClick={() => setMenuOpen(true)} aria-label="Ouvrir le menu">☰</button>
         <Link prefetch={false} href="/feed" className="mobile-brand"><span className="brand-mark">w</span></Link>{guestName && <span className="guest-name-label">{guestName}</span>}<span className="mobile-header-spacer" />
