@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { supabase } from '../lib/supabaseClient'
 import MemberAvatar from '../components/MemberAvatar'
+import { uploadModeratedCommunityImage } from '../lib/uploadModeratedCommunityImage'
 type Msg={id:string;sender:string;recipient:string;subject:string|null;body:string|null;created_at:string;is_read:boolean;reply_to_id?:string|null;attachment_path?:string|null;attachment_type?:'image'|'audio'|'video'|null;attachment_url?:string|null}
 type Reaction={id:string;message_id:string;user_id:string;emoji:string}
 function spotifyEmbedUrl(value:string|null|undefined):string|null{
@@ -147,7 +148,12 @@ export default function ConversationPage(){
   const max=type==='image'?8*1024*1024:type==='video'?50*1024*1024:15*1024*1024
   if(!allowed.includes(file.type)){setStatus(type==='image'?'Format photo non accepté.':type==='video'?'Format vidéo non accepté.':'Format audio non accepté.');return}
   if(file.size>max){setStatus(type==='image'?'Photo trop volumineuse (8 Mo maximum).':type==='video'?'Vidéo trop volumineuse (50 Mo maximum).':'Fichier audio trop volumineux (15 Mo maximum).');return}
-  setUploading(true);setStatus('Envoi du fichier…')
+  setUploading(true);setStatus(type==='image'?'Vérification de la photo par l’IA…':'Envoi du fichier…')
+  if(type==='image'){
+   try{await uploadModeratedCommunityImage(file,'private_message')}
+   catch(error:any){setUploading(false);setStatus(error?.message||'La photo a été refusée ou n’a pas pu être vérifiée.');return}
+  }
+  setStatus('Envoi du fichier…')
   const ext=file.name.split('.').pop()?.toLowerCase()||(type==='image'?'jpg':type==='video'?'mp4':'mp3')
   const path=uid+'/'+other+'/'+Date.now()+'-'+Math.random().toString(36).slice(2)+'.'+ext
   const {error:uploadError}=await supabase.storage.from('chat-attachments').upload(path,file,{contentType:file.type,upsert:false})
