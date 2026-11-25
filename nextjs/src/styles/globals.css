@@ -2206,3 +2206,34 @@ p,h1,h2,h3,h4,h5,h6,a,button,label,small,span{overflow-wrap:anywhere}
 }
 html[data-theme="dark"] .desktop-feature-menu{background:#201d2e;border-color:#353047;color:#f0edff}
 html[data-theme="dark"] .desktop-feature-menu-grid>a{color:#f0edff}
+
+
+/* Protection de confidentialité : masque l'aperçu lorsque l'onglet/app passe en arrière-plan. */
+html[data-privacy-hidden="true"] body{
+  filter:blur(18px)!important;
+  user-select:none!important;
+}
+html[data-privacy-hidden="true"] body:after{
+  content:"Weshbien2 · Écran protégé";
+  position:fixed;inset:0;z-index:2147483647;
+  display:grid;place-items:center;
+  background:#171322;color:#fff;
+  font-size:clamp(18px,4vw,28px);font-weight:800;
+  letter-spacing:.03em;filter:none;
+}
+.private-chat-watermark{
+  position:fixed;inset:0;z-index:40;pointer-events:none;
+  display:flex;align-items:center;justify-content:center;overflow:hidden;
+  opacity:.055;transform:rotate(-24deg);
+  color:var(--ink,#33264b);font-size:clamp(17px,3vw,30px);
+  font-weight:900;letter-spacing:.12em;text-align:center;
+  user-select:none;white-space:normal;
+}
+.private-chat-watermark span{
+  width:150vw;line-height:5.5;word-spacing:1.5em;
+  text-shadow:0 0 1px currentColor;
+}
+@media print{
+  body>*{visibility:hidden!important}
+  body:after{content:"Impression désactivée pour protéger les conversations privées";visibility:visible!important;position:fixed;inset:20px;font-size:20px;font-weight:800}
+}
