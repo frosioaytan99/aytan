@@ -30,8 +30,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (role?.role !== 'admin') return res.status(403).json({ error: 'admin_access_required' })
 
     const targetId = typeof req.body?.user_id === 'string' ? req.body.user_id.trim() : ''
+    if (req.body?.migrate_legacy_bans === true) {
+      const { data: rows, error: rowsError } = await admin.from('account_suspensions').select('user_id')
+      if (rowsError) return res.status(503).json({ error: 'suspension_list_failed' })
+      let migrated = 0
+      for (const row of rows || []) {
+        const { error } = await admin.auth.admin.updateUserById(row.user_id, { ban_duration: 'none' })
+        if (!error) migrated++
+      }
+      return res.status(200).json({ ok: true, migrated })
+    }
+
     const suspended = req.body?.suspended
-    if (!UUID_RE.test(targetId) || typeof suspended !== 'boolean') return res.status(400).json({ error: 'invalid_suspension_request' })
+    const reason = typeof req.body?.reason === 'string' ? req.body.reason.trim().slice(0, 1000) : ''
+    if (!UUID_RE.test(targetId) || typeof suspended !== 'boolean' || (suspended && reason.length < 3)) return res.status(400).json({ error: 'invalid_suspension_request' })
     if (targetId === authData.user.id) return res.status(400).json({ error: 'cannot_suspend_self' })
 
     const { data: targetRole, error: targetRoleError } = await admin.from('user_roles').select('role').eq('user_id', targetId).maybeSingle()
@@ -45,12 +57,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const { error } = await admin.from('account_suspensions').upsert({
         user_id: targetId,
         created_by: authData.user.id,
-        reason: 'Suspension décidée par un administrateur',
+        reason,
       }, { onConflict: 'user_id' })
       if (error) return res.status(503).json({ error: 'suspension_record_failed' })
 
-      const { error: banError } = await admin.auth.admin.updateUserById(targetId, { ban_duration: '876000h' })
-      if (banError) return res.status(503).json({ error: 'account_ban_failed' })
+      // Keep Supabase Auth sign-in available so the user can receive the exact suspension reason.
+      // Application access is denied by account_suspensions RLS checks after sign-in.
+      const { error: banError } = await admin.auth.admin.updateUserById(targetId, { ban_duration: 'none' })
+      if (banError) return res.status(503).json({ error: 'account_unban_failed' })
       return res.status(200).json({ ok: true, user_id: targetId, suspended: true })
     }
 
