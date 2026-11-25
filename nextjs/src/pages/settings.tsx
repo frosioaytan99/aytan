@@ -156,12 +156,21 @@ export default function SettingsPage() {
   const [themeCategory, setThemeCategory] = useState('Tous')
   const [accountRole, setAccountRole] = useState<'admin'|'moderator'|'member'>('member')
   const [roleLoading, setRoleLoading] = useState(true)
+  const [notificationPrefs, setNotificationPrefs] = useState({messages:true,friend_requests:true,social_activity:true,forum_replies:true,follows:true})
+  const [myBadges, setMyBadges] = useState<Array<{id:string;name:string;description:string;emoji:string}>>([])
+  const [prefsSaving, setPrefsSaving] = useState(false)
   useEffect(() => {
     let cancelled = false
     ;(async () => {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { if (!cancelled) setRoleLoading(false); return }
       const { data, error } = await supabase.from('user_roles').select('role').eq('user_id', user.id).maybeSingle()
+      const [prefsResult, badgesResult] = await Promise.all([
+        supabase.from('notification_preferences').select('messages,friend_requests,social_activity,forum_replies,follows').eq('user_id', user.id).maybeSingle(),
+        supabase.from('user_badges').select('badge_id,badges(id,name,description,emoji)').eq('user_id', user.id)
+      ])
+      if (!cancelled && prefsResult.data) setNotificationPrefs({...notificationPrefs,...prefsResult.data})
+      if (!cancelled && badgesResult.data) setMyBadges(badgesResult.data.map((row:any)=>Array.isArray(row.badges)?row.badges[0]:row.badges).filter(Boolean))
       if (!cancelled) {
         setAccountRole(!error && data?.role === 'admin' ? 'admin' : !error && data?.role === 'moderator' ? 'moderator' : 'member')
         setRoleLoading(false)
@@ -173,6 +182,16 @@ export default function SettingsPage() {
     try { const saved = localStorage.getItem('weshbien-wallpaper') || 'aurora'; const darkSaved = localStorage.getItem('weshbien-dark-wallpaper') || 'cosmos'; setWallpaper(saved); setDarkWallpaper(darkSaved); const active = document.documentElement.dataset.theme === 'dark' ? darkSaved : saved; document.documentElement.dataset.wallpaper = active; document.body.dataset.wallpaper = active } catch {}
     return () => { cancelled = true }
   }, [])
+  async function updateNotificationPreference(key: keyof typeof notificationPrefs, value: boolean) {
+    const next = {...notificationPrefs, [key]: value}
+    setNotificationPrefs(next)
+    setPrefsSaving(true)
+    const {data:{user}} = await supabase.auth.getUser()
+    if (!user) { setPrefsSaving(false); setStatus('Connecte-toi pour modifier tes préférences.'); return }
+    const {error} = await supabase.from('notification_preferences').upsert({user_id:user.id,...next,updated_at:new Date().toISOString()})
+    setPrefsSaving(false)
+    setStatus(error ? 'Impossible d’enregistrer les préférences : '+error.message : 'Préférences de notifications enregistrées.')
+  }
   function chooseAppTheme(id: string) {
     setAppTheme(id)
     document.documentElement.dataset.appTheme = id
@@ -228,6 +247,29 @@ export default function SettingsPage() {
           <Link href="/admin">Ouvrir le tableau de modération</Link>
         </> : <p>Les accès de modération sont réservés aux comptes autorisés par un administrateur.</p>}
       </>}
+    </section>
+
+    <section className="card profile-form" aria-labelledby="notification-preferences-title">
+      <h2 id="notification-preferences-title">Notifications</h2>
+      <p>Choisis les alertes que tu souhaites recevoir sur Weshbien2.</p>
+      {([
+        ['messages','Nouveaux messages'],
+        ['friend_requests','Demandes et confirmations d’amitié'],
+        ['social_activity','J’aime et commentaires'],
+        ['forum_replies','Réponses dans les forums'],
+        ['follows','Activité des personnes suivies']
+      ] as Array<[keyof typeof notificationPrefs,string]>).map(([key,label])=><label key={key} style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:12,padding:'10px 0',borderBottom:'1px solid var(--border,#eee)'}}>
+        <span>{label}</span><input type="checkbox" checked={notificationPrefs[key]} disabled={prefsSaving} onChange={e=>updateNotificationPreference(key,e.target.checked)} />
+      </label>)}
+      {prefsSaving&&<small>Enregistrement…</small>}
+    </section>
+
+    <section className="card profile-form" aria-labelledby="my-badges-title">
+      <h2 id="my-badges-title">🏅 Mes badges</h2>
+      <p>Des récompenses sont attribuées automatiquement à tes premières activités.</p>
+      {myBadges.length ? <div style={{display:'flex',flexWrap:'wrap',gap:12}}>{myBadges.map(b=><div key={b.id} style={{padding:'12px 14px',border:'1px solid var(--border,#eee)',borderRadius:14,minWidth:130}}>
+        <strong style={{fontSize:22}}>{b.emoji}</strong><div><b>{b.name}</b></div><small>{b.description}</small>
+      </div>)}</div> : <p>Pas encore de badge. Publie, partage une story ou participe aux forums pour en débloquer !</p>}
     </section>
 
     <section className="app-theme-store">
