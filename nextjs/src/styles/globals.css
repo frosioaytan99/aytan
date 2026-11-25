@@ -2237,3 +2237,69 @@ html[data-privacy-hidden="true"] body:after{
   body>*{visibility:hidden!important}
   body:after{content:"Impression désactivée pour protéger les conversations privées";visibility:visible!important;position:fixed;inset:20px;font-size:20px;font-weight:800}
 }
+
+
+/* Navigation ordinateur en colonne, comme le menu vertical du téléphone */
+@media(min-width:651px){
+  body{margin-left:248px!important;width:calc(100% - 248px)!important}
+  .desktop-community-header{
+    position:fixed!important;inset:0 auto 0 0!important;z-index:120!important;
+    width:248px!important;height:100vh!important;min-height:100vh!important;
+    padding:24px 15px 18px!important;box-sizing:border-box!important;
+    display:flex!important;flex-direction:column!important;align-items:stretch!important;
+    gap:12px!important;overflow:hidden!important;
+    border-right:1px solid var(--line)!important;border-bottom:0!important;
+    background:var(--paper,#fff)!important;box-shadow:5px 0 24px rgba(35,27,70,.06)!important;
+  }
+  .desktop-brand{padding:0 10px 15px!important;font-size:21px!important}
+  .desktop-menu-caption{padding:5px 11px;color:var(--muted);font-size:10px;font-weight:900;letter-spacing:.13em}
+  .desktop-community-nav{
+    display:flex!important;flex:1 1 auto!important;flex-direction:column!important;
+    align-items:stretch!important;gap:4px!important;min-height:0!important;
+    overflow-x:hidden!important;overflow-y:auto!important;white-space:normal!important;
+    padding:4px 0 12px!important;scrollbar-width:thin;
+  }
+  .desktop-community-nav>a{
+    display:flex!important;align-items:center!important;gap:12px!important;
+    width:100%!important;min-height:43px!important;box-sizing:border-box!important;
+    padding:10px 12px!important;border-radius:11px!important;
+    color:var(--muted)!important;font-size:13px!important;font-weight:750!important;
+    text-decoration:none!important;white-space:normal!important;
+  }
+  .desktop-community-nav>a>span:first-child{width:22px;flex:0 0 22px;text-align:center;font-size:17px}
+  .desktop-community-nav>a:hover,.desktop-community-nav>a.active{
+    color:var(--purple)!important;background:color-mix(in srgb,var(--purple) 10%,transparent)!important;
+  }
+  .desktop-nav-count{margin-left:auto!important;flex:0 0 auto}
+  .desktop-header-actions{
+    display:flex!important;flex-direction:column!important;align-items:stretch!important;
+    gap:7px!important;flex:0 0 auto!important;padding-top:12px!important;
+    border-top:1px solid var(--line)!important;
+  }
+  .desktop-header-actions .desktop-profile-link,
+  .desktop-header-actions .desktop-settings-link,
+  .desktop-header-actions>button{
+    display:flex!important;align-items:center!important;justify-content:flex-start!important;
+    gap:11px!important;width:100%!important;height:43px!important;min-height:43px!important;
+    padding:7px 11px!important;box-sizing:border-box!important;
+    border:0!important;border-radius:11px!important;background:transparent!important;
+    color:var(--ink)!important;font-size:13px!important;font-weight:750!important;
+    text-decoration:none!important;cursor:pointer!important;
+  }
+  .desktop-header-actions .desktop-profile-link .member-avatar-wrap,
+  .desktop-header-actions .desktop-profile-link .account-avatar-image{
+    width:29px!important;height:29px!important;min-width:29px!important;min-height:29px!important;
+    border-radius:50%!important;overflow:hidden!important;
+  }
+  .desktop-header-actions .desktop-profile-link img{width:100%;height:100%;object-fit:cover}
+  .desktop-header-actions .desktop-settings-link:hover,
+  .desktop-header-actions .desktop-profile-link:hover,
+  .desktop-header-actions>button:hover{background:color-mix(in srgb,var(--purple) 10%,transparent)!important}
+  .app-layout{margin-top:24px!important}
+}
+@media(min-width:651px) and (max-height:650px){
+  .desktop-community-header{padding-top:12px!important;padding-bottom:10px!important}
+  .desktop-community-nav>a{min-height:36px!important;padding-top:7px!important;padding-bottom:7px!important}
+}
+@media(max-width:650px){body{margin-left:0!important;width:100%!important}}
+html[data-theme="dark"] .desktop-community-header{background:#191624!important;border-color:#343044!important}
