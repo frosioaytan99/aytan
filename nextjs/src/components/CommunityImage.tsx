@@ -12,5 +12,5 @@ type Props = {
 export default function CommunityImage({ src, alt, className, style, fallback }: Props) {
   const resolvedUrl = useCommunityMedia(src)
   if (!resolvedUrl) return fallback || null
-  return <img src={resolvedUrl} alt={alt} className={className} style={style} />
+  return <img src={resolvedUrl} alt={alt} className={className} style={style} loading="lazy" decoding="async" />
 }
