@@ -16,6 +16,7 @@ export default function CommunitiesPage(){
  const [draft,setDraft]=useState('')
  const [busy,setBusy]=useState(false)
  const [status,setStatus]=useState('')
+ const [isPrivate,setIsPrivate]=useState(false)
  async function load(){
   const {data:{user}}=await supabase.auth.getUser()
   if(!user){router.replace('/auth');return}
@@ -39,12 +40,12 @@ export default function CommunitiesPage(){
  async function create(e:any){
   e.preventDefault();if(!name.trim()||!userId)return
   setBusy(true)
-  const {data,error}=await supabase.from('communities').insert({name:name.trim(),description:description.trim(),created_by:userId}).select('id').single()
+  const {data,error}=await supabase.from('communities').insert({name:name.trim(),description:description.trim(),created_by:userId,is_private:isPrivate}).select('id').single()
   if(error){setStatus('Création impossible : '+error.message);setBusy(false);return}
   const join=await supabase.from('community_members').insert({community_id:data.id,user_id:userId,role:'member'})
   setBusy(false)
   if(join.error){setStatus('Groupe créé, mais impossible de le rejoindre : '+join.error.message);return}
-  setName('');setDescription('');setStatus('Communauté créée !');await load();setSelected(data.id)
+  setName('');setDescription('');setIsPrivate(false);setStatus('Communauté créée !');await load();setSelected(data.id)
  }
  async function join(c:Community){
   const {error}=await supabase.from('community_members').insert({community_id:c.id,user_id:userId})
@@ -65,7 +66,7 @@ export default function CommunitiesPage(){
  const current=items.find(x=>x.id===selected)
  return <main className="app-shell"><header className="app-header"><Link className="brand" href="/feed">weshbien2<span>.</span></Link><nav><Link href="/feed">Fil</Link><Link href="/stories">Stories</Link><Link href="/communities" className="active">Communautés</Link><Link href="/forums">Forums</Link><Link href="/inbox">Messages</Link></nav></header>
  <div className="directory communities-page"><small>REJOINS TA COMMUNAUTÉ</small><h1>Communautés</h1><p>Crée des groupes publics autour de tes passions et discute avec leurs membres.</p>
- <form className="card community-create" onSubmit={create}><h3>Créer une communauté</h3><input value={name} onChange={e=>setName(e.target.value)} maxLength={60} placeholder="Nom du groupe" required/><textarea value={description} onChange={e=>setDescription(e.target.value)} maxLength={400} placeholder="De quoi parle ton groupe ?"/><button disabled={busy||name.trim().length<3}>{busy?'Création…':'Créer le groupe'}</button></form>
+ <form className="card community-create" onSubmit={create}><h3>Créer une communauté</h3><input value={name} onChange={e=>setName(e.target.value)} maxLength={60} placeholder="Nom du groupe" required/><textarea value={description} onChange={e=>setDescription(e.target.value)} maxLength={400} placeholder="De quoi parle ton groupe ?"/><label style={{display:"flex",alignItems:"center",gap:8}}><input type="checkbox" checked={isPrivate} onChange={e=>setIsPrivate(e.target.checked)}/> Communauté privée (accès sur invitation)</label><button disabled={busy||name.trim().length<3}>{busy?'Création…':'Créer le groupe'}</button></form>
  {status&&<p className="notice">{status}</p>}
  <div className="community-layout"><section className="community-list"><h2>Groupes à découvrir</h2>{items.length===0?<div className="card empty">Aucun groupe pour le moment.</div>:items.map(c=><article className={'card community-card '+(selected===c.id?'selected':'')} key={c.id}><button className="community-select" type="button" onClick={()=>setSelected(c.id)}><b>{c.name}</b><small>{c.members} membre{c.members>1?'s':''}</small><p>{c.description||'Aucune description pour le moment.'}</p></button>{c.joined?<button type="button" className="community-leave" onClick={()=>leave(c)}>Quitter</button>:<button type="button" className="community-join" onClick={()=>join(c)}>Rejoindre</button>}</article>)}</section>
  <section className="card community-chat"><h2>{current?.name||'Discussion du groupe'}</h2>{!current||!current.joined?<div className="empty">Rejoins un groupe pour participer à la discussion.</div>:<><div className="community-messages">{messages.map(m=><article key={m.id} className="community-message"><b>{m.username}</b><p>{m.body}</p><small>{new Date(m.created_at).toLocaleString('fr-FR')}</small></article>)}</div><form className="community-send" onSubmit={send}><input value={draft} onChange={e=>setDraft(e.target.value)} maxLength={1500} placeholder="Écrire au groupe…"/><button disabled={!draft.trim()}>Envoyer</button></form></>}</section></div>
