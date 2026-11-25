@@ -2303,3 +2303,124 @@ html[data-privacy-hidden="true"] body:after{
 }
 @media(max-width:650px){body{margin-left:0!important;width:100%!important}}
 html[data-theme="dark"] .desktop-community-header{background:#191624!important;border-color:#343044!important}
+
+
+/* Thème sombre global — harmonisation de toutes les pages */
+html[data-theme="dark"]{
+  color-scheme:dark;
+  --ink:#f2efff;
+  --muted:#b8b2cc;
+  --line:#403a55;
+  --paper:#171522;
+  --surface:#242136;
+  --surface-2:#302a45;
+  --field:#1c192b;
+  --purple:#b2a2ff;
+  --purple-dark:#9582f0;
+}
+html[data-theme="dark"] body,
+html[data-theme="dark"] #__next{
+  background:#171522!important;
+  color:var(--ink)!important;
+}
+html[data-theme="dark"] :is(main,section,article,aside,header,footer,nav,form,fieldset){
+  border-color:var(--line);
+}
+html[data-theme="dark"] :is(
+  .site-shell,.app-shell,.member-shell,.member-content,.page-content,.page-container,
+  .profile-wrap,.directory,.feed-page,.explore-page,.search-page,.settings-page,
+  .admin-page,.moderator-page,.messages-page,.inbox-page,.photos-page,.stories-page,
+  .communities-page,.forums-page,.questions-page,.notifications-page,.conversation-page,
+  .desktop-community-header,.mobile-community-header,.mobile-bottom-nav,.mobile-drawer,
+  .desktop-feature-menu
+){
+  background-color:#171522!important;
+  color:var(--ink)!important;
+}
+html[data-theme="dark"] :is(
+  .card,.right-card,.side-card,.feature-card,.member-panel,.member-stat,.post,.composer,
+  .auth-card,.phone-card,.float-card,.conversation-heading,.conversation-compose,
+  .forum-original,.forum-reply,.forum-create,.forum-reply-form,.question-card,
+  .notification-item,.member-card,.profile-form,.admin-section,.admin-card,
+  .settings-card,.message-card,.photo-card,.story-card,.community-card,
+  .modal,.dialog,.popover,.dropdown-menu,.menu-panel,.panel,.content-card
+){
+  background-color:#242136!important;
+  color:var(--ink)!important;
+  border-color:var(--line)!important;
+}
+html[data-theme="dark"] :is(
+  input,textarea,select,.auth-card input,.profile-form input,.profile-form textarea,
+  .composer textarea,.search-row input,.comment-form input,.question-create input,
+  .question-create textarea,.question-answer-form input,.forum-create input,
+  .forum-create select,.forum-create textarea,.forum-reply-form textarea
+){
+  background-color:#1c192b!important;
+  color:var(--ink)!important;
+  border-color:var(--line)!important;
+}
+html[data-theme="dark"] input::placeholder,
+html[data-theme="dark"] textarea::placeholder{
+  color:#928ba9!important;
+  opacity:1;
+}
+html[data-theme="dark"] :is(p,small,label,li,td,th,.muted,.description,.subtitle,.hint,.helper-text,.empty-state){
+  color:var(--muted);
+}
+html[data-theme="dark"] :is(h1,h2,h3,h4,h5,h6,strong,b,.title,.heading){
+  color:var(--ink);
+}
+html[data-theme="dark"] :is(a,.link,.back-link,.admin-account-actions a){
+  color:var(--purple);
+}
+html[data-theme="dark"] :is(button,.button,.secondary-link,.friend-secondary,.auth-tab,.tab){
+  border-color:var(--line);
+}
+html[data-theme="dark"] :is(
+  .member-message,.member-panel-heading,.post-actions,.comments,.admin-account-row,
+  .conversation-row,.notification-item,.question-answers,.question-answer,.site-footer
+){
+  border-color:var(--line)!important;
+}
+html[data-theme="dark"] :is(
+  .member-nav,.member-nav button,.app-header nav,.desktop-community-nav>a,
+  .desktop-header-actions .desktop-profile-link,.desktop-header-actions .desktop-settings-link
+){
+  color:#c9c2dc!important;
+}
+html[data-theme="dark"] :is(
+  .conversation-row:hover,.desktop-feature-menu-grid>a:hover,
+  .desktop-feature-menu-grid>a.active,.mobile-drawer a:hover
+){
+  background-color:#302a45!important;
+}
+html[data-theme="dark"] .global-tools-top,
+html[data-theme="dark"] .global-tools{
+  color:var(--ink);
+}
+html[data-theme="dark"] .desktop-community-header{
+  background:#191624!important;
+  border-color:var(--line)!important;
+}
+html[data-theme="dark"] .mobile-community-header,
+html[data-theme="dark"] .mobile-bottom-nav{
+  background:#201d2e!important;
+  border-color:var(--line)!important;
+}
+html[data-theme="dark"] .desktop-feature-menu{
+  background:#242136!important;
+  border-color:var(--line)!important;
+}
+html[data-theme="dark"] .desktop-feature-menu-grid>a{color:var(--ink)!important}
+html[data-theme="dark"] .profile-like-button{
+  background:#39243a!important;color:#ff9bc8!important;border-color:#68415d!important;
+}
+html[data-theme="dark"] .danger-action{
+  background:#482a32!important;color:#ffaaa5!important;border-color:#70404a!important;
+}
+html[data-theme="dark"] .admin-role-badge.moderator{
+  background:#20364c!important;color:#a8d4ff!important;border-color:#365a7a!important;
+}
+html[data-theme="dark"] .admin-role-badge.admin{
+  background:#392747!important;color:#e0b8ff!important;border-color:#614274!important;
+}
