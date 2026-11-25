@@ -1,6 +1,6 @@
 import { supabase } from './supabaseClient'
 
-export async function uploadModeratedCommunityImage(file: File, purpose?: 'private_message'): Promise<string> {
+export async function uploadModeratedCommunityImage(file: File, purpose?: 'private_message', recipientId?: string): Promise<string> {
   const { data: { session } } = await supabase.auth.getSession()
   if (!session?.access_token) throw new Error('Connecte-toi pour envoyer une photo.')
 
@@ -14,7 +14,7 @@ export async function uploadModeratedCommunityImage(file: File, purpose?: 'priva
   const response = await fetch('/api/image-moderation', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + session.access_token },
-    body: JSON.stringify({ image, purpose }),
+    body: JSON.stringify({ image, purpose, recipient_id: recipientId }),
   })
   const result = await response.json().catch(() => null)
   if (!response.ok) throw new Error(result?.message || (result?.error === 'photo_moderation_paused'
