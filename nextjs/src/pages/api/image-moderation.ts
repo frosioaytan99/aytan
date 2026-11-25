@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { createClient } from '@supabase/supabase-js'
+import sharp from 'sharp'
 
 export const config = {
   api: { bodyParser: { sizeLimit: '12mb' } },
@@ -82,22 +83,83 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     if (!openaiKey) return res.status(503).json({ error: 'image_moderation_not_configured' })
 
-    const moderationResponse = await fetch('https://api.openai.com/v1/moderations', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${openaiKey}` },
-      body: JSON.stringify({
-        model: 'omni-moderation-latest',
-        input: [{ type: 'image_url', image_url: { url: dataUrl } }],
-      }),
-    })
-    if (!moderationResponse.ok) return res.status(502).json({ error: 'moderation_service_unavailable' })
-    const payload = await moderationResponse.json()
-    const result = payload?.results?.[0]
-    if (!result) return res.status(502).json({ error: 'moderation_result_unavailable' })
+    // Animated GIFs are decoded and every frame is checked. The moderation API
+    // receives still images, so checking only the GIF container could miss explicit
+    // content that appears briefly during playback.
+    const frames: Buffer[] = []
+    if (mime === 'image/gif') {
+      let metadata: sharp.Metadata
+      try {
+        metadata = await sharp(bytes, { animated: true, limitInputPixels: 40_000_000 }).metadata()
+      } catch {
+        return res.status(400).json({ error: 'gif_decode_failed', message: 'Ce GIF ne peut pas être analysé en toute sécurité. Essaie un autre fichier.' })
+      }
+      const frameCount = metadata.pages || 1
+      if (frameCount > 120) {
+        return res.status(400).json({ error: 'gif_too_many_frames', message: 'Ce GIF contient trop d’images pour être vérifié. Envoie un GIF plus court.' })
+      }
+      try {
+        for (let frame = 0; frame < frameCount; frame++) {
+          const still = await sharp(bytes, { page: frame, limitInputPixels: 40_000_000 })
+            .resize({ width: 768, height: 768, fit: 'inside', withoutEnlargement: true })
+            .png()
+            .toBuffer()
+          frames.push(still)
+        }
+      } catch {
+        return res.status(400).json({ error: 'gif_decode_failed', message: 'Ce GIF ne peut pas être analysé en toute sécurité. Essaie un autre fichier.' })
+      }
+    } else {
+      frames.push(bytes)
+    }
 
-    const categories = result.categories || {}
-    const scores = result.category_scores || {}
-    const blocked = categories.sexual === true || categories['sexual/minors'] === true || categories.violence === true || categories['violence/graphic'] === true || categories['self-harm/intent'] === true || categories['self-harm/instructions'] === true
+    const allResults: any[] = []
+    for (let offset = 0; offset < frames.length; offset += 8) {
+      const batch = frames.slice(offset, offset + 8)
+      const moderationResponse = await fetch('https://api.openai.com/v1/moderations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${openaiKey}` },
+        body: JSON.stringify({
+          model: 'omni-moderation-latest',
+          input: batch.map(frame => ({
+            type: 'image_url',
+            image_url: { url: 'data:image/png;base64,' + frame.toString('base64') },
+          })),
+        }),
+      })
+      if (!moderationResponse.ok) return res.status(502).json({ error: 'moderation_service_unavailable' })
+      const payload = await moderationResponse.json()
+      if (!Array.isArray(payload?.results) || payload.results.length !== batch.length) {
+        return res.status(502).json({ error: 'moderation_result_unavailable' })
+      }
+      allResults.push(...payload.results)
+    }
+
+    const categories: Record<string, boolean> = {}
+    const scores: Record<string, number> = {}
+    let flagged = false
+    let blocked = false
+    for (const result of allResults) {
+      flagged = flagged || result?.flagged === true
+      for (const [key, value] of Object.entries(result?.categories || {})) {
+        categories[key] = categories[key] || value === true
+      }
+      for (const [key, value] of Object.entries(result?.category_scores || {})) {
+        if (typeof value === 'number') scores[key] = Math.max(scores[key] || 0, value)
+      }
+      const frameCategories = result?.categories || {}
+      if (
+        frameCategories.sexual === true ||
+        frameCategories['sexual/minors'] === true ||
+        frameCategories.violence === true ||
+        frameCategories['violence/graphic'] === true ||
+        frameCategories['self-harm/intent'] === true ||
+        frameCategories['self-harm/instructions'] === true
+      ) blocked = true
+    }
+    categories.gif = mime === 'image/gif'
+    scores.frames_analyzed = allResults.length
+    const result = { flagged, categories, category_scores: scores }
 
     // Keep the original image in the private bucket so an authorized moderator
     // can inspect exactly what the model analyzed. The path is never exposed to members.
@@ -111,7 +173,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const { error: logError } = await adminDb.from('ai_moderation_logs').insert({
       user_id: authData.user.id,
-      content: '[Photo analysée par l’IA]',
+      content: mime === 'image/gif' ? '[GIF animé analysé image par image par l’IA]' : '[Photo analysée par l’IA]',
       image_path: path,
       allowed: !blocked,
       flagged: result.flagged === true,
@@ -127,7 +189,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (blocked) {
       return res.status(400).json({
         error: 'explicit_image_blocked',
-        message: 'Cette photo semble contenir du contenu sexuel, violent ou dangereux. Elle ne peut pas être envoyée sur Weshbien2.',
+        message: 'Cette image ou ce GIF semble contenir du contenu sexuel, violent ou dangereux. Il ne peut pas être envoyé sur Weshbien2.',
       })
     }
 
