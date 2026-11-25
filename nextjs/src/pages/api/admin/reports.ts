@@ -38,7 +38,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       : { data: [], error: null }
     if (postsError) return res.status(503).json({ error: 'reported_posts_read_failed' })
 
-    const postAuthors = new Map((posts || []).map(p => [p.id, p.author_id]))
+    const postAuthors = new Map<string, string>((posts || []).map(p => [p.id, p.author_id] as [string, string]))
     const profileIds = Array.from(new Set((reports || []).flatMap(r => [
       r.reporter_id,
       r.content_type === 'profile' ? r.content_id : r.content_type === 'post' ? postAuthors.get(r.content_id) : null
@@ -49,7 +49,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       : { data: [], error: null }
     if (profilesError) return res.status(503).json({ error: 'profiles_read_failed' })
 
-    const byId = new Map((profiles || []).map(p => [p.id, p]))
+    const byId = new Map<string, { id: string; display_name: string | null; username: string | null; avatar_url: string | null }>((profiles || []).map(p => [p.id, p] as [string, { id: string; display_name: string | null; username: string | null; avatar_url: string | null }]))
     const enriched = (reports || []).map(report => {
       const targetId = report.content_type === 'profile'
         ? report.content_id
