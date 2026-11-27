@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import Link from 'next/link'
+import Head from 'next/head'
 import { useRouter } from 'next/router'
 import { supabase } from '../lib/supabaseClient'
 
@@ -138,6 +139,11 @@ export default function AuthPage() {
   }
 
   return (
+    <>
+    <Head>
+      <title>Connexion et inscription | Weshbien2</title>
+      <meta name="robots" content="noindex,follow" />
+    </Head>
     <main className="auth-shell">
       <section className="auth-card">
         <Link href="/" className="brand"><span className="brand-mark">w</span><span>weshbien2<span className="brand-dot">.</span></span></Link>
@@ -170,5 +176,6 @@ export default function AuthPage() {
         <p><Link href="/">← Retour à l'accueil</Link></p>
       </section>
     </main>
+    </>
   )
 }
