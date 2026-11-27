@@ -4,8 +4,8 @@ export function middleware(request: NextRequest) {
   const response = NextResponse.next()
   const hostname = request.headers.get('host')?.split(':')[0]?.toLowerCase()
 
-  // The Vercel deployment remains usable, but Google should index Railway only.
-  if (hostname === 'aytan-six.vercel.app') {
+  // Keep every Vercel deployment accessible, but let Google index Railway only.
+  if (hostname?.endsWith('.vercel.app')) {
     response.headers.set('X-Robots-Tag', 'noindex, follow')
   }
 
