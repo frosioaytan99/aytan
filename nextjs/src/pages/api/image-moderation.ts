@@ -186,10 +186,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             break
           }
 
-          // Retry with the backup key for rate limits, temporary API failures,
-          // or a key/project configuration problem. Do not retry content errors.
+          // Only fail over for a genuine temporary rate limit, service outage,
+          // or key configuration problem. Billing/quota 429s need account action
+          // and must not be bypassed by switching organizations.
+          let apiError: any = null
+          if (response.status === 429) {
+            try { apiError = await response.clone().json() } catch { apiError = null }
+          }
+          const errorCode = apiError?.error?.code
+          const errorType = apiError?.error?.type
+          const temporaryRateLimit = response.status === 429 &&
+            (errorType === 'rate_limit_error' || errorCode === 'rate_limit_exceeded' || errorCode === 'slow_down')
           const canFailOver = response.status === 401 || response.status === 403 ||
-            response.status === 429 || response.status >= 500
+            temporaryRateLimit || response.status >= 500
           if (!canFailOver || keyIndex === moderationKeys.length - 1) {
             return res.status(502).json({ error: 'moderation_service_unavailable' })
           }
