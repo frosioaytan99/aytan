@@ -32,7 +32,7 @@ function WeshbienLogo() {
     <filter id="wb-glow" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="13" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
    </defs>
    <circle cx="512" cy="520" r="430" fill="none" stroke="url(#wb-orbit)" strokeWidth="8" opacity=".8"/>
-   <path d="M190 285 C255 220 310 235 345 315 L470 600 C492 652 524 640 553 580 L654 360 C685 292 730 292 765 360 L850 545 C880 610 925 600 950 535 L1010 365 C1030 310 1070 300 1100 330 L1000 680 C975 770 900 790 850 710 L710 490 C685 450 660 452 640 495 L510 720 C465 800 385 790 350 710 Z" transform="translate(-65 0) scale(1.05 1)" fill="url(#wb-ribbon)" stroke="#D98BFF" strokeWidth="5" filter="url(#wb-glow)"/>
+   <path d="M190 285 C255 220 310 235 345 315 L470 600 C492 652 524 640 553 580 L654 360 C685 292 730 292 765 360 L850 545 C880 610 925 600 950 535 L1010 365 C1030 310 1070 300 1100 330 L1000 680 C975 770 900 790 850 710 L710 490 C685 450 660 452 640 495 L510 720 C465 800 385 790 350 710 Z" transform="translate(30 0) scale(.9 1)" fill="url(#wb-ribbon)" stroke="#D98BFF" strokeWidth="5" filter="url(#wb-glow)"/>
    <path d="M145 260 C275 380 405 390 485 245 L510 120 L545 245 C625 390 750 380 875 260 L845 390 C720 485 600 465 510 350 C420 465 300 485 175 390 Z" fill="url(#wb-gold)" stroke="#FFE58A" strokeWidth="10" strokeLinejoin="round"/>
    <path d="M170 390 Q510 520 850 390 L830 430 Q510 555 190 430Z" fill="#C77A08" stroke="#FFE7A0" strokeWidth="8"/>
    <path d="M330 310 L365 255 L400 310 L365 350Z M490 270 L530 195 L570 270 L530 315Z M650 310 L685 255 L720 310 L685 350Z" fill="#7900D8" stroke="#FFE5FF" strokeWidth="9"/>
