@@ -21,6 +21,26 @@ function NavIcon({name}:{name:string}) {
  }
  return <svg {...common}>{paths[name]||paths.explore}</svg>
 }
+
+function WeshbienLogo() {
+ return <span className="brand-mark brand-mark-royal" aria-hidden="true">
+  <svg viewBox="0 0 64 64" role="presentation" focusable="false">
+   <defs>
+    <linearGradient id="wb-violet" x1="8" y1="8" x2="56" y2="58" gradientUnits="userSpaceOnUse"><stop stopColor="#E1B7FF"/><stop offset=".42" stopColor="#A855F7"/><stop offset="1" stopColor="#6425C8"/></linearGradient>
+    <linearGradient id="wb-gold" x1="18" y1="4" x2="48" y2="23" gradientUnits="userSpaceOnUse"><stop stopColor="#FFF1A8"/><stop offset=".5" stopColor="#E8B94F"/><stop offset="1" stopColor="#A96A18"/></linearGradient>
+    <filter id="wb-glow" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="3.2" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+   </defs>
+   <circle cx="32" cy="35" r="26" fill="none" stroke="#A855F7" strokeOpacity=".38" strokeWidth="2"/>
+   <circle cx="32" cy="35" r="21.5" fill="#180D2B" fillOpacity=".22" stroke="#D8B4FE" strokeOpacity=".3"/>
+   <path d="M12 25 21 49 31.5 31 42 49 52 25" fill="none" stroke="url(#wb-violet)" strokeWidth="7" strokeLinecap="round" strokeLinejoin="round" filter="url(#wb-glow)"/>
+   <path d="M19 18 15 8 25 14 32 5 39 14 49 8 45 19Z" fill="url(#wb-gold)" stroke="#FFE7A0" strokeWidth="1.2" strokeLinejoin="round"/>
+   <path d="M18 19H46L44 23H20Z" fill="#C68B2C"/>
+   <circle cx="32" cy="13" r="2.4" fill="#A855F7" stroke="#FFF0B4" strokeWidth="1"/>
+   <circle cx="21" cy="16" r="1.6" fill="#C4B5FD"/><circle cx="43" cy="16" r="1.6" fill="#C4B5FD"/>
+  </svg>
+ </span>
+}
+
 const menuItems: [string, string, string][] = [
   ['Accueil', '/feed', '⌂'], ['Weshbien IA', '/assistant', '✦'], ['18+', '/individual', '⚠'], ['Explorer', '/explore', '◉'], ['Recherche', '/search', '⌕'], ['Stories', '/stories', '◌'], ['En ligne', '/online', '●'],
   ['Amis', '/friends', '♧'], ['MeetMe', '/meetme', '♡'], ['Communautés', '/communities', '▤'], ['Photos', '/photos', '▧'],
@@ -262,7 +282,7 @@ export default function App({ Component, pageProps }: AppProps) {
     </div>
     {memberPage && signedIn && <>
       <aside className="desktop-community-header" aria-label="Menu principal">
-        <Link prefetch={false} href="/feed" className="desktop-brand" aria-label="Weshbien2, accueil"><span className="brand-mark">w</span><span>weshbien2.</span></Link>
+        <Link prefetch={false} href="/feed" className="desktop-brand" aria-label="Weshbien2, accueil"><WeshbienLogo /><span>weshbien2.</span></Link>
         <div className="desktop-menu-caption">MENU PRINCIPAL</div>
         <nav className="desktop-community-nav" aria-label="Navigation principale">
           {navItems.map(([label,href,icon])=><Link prefetch={false} key={label} href={href} className={router.pathname===href?'active':''}><span aria-hidden="true">{icon}</span><span className="desktop-nav-label">{label}</span>{label==='Messages'&&unreadMessages>0&&<b className="desktop-nav-count">{unreadMessages>99?'99+':unreadMessages}</b>}{label==='Notifications'&&unread>0&&<b className="desktop-nav-count">{unread>99?'99+':unread}</b>}</Link>)}
@@ -275,7 +295,7 @@ export default function App({ Component, pageProps }: AppProps) {
       </aside>
       <header className="mobile-community-header">
         <button type="button" className="mobile-menu-trigger" onClick={() => setMenuOpen(true)} aria-label="Ouvrir le menu">☰</button>
-        <Link prefetch={false} href="/feed" className="mobile-brand"><span className="brand-mark">w</span></Link>{guestName && <span className="guest-name-label">{guestName}</span>}<span className="mobile-header-spacer" />
+        <Link prefetch={false} href="/feed" className="mobile-brand"><WeshbienLogo /></Link>{guestName && <span className="guest-name-label">{guestName}</span>}<span className="mobile-header-spacer" />
 <Link prefetch={false} href="/feed" className="mobile-home-button" aria-label="Accueil" title="Accueil"><NavIcon name="home"/></Link>
 <Link prefetch={false} href="/notifications" className="mobile-notification-button" aria-label="Notifications"><NavIcon name="bell"/>{unread > 0 && <span className="mobile-notification-count">{unread > 99 ? '99+' : unread}</span>}</Link>
         <Link prefetch={false} href="/inbox" className="mobile-chat-button" aria-label="Messages"><NavIcon name="chat"/>{unreadMessages > 0 && <i aria-hidden="true"/>}</Link>
@@ -300,7 +320,7 @@ export default function App({ Component, pageProps }: AppProps) {
       </nav>
       {menuOpen && <div className="mobile-drawer-backdrop" onClick={() => setMenuOpen(false)}>
         <aside className="mobile-drawer" onClick={event => event.stopPropagation()}>
-          <div className="mobile-drawer-heading"><span className="brand"><span className="brand-mark">w</span>weshbien2.</span><button type="button" onClick={() => setMenuOpen(false)} aria-label="Fermer">×</button></div>
+          <div className="mobile-drawer-heading"><span className="brand"><WeshbienLogo />weshbien2.</span><button type="button" onClick={() => setMenuOpen(false)} aria-label="Fermer">×</button></div>
           <small>NAVIGATION</small>
           {navItems.map(([label, href, icon]) => <Link prefetch={false} key={label} href={href} onClick={() => setMenuOpen(false)}><span>{icon}</span>{label}{label === 'Notifications' && unread > 0 && <b className="drawer-count-badge">{unread > 99 ? '99+' : unread}</b>}{label === 'Messages' && unreadMessages > 0 && <b className="drawer-count-badge">{unreadMessages > 99 ? '99+' : unreadMessages}</b>}</Link>)}
           <button className="drawer-theme" type="button" onClick={toggleTheme}>{theme === 'dark' ? '☀️ Mode clair' : '🌙 Mode sombre'}</button>
