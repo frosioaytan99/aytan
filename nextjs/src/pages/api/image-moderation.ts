@@ -26,6 +26,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
   const service = process.env.SUPABASE_SERVICE_ROLE_KEY
   const openaiKey = process.env.OPENAI_API_KEY
+  // Configure this with a key from a separate OpenAI organization/project for failover.
+  const openaiBackupKey = process.env.OPENAI_API_KEY_BACKUP
   if (!url || !anon || !service) {
     return res.status(503).json({ error: 'image_moderation_not_configured' })
   }
@@ -128,7 +130,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(200).json({ image_url: 'private-media:' + path })
     }
 
-    if (!openaiKey) return res.status(503).json({ error: 'image_moderation_not_configured' })
+    const moderationKeys = [...new Set([openaiKey, openaiBackupKey].filter((key): key is string => Boolean(key?.trim())))]
+    if (moderationKeys.length === 0) return res.status(503).json({ error: 'image_moderation_not_configured' })
 
     // Animated GIFs are decoded and every frame is checked. The moderation API
     // receives still images, so checking only the GIF container could miss explicit
@@ -163,18 +166,41 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const allResults: any[] = []
     for (let offset = 0; offset < frames.length; offset += 8) {
       const batch = frames.slice(offset, offset + 8)
-      const moderationResponse = await fetch('https://api.openai.com/v1/moderations', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${openaiKey}` },
-        body: JSON.stringify({
-          model: 'omni-moderation-latest',
-          input: batch.map(frame => ({
-            type: 'image_url',
-            image_url: { url: 'data:image/png;base64,' + frame.toString('base64') },
-          })),
-        }),
-      })
-      if (!moderationResponse.ok) return res.status(502).json({ error: 'moderation_service_unavailable' })
+      let moderationResponse: Response | null = null
+      for (let keyIndex = 0; keyIndex < moderationKeys.length; keyIndex++) {
+        try {
+          const response = await fetch('https://api.openai.com/v1/moderations', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${moderationKeys[keyIndex]}` },
+            body: JSON.stringify({
+              model: 'omni-moderation-latest',
+              input: batch.map(frame => ({
+                type: 'image_url',
+                image_url: { url: 'data:image/png;base64,' + frame.toString('base64') },
+              })),
+            }),
+          })
+
+          if (response.ok) {
+            moderationResponse = response
+            break
+          }
+
+          // Retry with the backup key for rate limits, temporary API failures,
+          // or a key/project configuration problem. Do not retry content errors.
+          const canFailOver = response.status === 401 || response.status === 403 ||
+            response.status === 429 || response.status >= 500
+          if (!canFailOver || keyIndex === moderationKeys.length - 1) {
+            return res.status(502).json({ error: 'moderation_service_unavailable' })
+          }
+        } catch {
+          // A network failure on the primary key also gets one backup attempt.
+          if (keyIndex === moderationKeys.length - 1) {
+            return res.status(502).json({ error: 'moderation_service_unavailable' })
+          }
+        }
+      }
+      if (!moderationResponse) return res.status(502).json({ error: 'moderation_service_unavailable' })
       const payload = await moderationResponse.json()
       if (!Array.isArray(payload?.results) || payload.results.length !== batch.length) {
         return res.status(502).json({ error: 'moderation_result_unavailable' })
