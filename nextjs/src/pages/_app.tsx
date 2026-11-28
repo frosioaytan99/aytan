@@ -24,19 +24,20 @@ function NavIcon({name}:{name:string}) {
 
 function WeshbienLogo() {
  return <span className="brand-mark brand-mark-royal" aria-hidden="true">
-  <svg viewBox="0 0 64 64" role="presentation" focusable="false">
+  <svg viewBox="0 0 1024 1024" role="presentation" focusable="false">
    <defs>
-    <linearGradient id="wb-violet" x1="8" y1="8" x2="56" y2="58" gradientUnits="userSpaceOnUse"><stop stopColor="#E1B7FF"/><stop offset=".42" stopColor="#A855F7"/><stop offset="1" stopColor="#6425C8"/></linearGradient>
-    <linearGradient id="wb-gold" x1="18" y1="4" x2="48" y2="23" gradientUnits="userSpaceOnUse"><stop stopColor="#FFF1A8"/><stop offset=".5" stopColor="#E8B94F"/><stop offset="1" stopColor="#A96A18"/></linearGradient>
-    <filter id="wb-glow" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="3.2" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <linearGradient id="wb-ribbon" x1="260" y1="230" x2="810" y2="760" gradientUnits="userSpaceOnUse"><stop stopColor="#F8B8FF"/><stop offset=".28" stopColor="#B52CFF"/><stop offset=".58" stopColor="#5100D8"/><stop offset=".82" stopColor="#E34BFF"/><stop offset="1" stopColor="#7B18F5"/></linearGradient>
+    <linearGradient id="wb-gold" x1="180" y1="110" x2="470" y2="300" gradientUnits="userSpaceOnUse"><stop stopColor="#FFF7B8"/><stop offset=".25" stopColor="#FFC83D"/><stop offset=".58" stopColor="#E88B08"/><stop offset=".82" stopColor="#FFF0A0"/><stop offset="1" stopColor="#A95A00"/></linearGradient>
+    <linearGradient id="wb-orbit" x1="140" y1="760" x2="900" y2="300" gradientUnits="userSpaceOnUse"><stop stopColor="#A000FF"/><stop offset=".48" stopColor="#F18BFF"/><stop offset="1" stopColor="#7D00FF"/></linearGradient>
+    <filter id="wb-glow" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="13" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
    </defs>
-   <circle cx="32" cy="35" r="26" fill="none" stroke="#A855F7" strokeOpacity=".38" strokeWidth="2"/>
-   <circle cx="32" cy="35" r="21.5" fill="#180D2B" fillOpacity=".22" stroke="#D8B4FE" strokeOpacity=".3"/>
-   <path d="M12 25 21 49 31.5 31 42 49 52 25" fill="none" stroke="url(#wb-violet)" strokeWidth="7" strokeLinecap="round" strokeLinejoin="round" filter="url(#wb-glow)"/>
-   <path d="M19 18 15 8 25 14 32 5 39 14 49 8 45 19Z" fill="url(#wb-gold)" stroke="#FFE7A0" strokeWidth="1.2" strokeLinejoin="round"/>
-   <path d="M18 19H46L44 23H20Z" fill="#C68B2C"/>
-   <circle cx="32" cy="13" r="2.4" fill="#A855F7" stroke="#FFF0B4" strokeWidth="1"/>
-   <circle cx="21" cy="16" r="1.6" fill="#C4B5FD"/><circle cx="43" cy="16" r="1.6" fill="#C4B5FD"/>
+   <circle cx="512" cy="520" r="430" fill="none" stroke="url(#wb-orbit)" strokeWidth="8" opacity=".8"/>
+   <path d="M190 285 C255 220 310 235 345 315 L470 600 C492 652 524 640 553 580 L654 360 C685 292 730 292 765 360 L850 545 C880 610 925 600 950 535 L1010 365 C1030 310 1070 300 1100 330 L1000 680 C975 770 900 790 850 710 L710 490 C685 450 660 452 640 495 L510 720 C465 800 385 790 350 710 Z" transform="translate(-65 0) scale(1.05 1)" fill="url(#wb-ribbon)" stroke="#D98BFF" strokeWidth="5" filter="url(#wb-glow)"/>
+   <path d="M145 260 C275 380 405 390 485 245 L510 120 L545 245 C625 390 750 380 875 260 L845 390 C720 485 600 465 510 350 C420 465 300 485 175 390 Z" fill="url(#wb-gold)" stroke="#FFE58A" strokeWidth="10" strokeLinejoin="round"/>
+   <path d="M170 390 Q510 520 850 390 L830 430 Q510 555 190 430Z" fill="#C77A08" stroke="#FFE7A0" strokeWidth="8"/>
+   <path d="M330 310 L365 255 L400 310 L365 350Z M490 270 L530 195 L570 270 L530 315Z M650 310 L685 255 L720 310 L685 350Z" fill="#7900D8" stroke="#FFE5FF" strokeWidth="9"/>
+   <path d="M160 520 C70 650 190 800 360 870 C590 965 860 845 930 650 C990 480 900 330 790 275" fill="none" stroke="url(#wb-orbit)" strokeWidth="13" opacity=".9"/>
+   <path d="M90 650 C280 790 650 650 930 430" fill="none" stroke="url(#wb-orbit)" strokeWidth="24" filter="url(#wb-glow)"/>
   </svg>
  </span>
 }
