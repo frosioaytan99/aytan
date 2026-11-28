@@ -24,20 +24,17 @@ function NavIcon({name}:{name:string}) {
 
 function WeshbienLogo() {
  return <span className="brand-mark brand-mark-royal" aria-hidden="true">
-  <svg viewBox="0 0 1024 1024" role="presentation" focusable="false">
+  <svg viewBox="0 0 100 100" role="presentation" focusable="false">
    <defs>
-    <linearGradient id="wb-ribbon" x1="260" y1="230" x2="810" y2="760" gradientUnits="userSpaceOnUse"><stop stopColor="#F8B8FF"/><stop offset=".28" stopColor="#B52CFF"/><stop offset=".58" stopColor="#5100D8"/><stop offset=".82" stopColor="#E34BFF"/><stop offset="1" stopColor="#7B18F5"/></linearGradient>
-    <linearGradient id="wb-gold" x1="180" y1="110" x2="470" y2="300" gradientUnits="userSpaceOnUse"><stop stopColor="#FFF7B8"/><stop offset=".25" stopColor="#FFC83D"/><stop offset=".58" stopColor="#E88B08"/><stop offset=".82" stopColor="#FFF0A0"/><stop offset="1" stopColor="#A95A00"/></linearGradient>
-    <linearGradient id="wb-orbit" x1="140" y1="760" x2="900" y2="300" gradientUnits="userSpaceOnUse"><stop stopColor="#A000FF"/><stop offset=".48" stopColor="#F18BFF"/><stop offset="1" stopColor="#7D00FF"/></linearGradient>
-    <filter id="wb-glow" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="13" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <linearGradient id="wb-violet" x1="20" y1="15" x2="82" y2="88" gradientUnits="userSpaceOnUse"><stop stopColor="#F7B5FF"/><stop offset=".35" stopColor="#C12CFF"/><stop offset=".68" stopColor="#6900E8"/><stop offset="1" stopColor="#ED68FF"/></linearGradient>
+    <linearGradient id="wb-gold" x1="22" y1="5" x2="70" y2="35" gradientUnits="userSpaceOnUse"><stop stopColor="#FFF5B0"/><stop offset=".4" stopColor="#FFC13B"/><stop offset="1" stopColor="#D47A00"/></linearGradient>
+    <filter id="wb-glow" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="2.2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
    </defs>
-   <circle cx="512" cy="520" r="430" fill="none" stroke="url(#wb-orbit)" strokeWidth="8" opacity=".8"/>
-   <path d="M190 285 C255 220 310 235 345 315 L470 600 C492 652 524 640 553 580 L654 360 C685 292 730 292 765 360 L850 545 C880 610 925 600 950 535 L1010 365 C1030 310 1070 300 1100 330 L1000 680 C975 770 900 790 850 710 L710 490 C685 450 660 452 640 495 L510 720 C465 800 385 790 350 710 Z" transform="translate(30 0) scale(.9 1)" fill="url(#wb-ribbon)" stroke="#D98BFF" strokeWidth="5" filter="url(#wb-glow)"/>
-   <path d="M145 260 C275 380 405 390 485 245 L510 120 L545 245 C625 390 750 380 875 260 L845 390 C720 485 600 465 510 350 C420 465 300 485 175 390 Z" fill="url(#wb-gold)" stroke="#FFE58A" strokeWidth="10" strokeLinejoin="round"/>
-   <path d="M170 390 Q510 520 850 390 L830 430 Q510 555 190 430Z" fill="#C77A08" stroke="#FFE7A0" strokeWidth="8"/>
-   <path d="M330 310 L365 255 L400 310 L365 350Z M490 270 L530 195 L570 270 L530 315Z M650 310 L685 255 L720 310 L685 350Z" fill="#7900D8" stroke="#FFE5FF" strokeWidth="9"/>
-   <path d="M160 520 C70 650 190 800 360 870 C590 965 860 845 930 650 C990 480 900 330 790 275" fill="none" stroke="url(#wb-orbit)" strokeWidth="13" opacity=".9"/>
-   <path d="M90 650 C280 790 650 650 930 430" fill="none" stroke="url(#wb-orbit)" strokeWidth="24" filter="url(#wb-glow)"/>
+   <circle cx="50" cy="55" r="43" fill="none" stroke="#A52BFF" strokeWidth="2.2" opacity=".8"/>
+   <path d="M17 37 L30 76 Q32 81 36 73 L49 48 Q51 44 54 49 L67 74 Q71 82 75 73 L87 38" fill="none" stroke="url(#wb-violet)" strokeWidth="11" strokeLinecap="round" strokeLinejoin="round" filter="url(#wb-glow)"/>
+   <path d="M18 29 L23 12 L36 25 L49 5 L62 25 L76 12 L82 30 Q51 43 18 29Z" fill="url(#wb-gold)" stroke="#FFE9A0" strokeWidth="2" strokeLinejoin="round"/>
+   <path d="M19 30 Q50 43 81 30 L78 36 Q50 49 22 36Z" fill="#C77A08" stroke="#FFE9A0" strokeWidth="1.5"/>
+   <path d="M44 25 L50 15 L56 25 L50 32Z" fill="#7900D8" stroke="#FFF0FF" strokeWidth="1.3"/>
   </svg>
  </span>
 }
